@@ -89,3 +89,4 @@ ipcMain.on('new-template-downloaded', (e, data) => {
 ipcMain.on('new-project-downloaded', (e, data) => {
   e.sender.send('new-project-added-info', data)
 })
+
