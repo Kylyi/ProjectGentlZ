@@ -1,0 +1,1 @@
+[{"name":"Net BPO","value":"net_bpo","editable":true,"visible":true,"alignment":"center","dataType":"number"},{"name":"Net contractual date","value":"net_contract_delivery","editable":true,"visible":true,"alignment":"center","dataType":"date"},{"name":"Actual dispatch date","value":"actual_dispatch_date","editable":true,"visible":true,"alignment":"center","dataType":"date"}]

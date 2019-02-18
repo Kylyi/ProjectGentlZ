@@ -1,0 +1,29 @@
+.tit {
+  /* border-bottom: 2px solid; */
+  font-weight: bold;
+  color: #1976D2;
+  font-size: 1em;
+}
+
+.subtit {
+  border-bottom: 1px solid;
+  font-weight: bold;
+  color: #1E88E5;
+}
+
+.v-icon.outlined {
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  height: 56px;
+  width: 56px;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.subtit2 {
+  font-weight: bold;
+  color: #1976D2;
+  font-size: 14px;
+}
