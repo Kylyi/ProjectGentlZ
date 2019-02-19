@@ -10,7 +10,7 @@
 </style>
 
 <script>
-import db from '../main/scripts/database'
+  import db from '../main/scripts/database'
   const sql = require("mssql/msnodesqlv8");
   const conn = new sql.ConnectionPool({
     database: "ppes_dev",

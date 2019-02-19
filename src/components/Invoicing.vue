@@ -354,7 +354,6 @@
           selector: {},
           limit: null
         })
-        console.log(billings.docs)
         return billings.docs
       }     
 

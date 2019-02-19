@@ -8,14 +8,14 @@
       app>
       <v-list>
         <!-- Dashboard -->
-        <v-list-tile router to="/">
+        <!-- <v-list-tile router to="/">
           <v-list-tile-action>
             <v-icon>dashboard</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
             <v-list-tile-title>Dash</v-list-tile-title>
           </v-list-tile-content>
-        </v-list-tile>
+        </v-list-tile> -->
 
         <!-- Templates -->
         <v-list-group prepend-icon="assignment">

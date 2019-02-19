@@ -50,6 +50,12 @@
 
           <v-expansion-panel-content>
             <v-flex slot="header">Some other settings</v-flex>
+            <v-card>
+              <v-card-text>
+                <v-btn @click="resetViews">Reset views</v-btn>
+                <v-btn @click="destroyDb">Destroy local db</v-btn>
+              </v-card-text>
+            </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-layout>
@@ -86,6 +92,7 @@
   const path = require('path')
   const localStorage = require('localStorage')
   import DataFrame from "dataframe-js"
+  import db from '../main/scripts/database'
 
   export default {
     name: 'settings',
@@ -130,6 +137,16 @@
         fs.writeFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), toBeSaved, 'utf8', (err, res) => {
           if (err) throw err;
         })
+      },
+      resetViews() {
+        sessionStorage.clear()
+        localStorage.clear()
+      },
+      destroyDb() {
+        db.projects.destroy()
+        db.billings.destroy()
+        db.settings.destroy()
+        db.templates.destroy()
       }
     },
     watch: {

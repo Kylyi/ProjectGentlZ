@@ -8,7 +8,7 @@ export default new Router({
   routes: [{
       path: '/',
       name: 'home',
-      component: require('../components/Home.vue').default
+      component: require('../components/TemplateGenerator.vue').default
     },
     {
       path: '/templateGenerator',

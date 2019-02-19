@@ -69,7 +69,7 @@
 
           <!-- // Button -->
           <v-flex row mt-2>
-            <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="submitExcel" depressed color="primary"> Import datafile </v-btn>
+            <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="fileType === 'xlsx' ? submitExcel() : submit()" depressed color="primary"> Import datafile </v-btn>
           </v-flex>
 
         </v-flex>
@@ -155,7 +155,7 @@ export default {
 
             dateFields.forEach(dateField => {
 
-              const date = moment(e[dateField], 'DD.MM.YYYY', false).toISOString()
+              const date = moment(e[dateField], 'DD.MM.YYYY', false).add(1, 'day').toISOString()
 
               if (dateField === 'inv_date') {
                 e['inv_date'] = {[currentDate]: date.substr(0, 10)}
@@ -246,7 +246,7 @@ export default {
           title: 'Get template',
           defaultPath: 'desktop',
           filters: [
-            {name: 'Text file', extensions: ['txt', 'csv']}
+            {name: 'File', extensions: ['txt', 'csv', 'xlsx']},
           ],
           buttonLabel: 'Import data'
         }, (p) => {
@@ -281,7 +281,7 @@ export default {
 
             dateFields.forEach(dateField => {
 
-              const date = moment(e[dateField]).toISOString()
+              const date = moment(e[dateField]).add(1, 'day').toISOString()
 
               if (dateField === 'inv_date') {
                 e['inv_date'] = {[currentDate]: date.substr(0, 10)}
