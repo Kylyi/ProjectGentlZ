@@ -78,18 +78,16 @@
                   <li>Template generator supports <b>.docx</b> and <b>.xlsx</b> formats.</li>
                   <li>Template name doesn't have to be the same as the file name.</li>
                   <li>If you want to properly use the power of template generator, you can add fields that will automatically
-                    fill when generated. These fields must be in following format - <b>{field name}</b>. <br> <i>For example: This is my Project ID - <b>{_id}</b>.</i>
+                    fill when generated. These fields must be in following format:
+                    <ul>
+                      <li><b>{field_name}</b> for MS Word files</li>
+                      <li><b>${field_name}</b> for MS Excel files</li>
+                    </ul>
+                    <br>
                   </li>
                   <li>
-                    Currently, templates can have these fields to autofill:
-                    <ul>
-                      <li>_id (Project ID)</li>
-                      <li>project_name</li>
-                      <li>project_PM</li>
-                      <li>customer</li>
-                      <li>customer_contact_person</li>
-                      <li>quotation_number</li>
-                    </ul>
+                    Currently, templates have these fields to autofill: <br>
+                      <b>[Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules] </b>
                   </li>
                 </ul>
               </p>

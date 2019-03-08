@@ -69,6 +69,16 @@
                 </v-list-tile-content>
               </v-list-tile>
 
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>Import projects</v-list-tile-title>
+                  <v-list-tile-action-text>
+                    <v-btn flat depressed outline color="primary" @click="yikes">Active projects</v-btn>
+                  </v-list-tile-action-text>
+
+                </v-list-tile-content>
+              </v-list-tile>
+
 
             </v-list>
 
@@ -219,9 +229,9 @@
         </v-flex>
 
         <!-- Right side -->
-        <v-flex xs3 offset-xs4>
+        <v-flex xs4 offset-xs3>
           <v-layout row wrap>
-            <v-flex column xs8 pr-4>
+            <v-flex column xs12 pr-4>
               <v-form
                 ref="projectAddForm"
                 v-model="projectAddValid"
@@ -238,13 +248,13 @@
               </v-form>
             </v-flex>
 
-            <v-flex column xs4>
+            <!-- <v-flex column xs6>
               <v-select
                 v-model="divisionSelect"
-                :items="['ppes_1301', 'ppes_1601']"
+                :items="['[PPES].[dbo].[lvmv_networks]', '[Ppes-export_1601_AB1]']"
                 label="Division"
               ></v-select>
-            </v-flex>
+            </v-flex> -->
           </v-layout>
 
           <v-divider></v-divider>
@@ -331,6 +341,9 @@
   import db from '../main/scripts/database'
   import {projectsImport} from '../main/scripts/addProjects'
   import fs from 'fs'
+  import {readFile} from '../main/scripts/misc'
+  import {getAllProjects} from '../main/scripts/getProjects'
+  const path = require('path')
 
 
   console.timeEnd('someFunction');
@@ -353,7 +366,7 @@
       mode: localStorage.getItem('generatorMode') ? localStorage.getItem('generatorMode') : 'project',
       optionsMenu: false,
       docOpen: localStorage.getItem('docOpen') ? localStorage.getItem('docOpen') : 'yes',
-      divisionSelect: 'ppes_1301'
+      divisionSelect: '[lvmv_networks]'
     }),
     beforeCreate: function () {
       ipcRenderer.on('generated', (e, p, docOpen) => {
@@ -452,17 +465,10 @@
       addProject() {
         if (!this.projectAddValid || this.projectToAdd.length === 0) return
         const sql = require("mssql/msnodesqlv8");
-        const conn = new sql.ConnectionPool({
-          database: "ppes_dev",
-          server: "localhost\\SQLEXPRESS",
-          driver: "msnodesqlv8",
-          options: {
-            trustedConnection: true
-          }
-        });
+        const conn = new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
         conn.connect()
           .then(() => {
-            async function getData(projectId, div) {
+            async function getSingleProjectData(projectId, div) {
               try {
                 const sapData = await conn.request().query(`select * from ${div} where [Project Definition] = '${projectId}'`)
                 const x = sapData['recordset']
@@ -518,22 +524,68 @@
               }
             }
 
-             return getData(this.projectToAdd, this.divisionSelect)
+            async function getAllProjectsData(div) {
+              try {
+                const sapData = await conn.request().query(`select top 10 * from ${div}`)
+                const x = sapData['recordset']
+
+                const y = x.reduce((agg, e) => {
+                  const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
+                  
+                  if (f === -1) {
+                    // Project ID not in aggregator
+                    return [...agg, {
+                      project_id: e['Project Definition'],
+                      nets: [{
+                        net_num: e['Network Num'],
+                        net_info: [{
+                          task_num: e['Task Num'],
+                          task_info: e
+                        }]
+                      }]
+                    }]
+
+                  } else {
+                    // Project ID in aggregator
+                    const f2 = agg[f]['nets'].map(a => a.net_num === e['Network Num']).indexOf(true)
+
+                    if (f2 === -1) {
+                      // Network num not in aggregator
+                      agg[f]['nets'].push({
+                        net_num: e['Network Num'],
+                        net_info: [{
+                          task_num: e['Task Num'],
+                          task_info: e
+                        }]
+                      })
+
+                      return agg
+
+                    } else {
+                      // Network num in aggregator
+                      agg[f]['nets'][f2]['net_info'].push({
+                        task_num: e['Task Num'],
+                        task_info: e 
+                        })
+                      return agg
+                    }
+
+                  }
+                }, [])
+
+                return y
+
+              } catch (error) {
+                console.log(error)
+              }
+            }
+            
+            // return getAllProjectsData(this.divisionSelect)
+            return getSingleProjectData(this.projectToAdd, this.divisionSelect)
           })
           .then(projectInfo => this.projectAddInfo = projectInfo.length > 0 ? projectInfo : null)
           .then(() => conn.close())
           .catch(e => console.error(e))
-      },
-      async t() {
-        dialog.showOpenDialog(null, {
-          title: 'Get projects',
-          buttonLabel: 'Save template'
-        }, (p) => {
-          if (p) {
-            projectsImport(p[0])
-              .then(e => db.projects.upsertBulk(e))
-          }
-        })
       },
       async confirmAdd () {
         this.projectAddInfo.forEach(p => {
@@ -551,10 +603,24 @@
         })
       },
       async setGeneratorMode(e) {
+        this.$refs.projS.PROJ = ''
         localStorage.setItem('generatorMode', e)
       },
       setDocOpen(e) {
         localStorage.setItem('docOpen', e)
+      },
+      async yikes() {
+        getAllProjects()
+          .then(() => {
+            this.snackbar = true
+            this.color = 'success'
+            this.snackText = 'Projects were successfuly imported.'
+          })
+          .catch(err => {
+            this.snackbar = true
+            this.color = 'error'
+            this.snackText = err
+          })
       }
     },
     components: {ProjectSelector, TemplateSelector}

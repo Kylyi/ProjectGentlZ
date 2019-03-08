@@ -5,6 +5,9 @@ import generate from './scripts/docx'
 import {generateXlsx} from './scripts/xlsx'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
+import {configDatabaseSettings} from './scripts/misc'
+configDatabaseSettings()
+
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -22,9 +25,10 @@ function createMainWindow() {
   //   window.webContents.openDevTools()
   // }
 
-  window.webContents.openDevTools()
+  // window.webContents.openDevTools()
 
   if (isDevelopment) {
+    window.webContents.openDevTools()
     window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`)
   }
   else {
@@ -67,6 +71,7 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow()
+  // loginWindow = createMainWindow()
 })
 
 ipcMain.on('tmpl-gen', (e, data) => {
@@ -90,3 +95,7 @@ ipcMain.on('new-project-downloaded', (e, data) => {
   e.sender.send('new-project-added-info', data)
 })
 
+ipcMain.on('userInfo', (e, userInfo) => {
+  global.user = userInfo
+  e.sender.send('userInfo', userInfo)
+})

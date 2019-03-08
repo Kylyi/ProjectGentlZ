@@ -12,17 +12,28 @@
   },
   "build": {
     "productName": "Gentl",
+    "win": {
+      "target": "nsis",
+      "icon": "C:/Users/kyli/Desktop/Logo.ico",
+      "publisherName": "Jakub Kylian"
+    },
+    "nsis": {
+      "installerIcon": "C:/Users/kyli/Desktop/Logo.ico",
+      "uninstallerIcon": "C:/Users/kyli/Desktop/Logo.ico"
+    },
     "extraResources": [
       {
         "from": "./src/defaultSettings/",
         "to": "defaultSettings",
         "filter": [
-          "**/*"
+          "**/*",
+          "!**/databaseSettings.json"
         ]
       }
     ]
   },
   "dependencies": {
+    "bcrypt": "^3.0.4",
     "csvjson": "^5.1.0",
     "dataframe-js": "^1.3.2",
     "devextreme": "^18.2.5",
@@ -35,6 +46,7 @@
     "fs-temp": "^1.1.2",
     "iconv-lite": "^0.4.24",
     "jszip": "2.6.1",
+    "keytar": "^4.4.1",
     "knex": "^0.16.3",
     "localStorage": "^1.0.4",
     "mammoth": "^1.4.7",
@@ -43,6 +55,7 @@
     "msnodesqlv8": "^0.6.12",
     "mssql": "^4.1.0",
     "node-sass": "^4.11.0",
+    "polyonic-secure-pouch": "^1.0.3",
     "pouchdb": "^7.0.0",
     "pouchdb-adapter-http": "^7.0.0",
     "pouchdb-find": "^7.0.0",
@@ -51,6 +64,7 @@
     "pouchdb-upsert-bulk": "^1.0.2",
     "sass-loader": "^7.1.0",
     "source-map-support": "^0.5.10",
+    "username": "^4.1.0",
     "v-tooltip": "^2.0.0-rc.33",
     "vue": "^2.6.3",
     "vue-electron": "^1.0.6",
@@ -58,6 +72,7 @@
     "vue-notification": "^1.3.15",
     "vue-router": "^3.0.2",
     "vue-shortkey": "^3.1.6",
+    "vue-slimgrid": "^0.1.39",
     "vue2-dropzone": "^3.5.2",
     "vuedraggable": "^2.17.0",
     "vuetify": "^1.5.0",
@@ -68,6 +83,7 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^8.0.5",
     "css-loader": "^2.1.0",
+    "devextreme-intl": "^18.2.6",
     "electron": "^3.1.3",
     "electron-builder": "20.38.4",
     "electron-is-dev": "^1.0.1",

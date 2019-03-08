@@ -99,7 +99,7 @@
     created: async function () {
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
       const detailSettings = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8'))
-      
+      allOptions.push({dataType: 'special', editable: false, name: 'Invoice date', value: 'inv_date', visible: false})
 
       const x = allOptions.map(e => {
         const y = detailSettings.filter(u => e['value'] === u['value'])

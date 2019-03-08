@@ -151,6 +151,7 @@ export default {
             e['project_ob'] = Number(e['project_ob'])
             e['net_panels_no'] = Number(e['net_panels_no'])
             e['change_date'] = currentDate
+            e['sign'] = {}
             e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
 
             dateFields.forEach(dateField => {
@@ -188,7 +189,7 @@ export default {
 
                 return e
               } else {
-                return Object.assign(e, {fixedFields: []})
+                return Object.assign(e, {fixedFields: ['sign']})
               }
 
             })
@@ -277,6 +278,7 @@ export default {
             e['project_ob'] = Number(e['project_ob'])
             e['net_panels_no'] = Number(e['net_panels_no'])
             e['change_date'] = currentDate
+            e['sign'] = {}
             e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
 
             dateFields.forEach(dateField => {
@@ -314,7 +316,7 @@ export default {
 
                 return e
               } else {
-                return Object.assign(e, {fixedFields: []})
+                return Object.assign(e, {fixedFields: ['sign']})
               }
 
             })
@@ -341,7 +343,7 @@ export default {
           })
 
         } catch (err) {
-           this.snackbar = true
+          this.snackbar = true
           this.color = 'error'
           this.snackText = err
         }

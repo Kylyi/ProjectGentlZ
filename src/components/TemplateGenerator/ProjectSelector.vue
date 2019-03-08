@@ -33,11 +33,12 @@ export default {
       since: 'now',
       live: true
       }).on('change', (change) => {
-      getProjs().then(e => {
-        this.projs = e
-        sessionStorage.setItem('projectsBasic', JSON.stringify(e))
+        getProjs().then(e => {
+          this.projs = e
+          this.projsFiltered = JSON.parse(JSON.stringify(e))
+          sessionStorage.setItem('projectsBasic', JSON.stringify(e))
+        })
       })
-    })
 
     this.mode = this.$parent.mode
 

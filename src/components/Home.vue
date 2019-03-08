@@ -1,7 +1,6 @@
 <template>
   <v-container>
-    <v-btn @click="getData">click</v-btn>
-    <v-btn @click="t">Test</v-btn>
+    <v-btn @click="yikes">Yikes</v-btn>
   </v-container>
 </template>
 
@@ -11,24 +10,15 @@
 
 <script>
   import db from '../main/scripts/database'
-  const sql = require("mssql/msnodesqlv8");
-  const conn = new sql.ConnectionPool({
-    database: "ppes_dev",
-    server: "localhost\\SQLEXPRESS",
-    driver: "msnodesqlv8",
-    options: {
-      trustedConnection: true
-    }
-  });
-  conn.connect()
-    .then(() => {
-    console.log('connected')
-    })
-    .catch(e => console.error(e))
+  import PouchDB from 'pouchdb'
+  const remoteProjects = new PouchDB('https://admin:bf9cc5c5bfb6@couchdb-615ac0.smileupps.com/projects/')
 
   export default {
     data: () => ({
-      value1: ''
+      value1: '',
+      arr: ['close', 'add'],
+      sel: null,
+      data: []
     }),
     methods: {
       async getData() {
@@ -61,10 +51,44 @@
          from ppes_1601 where ([Task Num] = '0435' and [Delivery Date] > '2019-01-01')")
         console.log(a)
       },
-      async t() {
-        const a = await db.billings.allDocs()
-        console.log(a)
+      async dumpDb () {
+        const toBeSaved = await other.allDocs({include_docs: true})
+        // const toBeSaved = await other.get('01b26189fe4662f4da5a7bbb7b002f03')
+        let a = toBeSaved.rows.map(e => e.doc)
+        // a = a.map(e => {
+        //   console.log(e)
+        // })
+        
+        const x = a.map(e => {
+          Object.keys(e.feelings).forEach(f => {
+            e[f] = e.feelings[f]
+          });
+
+          e.audioAnswers.forEach((a, idx) => {
+            e[`${idx+1}_words`] = Object.values(a).toString()
+          });
+
+          return e
+        })
+
+        delete x['audioAnswers']
+        delete x['feelings']
+
+        // fs.writeFile("C:/Users/kyli/Desktop/output.json", JSON.stringify(x), 'utf8', (err, res) => {
+        //   if (err) throw err;
+        // })
+        this.data = x
+      },
+      async yikes () {
+        // db.user.put({
+        //   _id: '01',
+        //   xxx: 'uuu'
+        // })
+
+        console.log(await db.user.allDocs({include_docs: true}))
       }
+    },
+    components: {
     }
 }
 </script>
