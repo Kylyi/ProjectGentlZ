@@ -334,7 +334,6 @@
   const {ipcRenderer} = require('electron')
   const {dialog} = require('electron').remote
   const shell = require('electron').shell
-  const mammoth = require('mammoth')
 
   import TemplateSelector from './TemplateGenerator/TemplateSelector'
   import ProjectSelector from './TemplateGenerator/ProjectSelector'
