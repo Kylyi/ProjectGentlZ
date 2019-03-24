@@ -17,7 +17,10 @@ const getters = {
 
 const actions = {
   async checkLoggedIn({ commit }, userDoc) {
-    if (!userDoc) return false
+    if (!userDoc) {
+      commit('setLoggedIn', false)
+      return
+    }
     const {password, ...userInfo} = userDoc
     commit('setUserInfo', userInfo)
     commit('setUserPassword', password)

@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "author": "Jakub Kylian",
+  "homepage": "https://none.cz",
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
@@ -16,6 +17,10 @@
       "target": "nsis",
       "icon": "C:/Users/kyli/Desktop/Logo.ico",
       "publisherName": "Jakub Kylian"
+    },
+    "linux": {
+      "target": "deb",
+      "maintainer": "Jakub Kylian"
     },
     "nsis": {
       "installerIcon": "C:/Users/kyli/Desktop/Logo.ico",

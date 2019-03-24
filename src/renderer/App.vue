@@ -181,7 +181,7 @@
         <v-card-title primary-title style="padding: 0px;">
           <v-layout column xs12 text-xs-center>
 
-            <v-flex row wrap v-if="userInfo" style="text-align: -webkit-center;">
+            <v-flex row wrap v-if="userInfo.hasOwnProperty('password')" style="text-align: -webkit-center;">
               <v-flex row wrap>
                 <input v-model="userPassword" type="password" autocomplete="off" placeholder="Password" class="el-input__inner" style="width: 320px; text-align: center;" @keyup.enter="callLogin" />
               </v-flex>
