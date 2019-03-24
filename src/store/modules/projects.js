@@ -111,13 +111,13 @@ const actions = {
       const projs = await getProjects()
       localStorage.setItem('pmProjectsBasic', JSON.stringify(projs.docs))
       commit('setPmProjects', projs.docs)
+      dispatch('prepareProjectsNetMode')
+      dispatch('prepareProjectsProjectMode')
     } else {
       commit('setPmProjects', JSON.parse(localStorage.getItem('pmProjectsBasic')))
+      dispatch('prepareProjectsNetMode')
+      dispatch('prepareProjectsProjectMode')
     }
-
-    dispatch('prepareProjectsNetMode')
-    dispatch('prepareProjectsProjectMode')
-
   },
   async addSingleProject({ dispatch }, net_num) {
     conn.connect()
@@ -156,7 +156,10 @@ const actions = {
         forceActionSelf: true,
         forceActionOthers: false
       }))
-      .catch(err => console.error(err))
+      .catch(err => {
+        conn.close()
+        console.log(err)
+      })
   },
   async addActiveProjects({ dispatch }) {
     console.time('Projects')
@@ -233,6 +236,9 @@ const actions = {
   },
   async prepareProjectsNetMode({ commit, rootState }) {
     const projsBasic = rootState.projects.pmProjectsBasic
+    console.log('projsBasic: ', projsBasic)
+    if (projsBasic.length === 0) return
+    
     const projsNetMode = projsBasic.reduce((agg, e) => {
       const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
 
@@ -290,6 +296,9 @@ const actions = {
   },
   async prepareProjectsProjectMode({ commit, rootState }) {
     const projsBasic = rootState.projects.pmProjectsBasic
+    console.log('projsBasic: ', projsBasic)
+    if (projsBasic.length === 0) return
+
     const projsProjMode = projsBasic.reduce((agg, e) => {
       const f = agg.map(a => a['Project Definition'] === e['Project Definition']).indexOf(true)
       return f === -1 ? [...agg, e] : agg
