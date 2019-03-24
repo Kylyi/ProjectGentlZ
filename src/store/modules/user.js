@@ -12,7 +12,8 @@ const state = {
 
 const getters = {
   loggedIn: state => state.loggedIn,
-  userInfo: state => state.userInfo
+  userInfo: state => state.userInfo,
+  password: state => state.password
 }
 
 const actions = {
@@ -26,7 +27,10 @@ const actions = {
     commit('setUserPassword', password)
 
     const keychainPass = await keytar.getPassword('Gentl', username.sync())
-    if (!keychainPass) return false
+    if (!keychainPass) {
+      commit('setLoggedIn', false)
+      return
+    }
 
     const validLogin = bcrypt.compareSync(keychainPass, password)
     commit('setLoggedIn', validLogin)
@@ -67,7 +71,7 @@ const actions = {
 const mutations = {
   setLoggedIn: (state, validLogin) => {
     state.loggedIn = validLogin
-    ipcRenderer.send('appIsReady', true)
+    setTimeout(() => ipcRenderer.send('appIsReady', true), 200)
   },
   setUserInfo: (state, userInfo) => state.userInfo = userInfo,
   setUserPassword: (state, password) => state.password = password

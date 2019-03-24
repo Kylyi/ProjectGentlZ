@@ -32,3 +32,8 @@ body::-webkit-scrollbar {
   color: #1976D2;
   font-size: 14px;
 }
+
+@font-face {
+  font-family: 'Lucida Handwriting';
+  src: url('./Lucida Handwriting Italic.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}  

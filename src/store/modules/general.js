@@ -47,7 +47,7 @@ const actions = {
       notification.actionDone = true
     }
     if (notification.notify) commit('addNotification', notification)
-    if (log) db.log.upsert(notification.name, doc => {return {notification, log, forceAction}})
+    if (log) { return db.log.upsert(notification.name, doc => {return {notification, log, forceActionOthers}}) }
   },
   async removeNotification({ commit }, notification) {
     commit('removeNotification', notification)

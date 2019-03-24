@@ -195,7 +195,7 @@ const actions = {
             name: "Projects updated",
             info: "All projects were updated.",
             notify: true,
-            type: "info",
+            type: "error",
             action: 'fetchPmProjectsBasic',
             actionInfo: 'Refresh projects',
             actionArgs: {

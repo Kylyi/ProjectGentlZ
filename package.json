@@ -15,7 +15,7 @@
     "productName": "Gentl",
     "win": {
       "target": "nsis",
-      "icon": "C:/Users/kyli/Desktop/Logo.ico",
+      "icon": "logo.ico",
       "publisherName": "Jakub Kylian"
     },
     "linux": {
@@ -23,8 +23,8 @@
       "maintainer": "Jakub Kylian"
     },
     "nsis": {
-      "installerIcon": "C:/Users/kyli/Desktop/Logo.ico",
-      "uninstallerIcon": "C:/Users/kyli/Desktop/Logo.ico"
+      "installerIcon": "logo.ico",
+      "uninstallerIcon": "logo.ico"
     },
     "extraResources": [
       {
