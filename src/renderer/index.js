@@ -1,40 +1,57 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify'
-import Notifications from 'vue-notification'
-import { DatePicker, Input, Row, Col, Form, FormItem } from 'element-ui'
-import Multiselect from 'vue-multiselect'
-import lang from 'element-ui/lib/locale/lang/en'
-import localElementUi from 'element-ui/lib/locale'
-
-import 'devextreme/dist/css/dx.common.css';
-import 'devextreme/dist/css/dx.light.compact.css';
-
 import App from './App.vue'
+import Vue from 'vue'
+import store from '../store'
 import router from './router.js'
 
-import './assets/style/mystyle.css'
-import 'material-design-icons-iconfont/dist/material-design-icons.css'
-import 'vuetify/dist/vuetify.min.css'
-import 'element-ui/lib/theme-chalk/index.css'
-import 'element-ui/lib/theme-chalk/display.css'
-import 'vue-multiselect/dist/vue-multiselect.min.css'
-import VTooltip from 'v-tooltip'
-
-Vue.use(VTooltip)
+// Vuetify
+import Vuetify from 'vuetify'
 Vue.use(Vuetify)
-Vue.use(Notifications)
-Vue.use(require('vue-shortkey'))
-Vue.component('multiselect', Multiselect)
+import 'vuetify/dist/vuetify.min.css'
+
+// ElementUI
+import { DatePicker, Input, Row, Col, Form, FormItem, Table, TableColumn, InputNumber, Switch } from 'element-ui'
+import lang from 'element-ui/lib/locale/lang/en'
+import localElementUi from 'element-ui/lib/locale'
 Vue.component(DatePicker.name, DatePicker);
 Vue.component(Input.name, Input);
 Vue.component(Row.name, Row);
 Vue.component(Col.name, Col);
 Vue.component(Form.name, Form);
 Vue.component(FormItem.name, FormItem);
+Vue.component(Table.name, Table);
+Vue.component(TableColumn.name, TableColumn);
+Vue.component(InputNumber.name, InputNumber);
+Vue.component(Switch.name, Switch);
 localElementUi.use(lang)
+import 'element-ui/lib/theme-chalk/index.css'
+import 'element-ui/lib/theme-chalk/display.css'
+
+// Mutliselect
+import Multiselect from 'vue-multiselect'
+Vue.component('multiselect', Multiselect)
+import 'vue-multiselect/dist/vue-multiselect.min.css'
+
+// Notifications
+import Notifications from 'vue-notification'
+Vue.use(Notifications)
+
+// Shortkey
+import shortkey from 'vue-shortkey'
+Vue.use(shortkey)
+
+// Tooltips
+// import VTooltip from 'v-tooltip'
+// Vue.use(VTooltip)
+
+// CSS
+import './assets/style/mystyle.css'
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import 'devextreme/dist/css/dx.common.css';
+import 'devextreme/dist/css/dx.light.compact.css';
 
 new Vue({
   components: {App},
+  store,
   router,
   template: '<App/>'
 }).$mount('#app')

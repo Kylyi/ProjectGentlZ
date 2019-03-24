@@ -5,9 +5,16 @@ import generate from './scripts/docx'
 import {generateXlsx} from './scripts/xlsx'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
-import {configDatabaseSettings} from './scripts/misc'
+import {
+  configDatabaseSettings,
+  configInvoicingColumns,
+  configInvoicingDetails,
+  configProjectsDetail
+} from './scripts/misc'
 configDatabaseSettings()
-
+configInvoicingColumns()
+configInvoicingDetails()
+configProjectsDetail()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -19,13 +26,14 @@ function createMainWindow() {
     frame: false,
     minHeight: 700,
     minWidth: 1280,
+    show: false
   })
 
   // if (isDevelopment) {
   //   window.webContents.openDevTools()
   // }
 
-  // window.webContents.openDevTools()
+  window.webContents.openDevTools()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -76,14 +84,18 @@ app.on('ready', () => {
 
 ipcMain.on('tmpl-gen', (e, data) => {
   if (data.tmplType === 'docx') {
-    generate(data, (p, docOpen) => {
-      e.sender.send('generated', p, docOpen)
+    generate(data, (p) => {
+      e.sender.send('generated', p)
     })
   } else if (data.tmplType === 'xlsx') {
-    generateXlsx(data, (p, docOpen) => {
-      e.sender.send('generated', p, docOpen)
+    generateXlsx(data, (p) => {
+      e.sender.send('generated', p)
     })
   }
+})
+
+ipcMain.on('appIsReady', (e, isReady) => {
+  if (isReady) mainWindow.show()
 })
 
 ipcMain.on('new-template-downloaded', (e, data) => {

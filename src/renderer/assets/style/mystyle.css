@@ -5,6 +5,11 @@
   font-size: 1em;
 }
 
+.myHeading {
+  font-weight: bold;
+  color: cornflowerblue;
+}
+
 .subtit {
   border-bottom: 1px solid;
   font-weight: bold;
@@ -18,7 +23,7 @@
   width: 56px;
 }
 
-::-webkit-scrollbar {
+body::-webkit-scrollbar {
   display: none;
 }
 

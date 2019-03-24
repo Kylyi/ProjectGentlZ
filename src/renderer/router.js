@@ -7,8 +7,8 @@ Vue.use(Router)
 export default new Router({
   routes: [{
       path: '/',
-      name: 'home',
-      component: require('../components/TemplateGenerator.vue').default
+      name: 'dashboard',
+      component: require('../components/Dashboard.vue').default
     },
     {
       path: '/templateGenerator',
@@ -24,6 +24,11 @@ export default new Router({
       path: '/invoicing',
       name: 'invoicing',
       component: require('../components/Invoicing.vue').default
+    },
+    {
+      path: '/riskRegister',
+      name: 'riskRegister',
+      component: require('../components/RiskRegister.vue').default
     },
     {
       path: '/settings',

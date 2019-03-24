@@ -1,6 +1,7 @@
 import PouchDB from 'pouchdb'
 import username from 'username'
 const SecurePouch = require('polyonic-secure-pouch')
+import store from '../../store/index'
 
 PouchDB.plugin(SecurePouch)
 PouchDB.plugin(require('pouchdb-find'))
@@ -8,24 +9,22 @@ PouchDB.plugin(require('pouchdb-upsert'))
 PouchDB.plugin(require('pouchdb-upsert-bulk'))
 
 const {ipcRenderer} = require('electron')
-const {ipcMain} = require('electron')
 
-const fs = require('fs');
-const path = require('path')
-
-const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects')
+const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
 const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
 const remoteBillings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/billings')
 const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/settings')
 const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
+const remoteLog = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/log')
 
-const projects = new PouchDB('src/db/projects')
+const projects = new PouchDB('src/db/projects', { revs_limit: 2 })
 // const people = new PouchDB('src/db/people')
 const templates = new PouchDB('src/db/templates')
 // const quots = new PouchDB('src/db/quotations')
 const billings = new PouchDB('src/db/billings', { revs_limit: 2 })
 const settings = new PouchDB('src/db/settings')
 const user = new PouchDB('src/db/user')
+const log = new PouchDB('src/db/log')
 
 user.encrypt('#')
 
@@ -42,18 +41,6 @@ settings.allDocs({
 })
 
 projects.sync(remoteProjects, { live: true, retry: true })
-  .on('change', (change) => {
-    if (change.direction === 'pull') {
-      change.change.docs.forEach(e => {
-        ipcRenderer.send('new-project-downloaded', e)
-      })
-    }
-  })
-
-// people.sync(remotePeople, {live: true, retry: true})
-//   .on('change', (change) => {
-//     console.dir(change)
-//   })
 
 templates.sync(remoteTemplates, { live: true, retry: true })
   .on('change', (change) => {
@@ -80,29 +67,10 @@ templates.sync(remoteTemplates, { live: true, retry: true })
     }
   })
 
-// quots.sync(remoteQuots, {
-//     live: true,
-//     retry: true
-//   })
-//   .on('change', (change) => {
-//     console.dir(change)
-//   })
+billings.sync(remoteBillings, { live: true, retry: true })
 
-billings.sync(remoteBillings, {
-    live: true,
-    retry: true
-  })
-  .on('change', (change) => {
-    console.dir(change)
-  })
+settings.sync(remoteSettings, { live: true, retry: true })
 
-settings.sync(remoteSettings, {
-  live: true,
-  retry: true
-})
-  .on('change', (change) => {
-    console.dir(change)
-  })
 
 user.sync(remoteUsers, {
   selector: {
@@ -111,20 +79,38 @@ user.sync(remoteUsers, {
   live: true,
   retry: true
 }).on('change', e => {
-  console.log(e)
+  store.dispatch('addNotification', {
+    notification: {
+      name: 'User changed',
+      info: 'Your account was changed.',
+      notify: true,
+      type: 'info'
+    }
+  })
   getUserInfo()
 })
 
-// var changes = remoteUsers.changes({
-//   selector: {
-//     _id: username.sync()
-//   },
-//   since: 'now',
-//   live: true,
-//   include_docs: true
-// }).on('change', function (change) {
-//   getUserInfo()
-// })
+log.sync(remoteLog, {
+  live: true,
+  retry: true
+}).on('change', e => {
+    if (e.direction === 'pull') {
+      console.log('Pulled')
+
+      const uniqueActions = e.change.docs.reduce((agg, e) => {
+        const isIn = agg.filter(x => {
+          return (x.notification.action === e.notification.action) && (x.notification.actionArgs === e.notification.actionArgs) 
+        })
+
+        return isIn ? agg : [...agg, e]
+      }, [e.change.docs[0]])
+
+      uniqueActions.forEach(action => {
+        action.log = false;
+        store.dispatch("addNotification", action);
+      })
+    }
+})
 
 async function getUserInfo() {
   const loggedUser = username.sync()
@@ -138,9 +124,10 @@ async function getUserInfo() {
 getUserInfo()
 
 export default {
-  projects: projects,
-  templates: templates,
-  billings: billings,
-  settings: settings,
-  user: user
+  projects,
+  templates,
+  billings,
+  settings,
+  user,
+  log
 }

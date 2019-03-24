@@ -1,0 +1,382 @@
+{
+   "risks": {
+      "Health and Safety": [{
+            "name": "Customer requires his own testing in our factory and does not have Note 50 as per Czech electric legislation. ",
+            "info": "Customer is only to witness tests at FAT. Does not perform any testing in person. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Meeting with customer in higher risk country ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ],
+      "High project value or complexity": [{
+         "name": "Project value is above 5MUSD or calculated project complexity is above 300 points",
+         "info": "All  projects with value above 5 MUSD or 300 complexity points should be reviewed by:\n- Project Manager\n- Project Controller or LPG Controller\n- LBU Controller\n- LPG Manager and LBU Manager\n- GPG participant (as nominated by GPG)",
+         "exists": false,
+         "description": "",
+         "plannedAction": "",
+         "owner": "",
+         "probability": "",
+         "priceImpact": ""
+      }],
+      "Commercial Conditions": [{
+            "name": "Contract includes higher than standard liquidated damages or includes any additional penalties.",
+            "info": "Standard liquidated damages are 0,5 % per week with maximum of  5% from contract value.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract is signed with non ABB customer. ",
+            "info": "Standard contract is signed with local ABB unit. Contracts with 3rd party companies carry higher risks and have own commercial conditions. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract includes BACK to BACK commercial conditions with our customer. ",
+            "info": "No Back to Back conditions are applied or accepted in our standard contracts and ABB s.r.o. standard condition apply. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Conditioned billing in purchase order.",
+            "info": "In standard contract 100 percent of contract value is invoiced after fulfilling switchgear delivery in respect to contract delivery condition. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer or contract does not support contractual delivery date postponement in case that customer fails to deliver drawings approval on time.  ",
+            "info": "Our standard contract and its commercial conditions covers \"automatically\" delivery date postponement in case that customer is in delay with our drawings approval. ABB s.r.o. standard approval periods are - 1 week for BS and 2 weeks for detailed drawings.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer or contract does not support any price order variation based on our change management. ",
+            "info": "Change management is a legitimate tool in our standard contract. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Signing of projects order confirmation from our side without having all commercial condition available, clarified or known. ",
+            "info": "Signing of order confirmation from our side means that the contact has been established and that we agree with all points from Purchase Order and its commercial conditions.   We issue our standard order confirmation or 3rd party contracts has its own order confirmation forms.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract includes Performance Guarantee, Defect Liability Guarantee, Advance payment guarantee or any other type of bond.",
+            "info": "Standard project does not include any of the mentioned bond or any other bond.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract includes commercial Letter of credit.",
+            "info": "Standard contract does not include letter of credit. Payment conditions are managed by ABB CIT.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract delivery date in purchase order is shorter than delivery date calculated by internal planning calculation tool and PPES.",
+            "info": "Only if internal planning calculation tool shows BPE<0 and BPO<0 in PPES only then projects are manageable in standard way.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Non standard scope of supply in the projects purchase order. (for example site activities, protection realys settings, transpor base frames, RITTAL panel)",
+            "info": "Standard contract includes delivery of MV switchgear only. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract requires free of charge switchgear storage that is longer than standard period of 8 days.",
+            "info": "Our standard commercial conditions allowed only 8 days free of charge switchgear storage.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ],
+      "Technical Specification": [{
+            "name": "Customer is ordering switchgear based on his own technical specification and the specification is mentioned in PO. ",
+            "info": "Our standard contract includes reference to our technical offer. This technical offer specification is generated from Unigear Pro software and serves as technical description how switchgear should be build. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "List of deviation of customer’s technical switchgear specification against Unigear Pro specification is missing or not available.",
+            "info": "List of deviation is not needed in case that switchgear specification is defined by ABB s.r.o. technical specification only. In case that switchgear is ordered based on customers technical specification, than sales department is to deliver mentioned list of deviation. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer requires nonstandard form of schematic drawings.",
+            "info": "Standard drawings are prepared in Eplan software and based on our standards. Customer does not specify or comment our documentation form. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer requires atypical or nonstandard documents. ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer orders new, not-tested technical solution that might require laboratory type testing. ",
+            "info": "Standard projects include existing and already type tested technical solutions.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Dual use material to be delivered as part of the switchgear. ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Material with longer delivery time is part of the switchgear delivery. ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customized FAT",
+            "info": "Standard FAT procedure applies.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer or contract requires special type of switchgear accessories packing and marking.",
+            "info": "Our standard accessories marking applies.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer or contract requires special type of switchgear packing and marking. ",
+            "info": "Our standard packing process applies.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ],
+      "Organizational": [{
+            "name": "Project information in Workflow database does not deliver complete and correct data and documents.",
+            "info": "TS, Commercial offer and PO are completely in line one with each other and also with Workflow database. Delivery time in PO is realistic. Technical specification is clearly identified. OC can be issued without any further clarification with customer or sales department.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Discrepancy between customers and ABB s.r.o. technical specification exists (if customers specification exists). Unclear technical items. ",
+            "info": "Switchgear specification is defined by ABB s.r.o. technical specification only. ",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Project team availability and his experiences. ",
+            "info": "Project team is assigned and available to work on present project.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ],
+      "External conditions": [{
+            "name": "Strategic project or strategic customer. ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Contract is signed with new customer who is not familiar with our product and/or with our internal processes.",
+            "info": "Customer knows our product and our standard processes.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer has fixed plan for switchgear installation on site and/or that is to be realized in very short time after switchgear planned contractual delivery date.",
+            "info": "Customers schedule for switchgear installation allows some real delivery time postponement.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Customer is supplying his own material for its installation in the switchgear. ",
+            "info": "No CUST material.",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ]
+   },
+   "opportunities": {
+      "Opportunities": [{
+            "name": "Change management and its detailed reporting.",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Real development of project margin.",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Material cost saving",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Shortening of project standard or planned approval periods.",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         },
+         {
+            "name": "Former projects experiences and solved problems and its application in present project. ",
+            "info": "",
+            "exists": false,
+            "description": "",
+            "plannedAction": "",
+            "owner": "",
+            "probability": "",
+            "priceImpact": ""
+         }
+      ]
+   }
+}

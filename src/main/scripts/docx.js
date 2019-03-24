@@ -41,7 +41,7 @@ async function generate(data, callback) {
 
   // buf is a nodejs buffer, you can either write it to a file or do anything else with it.
   fs.writeFileSync(path.resolve(data.savePath), buf);
-  callback(data.savePath, data.docOpen)
+  callback(data.savePath)
 
 }
 
