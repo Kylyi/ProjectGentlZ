@@ -22,7 +22,7 @@ export let configDatabaseSettings = function () {
         "trustedConnection": true
       },
       pool: {
-        requestTimeout: 60000
+        requestTimeout: 600000
       }
     }))
   }

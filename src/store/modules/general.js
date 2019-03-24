@@ -42,7 +42,7 @@ const actions = {
   },
   async addNotification({ commit, dispatch },
     { notification, log, forceActionSelf, forceActionOthers } = { notification: {}, log: false, forceActionSelf: false, forceActionOthers: false }) {
-    if (log) { return db.log.upsert(notification.name, doc => {return {notification, log, forceActionOthers}}) } 
+    if (log) { db.log.upsert(notification.name, doc => {return {notification, log, forceActionOthers}}) } 
     if (forceActionSelf) {
       dispatch(notification.action, notification.actionArgs)
       notification.actionDone = true
