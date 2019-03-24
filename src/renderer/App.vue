@@ -153,7 +153,7 @@
             <td style="text-align: center; padding: 0 3px;">Actions</td>
             <td style="text-align: center; width: 34px"></td>
           </tr>
-          <tr v-for="notif in notifications[notificationsTypeSelected].notifs" :key="notif._id" :class="notif.type">
+          <tr v-for="notif in notifications[notificationsTypeSelected].notifs" :key="notif._id" :class="notif.type+'--text'">
             <td style="width: 100px; text-align: center;">{{notif.name}}</td>
             <td style="text-align: center; padding: 0 3px;">{{notif.actionInfo}}</td>
             <td style="text-align: center; width: 34px"><v-icon v-if="!notif.actionDone" small color="success" @click="commitAction(notif._id, true, notif.action, notif.actionArgs)">check</v-icon><v-icon @click="commitAction(notif._id, false)" color="error" small>close</v-icon></td>

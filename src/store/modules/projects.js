@@ -100,6 +100,8 @@ const actions = {
       const projs = await getProjects()
       localStorage.setItem('pmProjectsBasic', JSON.stringify(projs.docs))
       commit('setPmProjects', projs.docs)
+      dispatch('prepareProjectsNetMode')
+      dispatch('prepareProjectsProjectMode')
       dispatch('notify', {
         text: 'Projects were imported successfuly.',
         color: 'success',
