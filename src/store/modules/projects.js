@@ -236,7 +236,6 @@ const actions = {
   },
   async prepareProjectsNetMode({ commit, rootState }) {
     const projsBasic = rootState.projects.pmProjectsBasic
-    console.log('projsBasic: ', projsBasic)
     if (projsBasic.length === 0) return
     
     const projsNetMode = projsBasic.reduce((agg, e) => {
@@ -249,8 +248,8 @@ const actions = {
           electrical_eng: e['Electrical Engineer'],
           mechanical_eng: e['Mechanical Engineer'],
           foreman: e['Foreman'],
-          zvr: e['ZVR'].substr(0,10),
-          zvl: e['ZVL'].substr(0, 10),
+          zvr: e['ZVR']? e['ZVR'].substr(0,10) : null,
+          zvl: e['ZVL'] ? e['ZVL'].substr(0, 10) : null,
           SSO: e['SSO'],
           ied_programmer: e['IED Programmer'],
           nets_keys: [e['_id']],
@@ -296,7 +295,6 @@ const actions = {
   },
   async prepareProjectsProjectMode({ commit, rootState }) {
     const projsBasic = rootState.projects.pmProjectsBasic
-    console.log('projsBasic: ', projsBasic)
     if (projsBasic.length === 0) return
 
     const projsProjMode = projsBasic.reduce((agg, e) => {
