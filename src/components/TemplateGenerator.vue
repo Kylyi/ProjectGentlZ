@@ -141,6 +141,7 @@
                   :rules="[v => !!v || 'Net # is required', v => (v && v.length === 10) || 'Net # are 10 characters long.']"
                   label="Add network (Net #) manually"
                   required
+                  :loading="loading"
                 >
                 </v-text-field>
               </v-form>
@@ -215,7 +216,7 @@
       this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
     },
     computed: {
-      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail'])
+      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading'])
     },
     methods: {
       ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addSingleProject']),

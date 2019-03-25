@@ -16,7 +16,7 @@ import { mapGetters, mapActions } from "vuex";
 
 export default {
   created() {
-    // this.fetchAllTemplates()
+    this.fetchAllTemplates(true)
   },
   data: () => ({
     TMPL: null,

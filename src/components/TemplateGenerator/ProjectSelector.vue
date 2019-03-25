@@ -1,10 +1,10 @@
 <template>
   <v-flex class="row wrap">
       <multiselect v-if="generatorSelectionMode==='project'" @input="projChange($event)"  :value="chosenProjects" :options="pmProjectsProjectMode" placeholder="Select project"
-      @search-change="customSearch" label="Project Definition" track-by="_id"><span slot="noResult">No projects found.</span></multiselect>
+      label="Project Definition" track-by="_id"><span slot="noResult">No projects found.</span></multiselect>
 
-      <multiselect v-if="generatorSelectionMode==='net'" @input="projChange($event)"  :value="chosenProjects" :options="pmProjectsNetMode" :multiple="true" placeholder="Select network" :searchable="true" :internal-search="false"
-      group-label="project_id" :group-select="true" group-values="nets_keys" @search-change="customSearch"><span slot="noResult">No projects found.</span></multiselect>
+      <multiselect v-if="generatorSelectionMode==='net'" @input="projChange($event)"  :value="chosenProjects" :options="pmProjectsBasic" :multiple="true" placeholder="Select network" :searchable="true" :internal-search="false"
+      track-by="_id" label="_id"><span slot="noResult">No networks found.</span></multiselect>
 
     </v-flex>
 </template>

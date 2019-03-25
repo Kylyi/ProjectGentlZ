@@ -5,6 +5,7 @@ import { readFile } from '../../main/scripts/misc'
 const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 import fs from 'fs'
+import { stat } from 'fs-extra-p';
 
 const conn = isDev ? new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'databaseSettings.json'), 'utf-8'))) : new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
 
@@ -14,7 +15,8 @@ const state = {
   projectsDetail: [],
   chosenProjects: [],
   pmProjectsNetMode: [],
-  pmProjectsProjectMode: []
+  pmProjectsProjectMode: [],
+  loading: false
 }
 
 const getters = {
@@ -65,7 +67,8 @@ const getters = {
     }
 
     return { data, layout, config }
-  }
+  },
+  loading: state => state.loading
 }
 
 const actions = {
@@ -121,8 +124,9 @@ const actions = {
       dispatch('prepareProjectsProjectMode')
     }
   },
-  async addSingleProject({ dispatch }, net_num) {
+  async addSingleProject({ dispatch, commit }, net_num) {
     conn.connect()
+      .then(() => commit('setLoading', true))
       .then(() => {
         return conn.request().query(`select top 10 * from [lvmv_networks] where [Network Num] = '${net_num}'`)
       })
@@ -158,8 +162,10 @@ const actions = {
         forceActionSelf: true,
         forceActionOthers: false
       }))
+      .then(() => commit('setLoading', false))
       .catch(err => {
         conn.close()
+        commit('setLoading', false)
         dispatch('notify', {
           text: err,
           color: 'error',
@@ -167,10 +173,10 @@ const actions = {
         })
       })
   },
-  async addActiveProjects({ dispatch }) {
+  async addActiveProjects({ dispatch, commit }) {
     console.time('Projects')
-    conn
-      .connect()
+    conn.connect()
+      .then(() => commit('setLoading', true))
       .then(() => {
         return conn
           .request()
@@ -216,6 +222,7 @@ const actions = {
           forceActionOthers: false
         })
       )
+      .then(() => commit('setLoading', false))
       .catch(err => {
         conn.close();
         dispatch('notify', {
@@ -223,6 +230,7 @@ const actions = {
           color: 'error',
           state: 'true'
         })
+        commit('setLoading', false)
       });
   },
   async editProjectsDetail({ dispatch, commit }, {jsonObj, projectsDetailObj}) {
@@ -329,6 +337,9 @@ const actions = {
         state: 'true'
       })
     }
+  },
+  async changeLoading({ commit }, val) {
+    commit('setLoading', val)
   }
 }
 
@@ -338,7 +349,8 @@ const mutations = {
   setProjectsDetail: (state, projsDetail) => state.projectsDetail = projsDetail,
   setChosenProjects: (state, projData) => state.chosenProjects = projData,
   setPmProjectsNetMode: (state, projects) => state.pmProjectsNetMode = projects,
-  setPmProjectsProjectMode: (state, projects) => state.pmProjectsProjectMode = projects
+  setPmProjectsProjectMode: (state, projects) => state.pmProjectsProjectMode = projects,
+  setLoading: (state, val) => state.loading = val
 }
 
 export default {

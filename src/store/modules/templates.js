@@ -19,7 +19,7 @@ const getters = {
 }
 
 const actions = {
-  async fetchAllTemplates({ commit }, force) {
+  async fetchAllTemplates({ commit, dispatch }, force) {
     async function getTmpls() {
       return await db.templates.find({ selector: { _id: { $gt: null } }, limit: null })
     }
@@ -79,8 +79,9 @@ const actions = {
                   // GET PROJECT DATA
                   let pData
                   if (single === 'true') { pData = projData[0] }
-                  else { pData = await db.projects.get(String(p)) }
-                   
+                  // else { pData = await db.projects.get(String(p)) }
+                  else { pData = p } 
+
                   // GET TEMPLATE DATA
                   const tData = await db.templates.getAttachment(t._id, t.template_name)
 

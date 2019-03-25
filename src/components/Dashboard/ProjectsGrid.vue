@@ -37,6 +37,7 @@
                   icon
                   @click="addActiveProjects"
                   title="Refresh all projects"
+                  :disabled="loading"
                 >
                   <v-icon>refresh</v-icon
                 ></v-btn>
@@ -73,7 +74,7 @@ export default {
     this.fetchProjectsDetail();
     this.fetchAllTemplates()
   },
-  computed: mapGetters(['generatorSelectionMode', 'dbConnectivity']),
+  computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading']),
   methods: {
     ...mapActions(['fetchPmProjectsBasic', 'addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode'])
   }

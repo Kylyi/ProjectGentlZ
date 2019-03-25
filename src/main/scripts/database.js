@@ -94,6 +94,7 @@ log.sync(remoteLog, {
   live: true,
   retry: true
 }).on('change', e => {
+  console.log(e)
     if (e.direction === 'pull') {
       console.log('Pulled')
 
@@ -105,7 +106,9 @@ log.sync(remoteLog, {
         return isIn ? agg : [...agg, e]
       }, [e.change.docs[0]])
 
+      console.log(uniqueActions)
       uniqueActions.forEach(action => {
+        console.log(action)
         action.log = false;
         store.dispatch("addNotification", action);
       })
