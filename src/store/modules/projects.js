@@ -160,7 +160,11 @@ const actions = {
       }))
       .catch(err => {
         conn.close()
-        console.log(err)
+        dispatch('notify', {
+          text: err,
+          color: 'error',
+          state: 'true'
+        })
       })
   },
   async addActiveProjects({ dispatch }) {
@@ -214,7 +218,11 @@ const actions = {
       )
       .catch(err => {
         conn.close();
-        console.error(err);
+        dispatch('notify', {
+          text: err,
+          color: 'error',
+          state: 'true'
+        })
       });
   },
   async editProjectsDetail({ dispatch, commit }, {jsonObj, projectsDetailObj}) {

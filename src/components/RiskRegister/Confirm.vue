@@ -64,7 +64,7 @@
 
     <v-layout row wrap>
       <v-flex column wrap text-xs-right>
-        <v-btn @click="changeProjectRiskRegister(newRiskRegister)">Update</v-btn>
+        <v-btn outline depressed color="primary" @click="changeProjectRiskRegister(newRiskRegister)">Update</v-btn>
       </v-flex>
     </v-layout>
   </v-layout>

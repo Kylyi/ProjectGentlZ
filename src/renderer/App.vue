@@ -175,6 +175,25 @@
       <notifications group="new-proj"/>
     </template>
     <template v-else>
+      <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
+        <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
+        <v-spacer></v-spacer>
+        <v-icon
+          :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
+          style="-webkit-app-region: no-drag;"
+          v-html="offline ? 'sync_disabled' : 'sync'"
+          :color="offline ? 'error' : ''" />
+        <v-icon
+          :title="`ABB database ${dbConnectivity? 'is':'is NOT'} connected`"
+          style="-webkit-app-region: no-drag;"
+          v-html="dbConnectivity ? 'power' : 'power_off'" 
+          :color="dbConnectivity ? '' : 'error'" 
+        />
+        <v-icon @click="minimize" style="-webkit-app-region: no-drag;">minimize</v-icon>
+        <v-icon @click="fullscreen" v-html="maximizedWindow? 'fullscreen_exit' : 'fullscreen'" style="-webkit-app-region: no-drag;"></v-icon>
+        <v-icon @click="close" color="red lighten-1" style="-webkit-app-region: no-drag;">close</v-icon>
+      </v-system-bar>
+
       <v-card width="100%" height="100%">
         <v-img :src="logo" width="480px" aspect-ratio="1" style="margin: 5px auto 5px auto;" mt-5/> 
 

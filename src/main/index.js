@@ -33,7 +33,7 @@ function createMainWindow() {
   //   window.webContents.openDevTools()
   // }
 
-  window.webContents.openDevTools()
+  // window.webContents.openDevTools()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
