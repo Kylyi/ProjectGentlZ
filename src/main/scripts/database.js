@@ -43,29 +43,29 @@ settings.allDocs({
 projects.sync(remoteProjects, { live: true, retry: true })
 
 templates.sync(remoteTemplates, { live: true, retry: true })
-  .on('change', (change) => {
-    if (change.direction === 'pull') {
+  // .on('change', (change) => {
+  //   if (change.direction === 'pull') {
 
-      let atts = []
+  //     let atts = []
 
-      change.change.docs.forEach(e => {
-        if (e.hasOwnProperty('_attachments')) {
+  //     change.change.docs.forEach(e => {
+  //       if (e.hasOwnProperty('_attachments')) {
 
-          atts = [...atts, e._id]
+  //         atts = [...atts, e._id]
 
-          // Object.keys(e._attachments).forEach(k => {
-          //   const att = e._attachments[k]
+  //         // Object.keys(e._attachments).forEach(k => {
+  //         //   const att = e._attachments[k]
 
-          //   // fs.writeFile(path.resolve(__static, k), att.data, (err) => {
-          //   //   if (err) throw err
-          //   // })
-          // })
-        }
-      })
+  //         //   // fs.writeFile(path.resolve(__static, k), att.data, (err) => {
+  //         //   //   if (err) throw err
+  //         //   // })
+  //         // })
+  //       }
+  //     })
 
-      ipcRenderer.send('new-template-downloaded', atts)
-    }
-  })
+  //     ipcRenderer.send('new-template-downloaded', atts)
+  //   }
+  // })
 
 billings.sync(remoteBillings, { live: true, retry: true })
 
@@ -94,10 +94,7 @@ log.sync(remoteLog, {
   live: true,
   retry: true
 }).on('change', e => {
-  console.log(e)
     if (e.direction === 'pull') {
-      console.log('Pulled')
-
       const uniqueActions = e.change.docs.reduce((agg, e) => {
         const isIn = agg.filter(x => {
           return (x.notification.action === e.notification.action) && (x.notification.actionArgs === e.notification.actionArgs) 
@@ -106,9 +103,7 @@ log.sync(remoteLog, {
         return isIn ? agg : [...agg, e]
       }, [e.change.docs[0]])
 
-      console.log(uniqueActions)
       uniqueActions.forEach(action => {
-        console.log(action)
         action.log = false;
         store.dispatch("addNotification", action);
       })

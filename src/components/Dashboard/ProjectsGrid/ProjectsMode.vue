@@ -3,10 +3,11 @@
     <el-table
       ref="myProjectsTable"
       id="myProjectsTable"
-      :data="pmProjectsNetMode"
+      :data="pmProjectsProjectMode"
       :default-sort="{prop:'_id', order: 'ascending'}"
       style="width: 100%;"
       max-height="550"
+      @expand-change="changeProjectSelection"
       >
       <el-table-column type="expand">
         <template slot-scope="props">
@@ -15,7 +16,6 @@
               show-arrows
               height="22"
               grow
-              @change="chnageProjectSelection($event, props.row)"
             >
               <v-tab
                 v-for="net in props.row.nets"
@@ -50,7 +50,7 @@
                       </td>
 
                       <!-- RIGHT SIDE -->
-                      <td style="width: 120px; max-wdith: 120px; vertical-align: top; text-align: center;">
+                      <td style="width: 96px; max-width: 96px; vertical-align: top; text-align: center;">
                         <v-flex row style="color: #909399;"><b>Actions</b></v-flex>
                         <v-layout id="generateTemplate" wrap @click="generateTemplateTrigger(net.net_info[0].task_info)"
                           style="cursor: pointer;  margin-left: 2px; padding: 2px; border: 1px solid #7e57c2; border-radius: 5px;">
@@ -119,6 +119,28 @@
         align="left"
         width="90"
       />
+      <el-table-column
+        fixed="right"
+        label="Risks"
+        width="100"
+        align="center"
+        sortable
+      >
+        <template slot-scope="scope">
+          <span style="color: red!important;">{{(scope.row.riskRegisterBilance.bilanceRisks / 1000).toFixed(1)}} K</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        fixed="right"
+        label="Opps"
+        width="100"
+        align="center"
+        sortable
+      >
+        <template slot-scope="scope">
+          <span style="color: green!important;">{{(scope.row.riskRegisterBilance.bilanceOpps / 1000).toFixed(1)}} K</span>
+        </template>
+      </el-table-column>
     </el-table>
   </v-layout>
 </template>
@@ -131,15 +153,15 @@ export default {
       selectedNet: 0
     }
   },
-  computed: mapGetters(['pmProjectsNetMode', 'visibleProjectsDetail', 'generateTemplateDialog']),
+  computed: mapGetters(['pmProjectsProjectMode', 'visibleProjectsDetail', 'generateTemplateDialog']),
   methods: {
     ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail']),
     generateTemplateTrigger(projData) {
       this.chooseProjects(projData)
       this.openGenerateTemplateDialog(true)
     },
-    chnageProjectSelection(net_num, proj) {
-      this.chooseProjects(proj.nets[net_num].net_info[0].task_info)
+    changeProjectSelection(proj) {
+      this.chooseProjects(proj.nets[0].net_info[0].task_info)
     }
   }
 }

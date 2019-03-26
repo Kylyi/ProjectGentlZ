@@ -133,20 +133,40 @@ export default {
   async created() {
     this.mutationSub = this.$store.subscribe((mutation, state) => {
       if (mutation.type === 'setChosenProjects') {
-        if (this.$store.state.projects.chosenProjects.length > 0 && this.$store.state.projects.chosenProjects[0].riskRegister.hasOwnProperty('opportunities')) {
-          this.riskRegister = this.$store.state.projects.chosenProjects[0].riskRegister
+        if (this.$store.state.projects.chosenProjects.length > 0) {
+          const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
+          const netWithRiskRegister = allNets[0]
+
+          if (!netWithRiskRegister.riskRegister.hasOwnProperty('opportunities')) {
+            this.fetchDefaultRiskRegister()
+            .then(() => this.riskRegister = this.defaultRiskRegister)
+            .catch(err => console.log(err))
+            return
+          }
+          
+          this.riskRegister = netWithRiskRegister.riskRegister
         } else {
           this.fetchDefaultRiskRegister()
             .then(() => this.riskRegister = this.defaultRiskRegister)
-          
         }
       }
     })
-    if (this.$store.state.projects.chosenProjects.length > 0 && this.$store.state.projects.chosenProjects[0].riskRegister.hasOwnProperty('opportunities')) {
-      this.riskRegister = this.$store.state.projects.chosenProjects[0].riskRegister
+
+    if (this.$store.state.projects.chosenProjects.length > 0) {
+      const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
+      const netWithRiskRegister = allNets[0]
+
+      if (!netWithRiskRegister.riskRegister.hasOwnProperty('opportunities')) {
+        this.fetchDefaultRiskRegister()
+        .then(() => this.riskRegister = this.defaultRiskRegister)
+        .catch(err => console.log(err))
+        return
+      }
+      
+      this.riskRegister = netWithRiskRegister.riskRegister
     } else {
-      await this.fetchDefaultRiskRegister()
-      this.riskRegister = this.defaultRiskRegister
+      this.fetchDefaultRiskRegister()
+        .then(() => this.riskRegister = this.defaultRiskRegister)
     }
   },
   data: () => {

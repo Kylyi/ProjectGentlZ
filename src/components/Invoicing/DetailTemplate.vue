@@ -34,7 +34,7 @@
             <v-layout row align-center @contextmenu="contextM($event, `inv_date[${lastUpdate}]`)">
               <v-flex column xs2>
                   <v-icon small v-for="(values,key) in templateData.data['sign'][`inv_date[${lastUpdate}]`]" :key="key" @click="signInfo($event, values, key, `inv_date[${lastUpdate}]`)"
-                  :color="key === 'check' ? 'success' : key === 'info' ? 'info' : 'error'" v-html="key"></v-icon>
+                  :color="getColor(key)" v-html="key"></v-icon>
               </v-flex>
               <v-flex column xs10 text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
             </v-layout>
@@ -45,7 +45,7 @@
             <v-layout row align-center @contextmenu="contextM($event, v.value)">
               <v-flex column xs2>
                   <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
-                  :color="key === 'check' ? 'success' : key === 'info' ? 'info' : 'error'" v-html="key"></v-icon>
+                  :color="getColor(key)" v-html="key"></v-icon>
               </v-flex>
               <v-flex column xs10 text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
             </v-layout>
@@ -342,7 +342,7 @@
         selectedSign: 'info',
         signComment: '',
         hiddenFieldsCount: 0,
-        signOptions: remote.getGlobal('user')['roles'].includes('invoicingAdmin') ? ['warning', 'info', 'check'] : ['info', 'check']
+        signOptions: remote.getGlobal('user')['roles'].includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
       }
     },
     props: {
@@ -506,6 +506,17 @@
         //   const x = this.$props.templateData.data.sign[this.currentField][ix].replace(' -'+comment, '')
         //   this.$props.templateData.data.sign[this.currentField][ix] = x
         // }
+      },
+      getColor(icon) {
+        if (icon === 'arrow_upward') {
+          return 'success'
+        } else if (icon === 'arrow_downward') {
+          return 'warning'
+        } else if (icon === 'warning') {
+          return 'error'
+        } else {
+          return 'info'
+        }
       }
     }
   }

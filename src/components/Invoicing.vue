@@ -150,7 +150,8 @@
         <v-flex column xs6 text-xs-right>
           <v-btn icon @click="filterSignOnAll('warning')"><v-icon :color="signFilterActive.warning ? 'red' : 'inherit'">warning</v-icon></v-btn>
           <v-btn icon @click="filterSignOnAll('info')"><v-icon :color="signFilterActive.info ? 'info' : 'inherit'">info</v-icon></v-btn>
-          <v-btn icon @click="filterSignOnAll('check')"><v-icon :color="signFilterActive.check ? 'success' : 'inherit'">check</v-icon></v-btn>
+          <v-btn icon @click="filterSignOnAll('arrow_upward')"><v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'">arrow_upward</v-icon></v-btn>
+          <v-btn icon @click="filterSignOnAll('arrow_downward')"><v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'">arrow_downward</v-icon></v-btn>
         </v-flex>
         
 
@@ -266,6 +267,7 @@
             format="year"
             data-type="date"
             name="groupYear"
+            :auto-expand-group="true"
           />
 
           <dx-column
@@ -277,6 +279,7 @@
             :format="x"
             data-type="number"
             name="groupMonth"
+            :auto-expand-group="true"
           />
 
           <dx-column
@@ -295,7 +298,7 @@
               summary-type="sum"
               display-format="Total: {0} CZK"
               :align-by-column="true"
-              value-format="#,##0.##"
+              value-format="#,##0"
             />
             <dx-group-item
               :show-in-group-footer="false"
@@ -303,7 +306,7 @@
               column="project_ob"
               summary-type="sum"
               display-format="Total: {0} CZK"
-              value-format="#,##0.##"
+              value-format="#,##0"
             />
             <dx-group-item
               :show-in-group-footer="false"
@@ -472,7 +475,7 @@
       optionsMenu: false,
       weekGrouping: null,
       billingsFiltered: false,
-      signFilterActive: {warning: false, info: false, check: false},
+      signFilterActive: {warning: false, info: false, arrow_downward: false, arrow_upward: false},
       fieldSignFilter: null,
       dateRange: []
     }),
@@ -536,8 +539,9 @@
       setContextMenu (e) {
        if (e.target === 'header') {
         e.items.push({text: 'Find warnings', beginGroup: true, value: e.column.dataField, icon: 'warning', onItemClick: this.u})
-        e.items.push({text: 'Find check', value: e.column.dataField, icon: 'check', onItemClick: this.u})
         e.items.push({text: 'Find flagged', value: e.column.dataField, icon: 'info', onItemClick: this.u})
+        e.items.push({text: 'Find up', value: e.column.dataField, icon: 'arrowup', onItemClick: this.u})
+        e.items.push({text: 'Find down', value: e.column.dataField, icon: 'arrowdown', onItemClick: this.u})
         e.items.push({text: 'Reset', value: null, onItemClick: this.u})
         return e
        }
@@ -548,7 +552,7 @@
           this.fieldSignFilter = null
           return this.billingsFiltered = false
         }
-        const icon = e.itemData.icon
+        const icon = e.itemData.icon.startsWith('arrow') ? e.itemData.icon.substr(0,5) + "_" + e.itemData.icon.substr(5)+"ward" : e.itemData.icon
         this.fieldSignFilter = {[field]: icon}
 
         this.billingsFiltered = this.billings.filter(x => {
@@ -566,7 +570,7 @@
           return this.billingsFiltered = false
         }
 
-        this.signFilterActive = {warning: false, info: false, check: false} 
+        this.signFilterActive = {warning: false, info: false, arrow_downward: false,  arrow_upward: false}
         this.billingsFiltered = this.billings.filter(x => {
           let res = false
           res = Object.keys(x.sign).filter(e => {

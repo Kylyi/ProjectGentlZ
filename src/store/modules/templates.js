@@ -1,6 +1,7 @@
 import db from '../../main/scripts/database'
 import { ipcRenderer } from 'electron';
-const {dialog} = require('electron').remote
+const { dialog } = require('electron').remote
+import fs from 'fs'
 
 const state = {
   allTemplatesBasic: [],
@@ -40,9 +41,9 @@ const actions = {
       localStorage.setItem('allTemplatesBasic', JSON.stringify(z))
       commit('setAllTemplatesBasic', z)
       dispatch('notify', {
-        text: 'Projects were imported successfuly.',
+        text: 'Templates were imported successfuly.',
         color: 'success',
-        state: 'true'
+        state: true
       })
       
     } else if (!localStorage.getItem('allTemplatesBasic') && !force) {
@@ -131,6 +132,26 @@ const actions = {
       localStorage.setItem('generatorMode', val)
       commit('setGeneratorSelectionMode', val)
       dispatch('chooseProjects', [])
+    }
+  },
+  async addTemplate({ dispatch }, tmpl = null) {
+    try {
+      const att = fs.readFileSync(tmpl.filePath)
+
+      const insertedTmpl = await db.templates.upsert(tmpl.template_name, (doc) => {
+        doc.template_type = tmpl.fileType
+        doc.template_name = tmpl.fileName
+        return doc
+      })
+      await db.templates.putAttachment(tmpl.template_name, tmpl.fileName, insertedTmpl.rev, att, tmpl.fileType)
+      dispatch('fetchAllTemplates', true)
+
+    } catch (err) {
+      dispatch('notify', {
+        text: err,
+        color: 'error',
+        state: true
+      })
     }
   }
 }

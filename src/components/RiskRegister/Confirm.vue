@@ -64,7 +64,7 @@
 
     <v-layout row wrap>
       <v-flex column wrap text-xs-right>
-        <v-btn outline depressed color="primary" @click="changeProjectRiskRegister(newRiskRegister)">Update</v-btn>
+        <v-btn outline depressed color="primary" @click="setProjectRiskRegister">Update</v-btn>
       </v-flex>
     </v-layout>
   </v-layout>
@@ -76,9 +76,12 @@ import { mapActions } from 'vuex';
 export default {
   mounted() {
     this.$root.$on('riskRegisterChanged', newRiskRegister => {
-      this.newRiskRegister = newRiskRegister
       this.existingRisks = _.flatten(_.values(newRiskRegister.risks)).filter(e => e.exists)
       this.existingOpps = _.flatten(_.values(newRiskRegister.opportunities)).filter(e => e.exists)
+      const bilanceRisks = this.existingRisks.reduce((agg, e) => agg + e.priceImpact , 0)
+      const bilanceOpps = this.existingOpps.reduce((agg, e) => agg + e.priceImpact , 0)
+
+      this.newRiskRegister = Object.assign({}, newRiskRegister, {bilance: {bilanceRisks, bilanceOpps}})
     })
   },
   data: () => {
@@ -90,7 +93,15 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['changeProjectRiskRegister'])
+    ...mapActions(['changeProjectRiskRegister']),
+    setProjectRiskRegister() {
+      if (this.$store.state.projects.chosenProjects.length > 0) {
+        const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
+        const netWithRiskRegister = allNets[0]
+        
+        this.changeProjectRiskRegister({editedRiskRegister: this.newRiskRegister, netId: netWithRiskRegister._id})
+      }   
+    }
   }
 }
 </script>

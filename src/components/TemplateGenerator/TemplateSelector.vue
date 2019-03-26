@@ -5,7 +5,7 @@
       <!-- <select-box></select-box> -->
 
 
-      <multiselect @input="templateChange($event)" track-by="_id" label="_id" :value="chosenTemplates" :options="allTemplatesBasic" :multiple="true" group-values="options" group-label="label" :group-select="true" placeholder="Select template"><span slot="noResult">No template found.</span></multiselect>
+      <multiselect @input="chooseTemplate" track-by="_id" label="_id" :value="chosenTemplates" :options="allTemplatesBasic" :multiple="true" group-values="options" group-label="label" :group-select="true" placeholder="Select template"><span slot="noResult">No template found.</span></multiselect>
     </v-flex>
 </template>
 
@@ -16,7 +16,7 @@ import { mapGetters, mapActions } from "vuex";
 
 export default {
   created() {
-    this.fetchAllTemplates(true)
+    // this.fetchAllTemplates(true)
   },
   data: () => ({
     TMPL: null,

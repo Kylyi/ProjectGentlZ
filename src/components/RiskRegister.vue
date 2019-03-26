@@ -8,7 +8,7 @@
 
       <!-- Project Selector -->
       <v-flex row wrap mt-2>
-        <project-selector />
+        <project-selector :forceMode="'project'" />
       </v-flex>
 
       <!-- Stepper -->

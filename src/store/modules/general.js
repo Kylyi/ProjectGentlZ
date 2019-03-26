@@ -43,7 +43,6 @@ const actions = {
   async addNotification({ commit, dispatch },
     { notification, log, forceActionSelf, forceActionOthers } = { notification: {}, log: false, forceActionSelf: false, forceActionOthers: false }) {
     
-      console.log(notification)
       if (log) {
       const notifPlaceholder = notification
       db.log.upsert(notification.name, doc => {return {notification: notifPlaceholder, log, forceActionOthers}})

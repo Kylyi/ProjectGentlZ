@@ -24,9 +24,10 @@ const actions = {
       fs.writeFileSync(path.join(path.dirname(__dirname), 'defaultSettings', 'defaultRiskRegister.json'), defaultRiskRegister);
     }
   },
-  async changeProjectRiskRegister({ dispatch, rootState }, editedRiskRegister) {
+  async changeProjectRiskRegister({ dispatch, rootState }, {editedRiskRegister, netId}) {
     try {
-      const projId = rootState.projects.chosenProjects[0]._id
+      if (!netId) return
+      const projId = netId
       let proj
       await db.projects.upsert(projId, doc => {
         doc.riskRegister = editedRiskRegister
@@ -39,7 +40,7 @@ const actions = {
           info: `Risk register for project ${projId} was just edited.`,
           type: "info",
           notify: true,
-          action: "fetchPmProjectsBasic",
+          action: "fetchAllProjectsBasic",
           actionInfo: "Refresh projects",
           actionArgs: {
             force: true
@@ -47,9 +48,13 @@ const actions = {
         },
         log: true,
         forceActionSelf: true,
-        forceActionOthers: false
+        forceActionOthers: true
       });
-      dispatch('chooseProjects', proj)
+      dispatch('notify', {
+        text: 'Saved.',
+        color: 'success',
+        state: 'true'
+      })
     } catch (err) {
       dispatch('notify', {
         text: err,

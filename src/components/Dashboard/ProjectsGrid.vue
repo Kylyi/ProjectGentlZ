@@ -4,13 +4,22 @@
     <v-layout row wrap>
         <v-flex grow>
           <v-layout column wrap justify-center fill-height>
-            <h2 display-3 class="myHeading">My projects</h2>
+            <h1 display-3 class="myHeading">My projects</h1>
           </v-layout>
         </v-flex>
 
         <v-flex shrink>
           <v-container fluid grid-list-md>
             <v-layout row wrap>
+              <v-flex d-flex mr-1>
+                <v-btn
+                  title="Removes all projects that don't belong to me."
+                  outline
+                  color="error"
+                >
+                  Remove foreign projects
+                </v-btn>
+              </v-flex>
               <v-flex d-flex>
                 <v-layout row wrap>
                   <v-flex d-flex xs12>
@@ -70,13 +79,14 @@ import ProjectsMode from './ProjectsGrid/ProjectsMode'
 export default {
   components: { GenerateTemplateDialog, NetMode, ProjectsMode },
   created: async function () {
-    this.fetchPmProjectsBasic();
+    this.fetchAllProjectsBasic(true);
     this.fetchProjectsDetail();
-    this.fetchAllTemplates()
+    this.fetchAllTemplates();
+    this.fetchForeignProjectsBasic();
   },
   computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading']),
   methods: {
-    ...mapActions(['fetchPmProjectsBasic', 'addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode'])
+    ...mapActions(['addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchAllProjectsBasic', 'fetchForeignProjectsBasic'])
   }
 }
 </script>

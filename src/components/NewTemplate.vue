@@ -127,6 +127,7 @@ const {app, dialog} = require('electron').remote
 const fs = require('fs')
 const path = require('path')
 import db from '../main/scripts/database'
+import { mapActions } from 'vuex';
 
 export default {
   data: () => ({
@@ -152,33 +153,13 @@ export default {
     templateExample: require('../renderer/assets/template_example.jpg')
   }),
   methods: {
+    ...mapActions(['addTemplate']),
     clear () {
       this.$refs.addTemplateForm.reset()
     },
     async submit() {
       if (this.$refs.addTemplateForm.validate()) {
-        try {
-          const att = fs.readFileSync(this.filePath)
-
-          const insertedTmpl = await db.templates.upsert(this.template_name, (doc) => {
-            doc.template_type = this.fileType
-            doc.template_name = this.fileName
-            return doc
-          })
-
-          await db.templates.putAttachment(this.template_name, this.fileName, insertedTmpl.rev, att, this.fileType)
-
-          // await fse.copy(this.filePath, path.resolve(__static, this.fileName))
-
-          this.snackbar = true
-          this.color = 'success'
-          this.snackText = 'Template was successfuly added.'
-
-        } catch (err) {
-           this.snackbar = true
-          this.color = 'error'
-          this.snackText = err
-        }
+        this.addTemplate({filePath: this.filePath, fileType: this.fileType, fileName: this.fileName, template_name: this.template_name})
       }
     },
     async onDrop (e) {

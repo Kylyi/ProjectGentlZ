@@ -219,10 +219,11 @@
       ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading'])
     },
     methods: {
-      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addSingleProject']),
+      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addSingleProject', 'addForeignNets']),
       addProject() {
         if (this.projectToAdd !== '' && this.projectAddValid) {
-          this.addSingleProject(this.projectToAdd)
+          // this.addSingleProject(this.projectToAdd)
+          this.addForeignNets(this.projectToAdd)
         }
       },
       async yikes(a) {
