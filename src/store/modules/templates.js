@@ -40,12 +40,6 @@ const actions = {
 
       localStorage.setItem('allTemplatesBasic', JSON.stringify(z))
       commit('setAllTemplatesBasic', z)
-      dispatch('notify', {
-        text: 'Templates were imported successfuly.',
-        color: 'success',
-        state: true
-      })
-      
     } else if (!localStorage.getItem('allTemplatesBasic') && !force) {
       const tmpls = await getTmpls()
       const z = tmpls.docs.reduce((agg, e) => {
@@ -80,7 +74,6 @@ const actions = {
                   // GET PROJECT DATA
                   let pData
                   if (single === 'true') { pData = projData[0] }
-                  // else { pData = await db.projects.get(String(p)) }
                   else { pData = p } 
 
                   // GET TEMPLATE DATA

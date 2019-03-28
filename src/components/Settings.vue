@@ -7,9 +7,29 @@
 
       <v-layout row wrap>
         <v-expansion-panel>
+          <!-- USER SETTINGS -->
+          <v-expansion-panel-content>
+            <v-flex slot="header"><b>User settings</b></v-flex>
+            <v-card>
+              <v-card-text style="padding-top: 0">
+                <v-layout row wrap>
+                  <v-flex column wrap xs12>
+                    These are settings concerning your personal account on Gentl.
+                  </v-flex>
+                  <v-flex column>
+                    <v-flex row wrap mt-4>
+                      <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="czjmpri"></v-text-field>
+                    </v-flex>
+                  </v-flex>
+                </v-layout>
+              </v-card-text>
+              <v-card-actions><v-btn @click="changeUserSapName(sapUsername)" flat icon><v-icon>save</v-icon></v-btn> </v-card-actions>
+            </v-card>
+          </v-expansion-panel-content>
+
           <!-- Dashboard -->
           <v-expansion-panel-content>
-            <v-flex slot="header"><b>Dashboard</b></v-flex>
+            <v-flex slot="header"><b>Projects grid</b></v-flex>
             <v-card>
               <v-card-text style="padding-top: 0">
                 <v-layout row wrap>
@@ -89,7 +109,6 @@
             <v-card>
               <v-card-text>
                 <v-btn @click="resetViews">Reset views</v-btn>
-                <v-btn @click="destroyDb">Destroy local db</v-btn>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content> -->
@@ -153,7 +172,8 @@ table.draggableTable .v-input__control {
   export default {
     name: 'settings',
     created: async function () {
-      // this.fetchProjectsDetail()
+      this.sapUsername = this.$store.getters.userInfo.sapUsername || null
+      this.projectsDetail = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
 
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
       const detailSettings = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8'))
@@ -173,7 +193,7 @@ table.draggableTable .v-input__control {
       this.invoicingDetail =  x
     },
     computed: {
-      ...mapGetters(['projectsDetail']),
+      ...mapGetters([]),
       dragOptions() {
         return {
           animation: 200,
@@ -185,10 +205,12 @@ table.draggableTable .v-input__control {
     },
     data: () => ({
       invoicingDetail: [],
-      drag: false
+      drag: false,
+      sapUsername: null,
+      projectsDetail: []
     }),
     methods: {
-      ...mapActions(['editProjectsDetail', 'fetchProjectsDetail']),
+      ...mapActions(['editProjectsDetail', 'changeUserSapName']),
       triggerEdit(jsonObj) {
         this.editProjectsDetail({jsonObj, projectsDetailObj: this.projectsDetail})
       },
@@ -206,12 +228,6 @@ table.draggableTable .v-input__control {
       resetViews() {
         sessionStorage.clear()
         localStorage.clear()
-      },
-      destroyDb() {
-        db.projects.destroy()
-        db.billings.destroy()
-        db.settings.destroy()
-        db.templates.destroy()
       }
     },
     components: {draggable}

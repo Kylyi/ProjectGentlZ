@@ -32,7 +32,7 @@ export default {
   methods: {
     ...mapActions(['chooseProjects']),
     projNetNo (proj) {
-      return `${proj['Project Definition']} — ${proj.netsKeys.length} networks`
+      return proj ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : ''
     },
     async projChange (proj) {
       proj ? this.chooseProjects(proj) : this.chooseProjects([])

@@ -10,23 +10,32 @@ PouchDB.plugin(require('pouchdb-upsert-bulk'))
 
 const {ipcRenderer} = require('electron')
 
-const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
+// MY DB
+// const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
 const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
 const remoteBillings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/billings')
 const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/settings')
 const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
 const remoteLog = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/log')
 
-const projects = new PouchDB('src/db/projects', { revs_limit: 2 })
-// const people = new PouchDB('src/db/people')
-const templates = new PouchDB('src/db/templates')
-// const quots = new PouchDB('src/db/quotations')
+// ABB DB
+// const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projects', { revs_limit: 2 })
+// const remoteUsers = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/users')
+// const remoteBillings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/billings')
+// const remoteSettings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/settings')
+// const remoteTemplates = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/templates')
+// const remoteLog = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/log')
+
+// LOCAL DB
+// const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
+const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
 const billings = new PouchDB('src/db/billings', { revs_limit: 2 })
 const settings = new PouchDB('src/db/settings')
 const user = new PouchDB('src/db/user')
 const log = new PouchDB('src/db/log')
 
-user.encrypt('#')
+
+// user.encrypt('#')
 
 settings.allDocs({
   include_docs: true,
@@ -40,44 +49,30 @@ settings.allDocs({
   }
 })
 
-projects.sync(remoteProjects, { live: true, retry: true })
 
-templates.sync(remoteTemplates, { live: true, retry: true })
-  // .on('change', (change) => {
-  //   if (change.direction === 'pull') {
+// projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+//   .on('change', (c) => {
+//     console.log(c)
+//     store.dispatch('fetchAllProjectsBasic', true)
+//   })
 
-  //     let atts = []
-
-  //     change.change.docs.forEach(e => {
-  //       if (e.hasOwnProperty('_attachments')) {
-
-  //         atts = [...atts, e._id]
-
-  //         // Object.keys(e._attachments).forEach(k => {
-  //         //   const att = e._attachments[k]
-
-  //         //   // fs.writeFile(path.resolve(__static, k), att.data, (err) => {
-  //         //   //   if (err) throw err
-  //         //   // })
-  //         // })
-  //       }
-  //     })
-
-  //     ipcRenderer.send('new-template-downloaded', atts)
-  //   }
-  // })
+templates.sync(remoteTemplates, { live: true, retry: true, batch_size: 50 })
+  .on('change', (c) => {
+    store.dispatch('fetchAllTemplates', true)
+  })
 
 billings.sync(remoteBillings, { live: true, retry: true })
-
 settings.sync(remoteSettings, { live: true, retry: true })
 
 
 user.sync(remoteUsers, {
-  selector: {
-    _id: username.sync()
-  },
   live: true,
-  retry: true
+  retry: true,
+  "selector": {
+    "_id": {
+       "$eq": username.sync()
+    }
+ }
 }).on('change', e => {
   store.dispatch('addNotification', {
     notification: {
@@ -103,9 +98,15 @@ log.sync(remoteLog, {
         return isIn ? agg : [...agg, e]
       }, [e.change.docs[0]])
 
+      setTimeout(() => {
+        
+      }, 500)
+
       uniqueActions.forEach(action => {
-        action.log = false;
-        store.dispatch("addNotification", action);
+        action.log = false
+        setTimeout(() => {
+          store.dispatch("addNotification", action);
+        }, action.actionTimeout? action.actionTimeout : 0)
       })
     }
 })
@@ -122,7 +123,7 @@ async function getUserInfo() {
 getUserInfo()
 
 export default {
-  projects,
+  // projects,
   templates,
   billings,
   settings,

@@ -6,6 +6,7 @@ import general from './modules/general';
 import user from './modules/user';
 import templates from './modules/templates';
 import riskRegister from './modules/riskRegister';
+import invoicing from './modules/invoicing';
 
 Vue.use(Vuex);
 
@@ -15,6 +16,7 @@ export default new Vuex.Store({
     general,
     user,
     templates,
-    riskRegister
+    riskRegister,
+    invoicing
   }
 })

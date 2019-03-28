@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { readFile } from '../../main/scripts/misc';
 const isDev = require('electron-is-dev')
-import db from '../../main/scripts/database'
+import { projectsDb } from './projects'
 
 const state = {
   defaultRiskRegister: []
@@ -28,28 +28,11 @@ const actions = {
     try {
       if (!netId) return
       const projId = netId
-      let proj
-      await db.projects.upsert(projId, doc => {
+      await projectsDb.upsert(projId, doc => {
         doc.riskRegister = editedRiskRegister
-        proj = doc
         return doc
       })
-      dispatch('addNotification', {
-        notification: {
-          name: `${projId}: Risk register edited.`,
-          info: `Risk register for project ${projId} was just edited.`,
-          type: "info",
-          notify: true,
-          action: "fetchAllProjectsBasic",
-          actionInfo: "Refresh projects",
-          actionArgs: {
-            force: true
-          }
-        },
-        log: true,
-        forceActionSelf: true,
-        forceActionOthers: true
-      });
+      rootState.general.offline ? dispatch('fetchAllProjectsBasic', true) : null
       dispatch('notify', {
         text: 'Saved.',
         color: 'success',

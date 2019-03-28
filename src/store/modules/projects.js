@@ -1,10 +1,24 @@
-import db from '../../main/scripts/database'
-import username from 'username'
 import path from 'path'
 import { readFile } from '../../main/scripts/misc'
 const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 import fs from 'fs'
+import store from '../index'
+
+import PouchDB from 'pouchdb'
+PouchDB.plugin(require('pouchdb-find'))
+PouchDB.plugin(require('pouchdb-upsert'))
+PouchDB.plugin(require('pouchdb-upsert-bulk'))
+
+const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
+const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
+
+let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+  .on('change', (c) => {
+    console.log(c)
+    store.dispatch('fetchAllProjectsBasic', true)
+  })
+
 
 const conn = isDev ? new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'databaseSettings.json'), 'utf-8'))) : new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
 
@@ -20,16 +34,18 @@ const state = {
 
 const getters = {
   allProjectsBasic: state => state.allProjectsBasic,
-  pmProjectsBasic: state => {
+  pmProjectsBasic: (state, getters) => {
+    if (!getters.userInfo.sapUsername) return []
     return state.allProjectsBasic.filter(e => {
-      return e['Project Manager'] === username.sync() || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
+      return e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
     })
   },
   projectsDetail: state => state.projectsDetail,
   visibleProjectsDetail: state => state.projectsDetail.filter(e => e.visible),
   chosenProjects: state => state.chosenProjects,
-  pmProjectsProjectMode: state => {
-    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === username.sync() || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
+  pmProjectsProjectMode: (state, getters) => {
+    if (!getters.userInfo.sapUsername) return []
+    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
     if (projsBasic.length === 0) return []
     return projsBasic.reduce((agg, e) => {
       const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
@@ -70,6 +86,10 @@ const getters = {
             }]
           })
           agg[f]['nets_keys'].push(e['_id'])
+          if (e['riskRegister'].hasOwnProperty('risks')) {
+            agg[f]['riskRegisterBilance'].bilanceRisks = agg[f]['riskRegisterBilance'].bilanceRisks + e.riskRegister.bilance.bilanceRisks
+            agg[f]['riskRegisterBilance'].bilanceOpps = agg[f]['riskRegisterBilance'].bilanceOpps + e.riskRegister.bilance.bilanceOpps
+          }
 
           return agg
 
@@ -86,8 +106,9 @@ const getters = {
     }, [])
 
   },
-  pmProjectsUniqueProjects: state => {
-    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === username.sync() || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
+  pmProjectsUniqueProjects: (state, getters) => {
+    if (!getters.userInfo.sapUsername) return []
+    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
     if (projsBasic.length === 0) return []
     
       return projsBasic.reduce((agg, e) => {
@@ -135,7 +156,7 @@ const getters = {
       },
       showlegend: false,
       barmode: 'stack',
-      title: `Network ${netWithRiskRegister['_id']} (${netWithRiskRegister['Project Definition']})`
+      title: `Project: ${netWithRiskRegister['Project Definition']}`
     }
     const config = {
       responsive: true,
@@ -144,15 +165,15 @@ const getters = {
 
     return { data, layout, config }
   },
-  loading: state => state.loading
+  loading: state => state.loading,
+  foreignProjectsBasic: state => state.foreignProjectsBasic
 }
 
 const actions = {
   async fetchAllProjectsBasic({ commit }, force) {
     async function getProjects() {
-      return await db.projects.find({ selector: { "_id": { $gt: null } }, limit: null, sort: ['_id'] })
+      return await projects.find({ selector: { "_id": { $gt: null } }, limit: null, sort: ['_id'] })
     }
-    
     if (force || !localStorage.getItem('allProjectsBasic')) {
       const projs = await getProjects()
       localStorage.setItem('allProjectsBasic', JSON.stringify(projs.docs))
@@ -171,7 +192,7 @@ const actions = {
         return conn.request().query(`select top 10 * from [lvmv_networks] where [Network Num] = '${net_num}'`)
       })
       .then(data => {
-        return db.projects.upsert(net_num, (doc) => {
+        return projects.upsert(net_num, (doc) => {
           if (doc.hasOwnProperty('fixedFields')) {
             doc['fixedFields'].forEach(u => {
               data.recordset[0][u] = doc[u]
@@ -188,7 +209,7 @@ const actions = {
       .then(() => dispatch('addNotification', { 
         notification: {
           name: 'Network added',
-          info: `Network ${net_num} was just added to db.`,
+          info: `Network was just added to db.`,
           type: 'info',
           notify: true,
           action: 'fetchAllProjectsBasic',
@@ -212,10 +233,12 @@ const actions = {
         })
       })
   },
-  async addActiveProjects({ dispatch, commit }) {
+  async addActiveProjects({ dispatch, commit, rootState }) {
     console.time('Projects')
+
     conn.connect()
       .then(() => commit('setLoading', true))
+      .then(() => projectsReplicator.cancel())
       .then(() => {
         return conn
           .request()
@@ -224,8 +247,8 @@ const actions = {
           );
       })
       .then(data => {
-        data.recordset.map(p =>
-          db.projects.upsert(String(p["Network Num"]), doc => {
+        const projUpserts = data.recordset.map(async (p) => {
+          await projects.upsert(String(p['Network Num']), doc => {
             if (doc.hasOwnProperty('fixedFields')) {
               doc['fixedFields'].forEach(u => {
                 p[u] = doc[u]
@@ -237,35 +260,35 @@ const actions = {
             }
             return p
           })
-        );
+        });
+        Promise.all(projUpserts)
+        .then(() => {
+            projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+          .on('change', (c) => {
+            console.log(c)
+            store.dispatch('fetchAllProjectsBasic', true)
+          })
+        })
+        .catch((err) => console.log(err))
         console.timeEnd("Projects");
       })
       .then(() => conn.close())
-      .then(() =>
-        dispatch("addNotification", {
-          notification: {
-            name: "Projects updated",
-            info: "All projects were updated.",
-            notify: true,
-            type: "error",
-            action: 'fetchAllProjectsBasic',
-            actionInfo: 'Refresh projects',
-            actionArgs: {
-              force: true
-            }
-          },
-          log: true,
-          forceActionSelf: true,
-          forceActionOthers: true
-        })
+      .then(() => {
+          rootState.general.offline ? dispatch('fetchAllProjectsBasic', true) : dispatch('fetchAllProjectsBasic', true)
+        }
       )
       .then(() => commit('setLoading', false))
+      .then(() => dispatch('notify', {
+        text: 'Projects imported.',
+        color: 'success',
+        state: true
+      }))
       .catch(err => {
         conn.close();
         dispatch('notify', {
           text: err,
           color: 'error',
-          state: 'true'
+          state: true
         })
         commit('setLoading', false)
       });
@@ -291,7 +314,7 @@ const actions = {
   },
   async changeProjectData({ dispatch }, projData) {
     try {
-      await db.projects.upsert(projData._id, doc => projData)
+      await projects.upsert(projData._id, doc => projData)
       dispatch('notify', {
         text: 'Saved.',
         color: 'success',
@@ -312,7 +335,7 @@ const actions = {
     if (!Array.isArray(netIds)) netIds = [netIds]
 
     try {
-      const projsToAdd = await db.projects.find({
+      const projsToAdd = await projects.find({
         selector: {
           '_id': {
             '$in': netIds
@@ -342,6 +365,31 @@ const actions = {
         state: true
       })
     }
+  },
+  async fetchNetTasksInfo({}, net_num) {
+    if (!net_num) return
+    conn.connect()
+      .then(() => conn.request().query(`select * from [lvmv_tasks] where [Network Num] = '${net_num}'`))
+      .then(data => console.log(data))
+      .then(() => conn.close())
+      .catch(err => {
+        conn.close()
+        console.log(err)
+      })
+  },
+  async removeForeignNets({ commit }) {
+    localStorage.setItem('foreignProjectsBasic', JSON.stringify([]))
+    commit('setForeignProjectsBasic', [])
+  },
+  async stopProjectsReplication() {
+    projectsReplicator.cancel()
+  },
+  async startProjectsReplication() {
+    projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+    .on('change', (c) => {
+      console.log(c)
+      store.dispatch('fetchAllProjectsBasic', true)
+    })
   }
 }
 
@@ -362,3 +410,5 @@ export default {
   actions,
   mutations
 }
+
+export let projectsDb = projects

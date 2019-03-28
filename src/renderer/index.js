@@ -7,6 +7,8 @@ import router from './router.js'
 import Vuetify from 'vuetify'
 Vue.use(Vuetify)
 import 'vuetify/dist/vuetify.min.css'
+import UploadButton from 'vuetify-upload-button'
+Vue.component('upload-btn', UploadButton)
 
 // ElementUI
 import { DatePicker, Input, Row, Col, Form, FormItem, Table, TableColumn, InputNumber, Switch } from 'element-ui'

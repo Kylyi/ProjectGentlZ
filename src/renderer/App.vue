@@ -116,6 +116,14 @@
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
         <v-spacer></v-spacer>
         <v-icon
+          v-if="!userInfo.sapUsername"
+          color="error"
+          title="Please set SAP username in settings."
+          style="-webkit-app-region: no-drag;"
+        >
+          account_circle
+        </v-icon>
+        <v-icon
           :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
           style="-webkit-app-region: no-drag;"
           v-html="offline ? 'sync_disabled' : 'sync'"
@@ -156,7 +164,7 @@
           <tr v-for="notif in notifications[notificationsTypeSelected].notifs" :key="notif._id" :class="notif.type+'--text'">
             <td style="width: 100px; text-align: center;">{{notif.name}}</td>
             <td style="text-align: center; padding: 0 3px;">{{notif.actionInfo}}</td>
-            <td style="text-align: center; width: 34px"><v-icon v-if="!notif.actionDone" small color="success" @click="commitAction(notif._id, true, notif.action, notif.actionArgs)">check</v-icon><v-icon @click="commitAction(notif._id, false)" color="error" small>close</v-icon></td>
+            <td style="text-align: center; width: 34px"><v-icon v-if="notif.hasOwnProperty('actionDone') && !notif.actionDone" small color="success" @click="commitAction(notif.name, true, notif.action, notif.actionArgs)">check</v-icon><v-icon @click="commitAction(notif.name, false)" color="error" small>close</v-icon></td>
           </tr>
         </table>
       </v-layout>
@@ -304,6 +312,10 @@
       window.addEventListener('offline', this.changeConnectivity);
       this.changeOpenAfterGenerate()
       this.changeGeneratorSelectionMode()
+      this.fetchAllProjectsBasic(true);
+      this.fetchProjectsDetail();
+      this.fetchAllTemplates(true);
+      this.fetchForeignProjectsBasic();
     },
     data: () => ({
       drawer: true,
@@ -348,7 +360,9 @@
       }
     },
     methods: {
-      ...mapActions(['checkLoggedIn', 'loginWithPassword', 'registerUser', 'changeOpenAfterGenerate', 'notify', 'checkConnectivity', 'removeNotification', 'changeGeneratorSelectionMode']),
+      ...mapActions(['checkLoggedIn', 'loginWithPassword',
+      'registerUser', 'changeOpenAfterGenerate', 'notify', 'checkConnectivity',
+      'removeNotification', 'changeGeneratorSelectionMode', 'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchForeignProjectsBasic']),
       async notifyTmpls (tmpls) {
         this.$notify({
           group: 'new-tmpl',
@@ -389,8 +403,8 @@
       async changeConnectivity(e) {
         this.checkConnectivity(e.type === 'online')
       },
-      commitAction (notificationId, e, action, actionArgs) {
-        this.removeNotification(notificationId)
+      commitAction (notifName, e, action, actionArgs) {
+        this.removeNotification(notifName)
         if (e) this.$store.dispatch(action, actionArgs)
       }
     }

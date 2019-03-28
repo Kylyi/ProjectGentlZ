@@ -65,6 +65,29 @@ const actions = {
     } catch (err) {
       console.log(err)
     }
+  },
+  async changeUserSapName({ dispatch }, sapName) {
+    try {
+      if (!sapName || sapName === '') throw 'SAP username not defined.'
+      const user = username.sync()
+      const a = await db.user.upsert(user, doc => {
+        doc.sapUsername = sapName
+        return doc
+      })
+      localStorage.setItem('sapUsername', sapName)
+      // dispatch('fetchAllProjectsBasic', true)
+      dispatch('notify', {
+        text: 'User modified',
+        state: true,
+        color: 'success'
+      })
+    } catch (err) {
+      dispatch('notify', {
+        text: err,
+        state: true,
+        color: 'error'
+      })
+    }
   }
 }
 

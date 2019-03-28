@@ -1,9 +1,5 @@
 <template>
   <v-container>
-    <v-flex :class="devMode? 'd-flex': 'd-none'">
-      <v-btn v-shortkey="['ctrl', 'alt', 'o']" @shortkey="devMode = !devMode" class="d-none">Add projects</v-btn>
-    </v-flex>
-
     <v-layout align-start class="wrap row">
         <!-- Title -->
       <v-flex xs10 row wrap mb-4>
@@ -134,7 +130,7 @@
               <v-form
                 ref="projectAddForm"
                 v-model="projectAddValid"
-                @input="addProject()"
+                @submit.prevent="addProject()"
               >
                 <v-text-field
                   v-model="projectToAdd"
@@ -145,6 +141,29 @@
                 >
                 </v-text-field>
               </v-form>
+            </v-flex>
+          </v-layout>
+
+          <!-- GET NET TASKS INFO -->
+          <v-layout column wrap v-shortkey="['ctrl', 'alt', 'o']" @shortkey="devMode = !devMode" :class="devMode? 'd-flex': 'd-none'">
+            <v-flex row wrap>
+              <v-form
+                @submit.prevent="getNetTasksInfo()"
+              >
+                <v-text-field
+                  v-model="netPlaceholder"
+                  :rules="[v => !!v || 'Net # is required', v => (v && v.length === 10) || 'Net # are 10 characters long.']"
+                  label="Get tasks info for network"
+                  required
+                >
+                </v-text-field>
+              </v-form>
+            </v-flex>
+            <v-flex row wrap>
+              <v-btn outline @click="deleteLocalStorage">Clear localStorage</v-btn>
+              <v-btn outline @click="stopProjectsReplication">Stop project replication</v-btn>
+              <v-btn outline @click="startProjectsReplication">Start project replication</v-btn>
+              <v-btn outline @click="addAllBillings">Get billings</v-btn>
             </v-flex>
           </v-layout>
         </v-flex>
@@ -209,7 +228,8 @@
       projectAddInfo: null,
       optionsMenu: false,
       divisionSelect: '[lvmv_networks]',
-      templatePreview: require('./../renderer/assets/template_preview.png')
+      templatePreview: require('./../renderer/assets/template_preview.png'),
+      netPlaceholder: ''
     }),
     created: async function () {
       this.openAfterGenerate = this.$store.state.templates.openAfterGenerate
@@ -219,16 +239,16 @@
       ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading'])
     },
     methods: {
-      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addSingleProject', 'addForeignNets']),
+      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'fetchNetTasksInfo', 'deleteLocalStorage',
+                    'stopProjectsReplication', 'startProjectsReplication', 'addAllBillings']),
       addProject() {
-        if (this.projectToAdd !== '' && this.projectAddValid) {
-          // this.addSingleProject(this.projectToAdd)
+        if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)
         }
       },
-      async yikes(a) {
-        console.log('xxx')
-        console.log(a)
+      async getNetTasksInfo() {
+        console.log(this.netPlaceholder)
+        this.fetchNetTasksInfo(this.netPlaceholder)
       }
     },
     components: {ProjectSelector, TemplateSelector}

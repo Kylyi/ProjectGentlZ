@@ -75,7 +75,20 @@
         </v-flex>
 
         <!-- Right side -->
-        <v-layout column xs7 ml-4>
+        <v-layout column wrap xs7 ml-4>
+          <v-layout row wrap>
+            <v-flex shrink column wrap>
+              <upload-btn :fileChangedCallback="filePathChanged" title="Choose OB daily file path" outline />
+            </v-flex>
+            <v-flex grow column wrap>
+              <v-text-field v-model="obDailyFilePath" :readonly="true" placeholder="Select path" />
+            </v-flex>
+          </v-layout>
+          <v-layout row wrap>
+            <v-flex shrink column wrap>
+              <v-btn @click="getOBDaily(obDailyFilePath)" outline>Get OB Daily</v-btn>
+            </v-flex>
+          </v-layout>
         </v-layout>
 
       <v-snackbar v-model="snackbar" :top="true" :right="true" :color="color" :timeout=2000>
@@ -98,6 +111,7 @@
 import vueDropzone from "vue2-dropzone"
 import db from '../../main/scripts/database'
 import {invoicingImport} from '../../main/scripts/invoicingFromExcel'
+import { mapActions } from 'vuex';
 
 const {app, dialog} = require('electron').remote
 const fs = require('fs');
@@ -109,8 +123,10 @@ const csvjson = require('csvjson')
 // moment.locale('cs-cz')
 
 export default {
+  name: 'importInvoicing',
   data: () => ({
     valid: false,
+    obDailyFilePath: '',
     thumbnail: '',
     fileName: null,
     filePath: null,
@@ -127,8 +143,12 @@ export default {
     ],
   }),
   methods: {
+    ...mapActions(['getOBDaily']),
     clear () {
       this.$refs.addTemplateForm.reset()
+    },
+    filePathChanged (file) {
+      this.obDailyFilePath = file.path
     },
     async submit() {
       if (this.$refs.addTemplateForm.validate()) {

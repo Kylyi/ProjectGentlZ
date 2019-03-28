@@ -99,46 +99,35 @@
         min-width="150"
       />
       <el-table-column
-        prop="zvl"
-        label="ZVL"
-        sortable
-        align="left"
-        width="120"
-      />
-      <el-table-column
-        prop="zvr"
-        label="ZVR"
-        sortable
-        align="left"
-        width="120"
-      />
-      <el-table-column
         prop="SSO"
         label="SSO"
         sortable
         align="left"
-        width="90"
+        min-width="90"
       />
+
       <el-table-column
-        fixed="right"
+        prop="riskRegisterBilance.bilanceRisks"
         label="Risks"
-        width="100"
+        min-width="100"
         align="center"
         sortable
+        :formatter="numberToThousands"
       >
         <template slot-scope="scope">
-          <span style="color: red!important;">{{(scope.row.riskRegisterBilance.bilanceRisks / 1000).toFixed(1)}} K</span>
+          <span :class="scope.row.riskRegisterBilance.bilanceRisks > 0 ? 'error--text' : ''">{{scope.row.riskRegisterBilance.bilanceRisks}}</span>
         </template>
       </el-table-column>
+
       <el-table-column
-        fixed="right"
-        label="Opps"
-        width="100"
+        prop="riskRegisterBilance.bilanceOpps"
+        label="Opportunities"
+        min-width="100"
         align="center"
-        sortable
+        sortable 
       >
         <template slot-scope="scope">
-          <span style="color: green!important;">{{(scope.row.riskRegisterBilance.bilanceOpps / 1000).toFixed(1)}} K</span>
+          <span :class="scope.row.riskRegisterBilance.bilanceOpps > 0 ? 'success--text' : ''">{{scope.row.riskRegisterBilance.bilanceOpps}}</span>
         </template>
       </el-table-column>
     </el-table>
@@ -162,6 +151,14 @@ export default {
     },
     changeProjectSelection(proj) {
       this.chooseProjects(proj.nets[0].net_info[0].task_info)
+    },
+    numberToThousands(r, c, val, i) {
+      console.log(r,c,val)
+      if (c.label === 'Risks') {
+        return (val/1000).toFixed(1) + ' K'
+      } else if(c.label === 'Opportunities') {
+        return (val/1000).toFixed(1) + ' K'
+      }
     }
   }
 }

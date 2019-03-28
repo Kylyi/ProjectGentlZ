@@ -8,7 +8,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Health and Safety"
          },
          {
             "name": "Meeting with customer in higher risk country ",
@@ -18,7 +19,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Health and Safety"
          }
       ],
       "High project value or complexity": [{
@@ -29,7 +31,8 @@
          "plannedAction": "",
          "owner": "",
          "probability": "",
-         "priceImpact": ""
+         "priceImpact": "",
+         "category": "High project value or complexity"
       }],
       "Commercial Conditions": [{
             "name": "Contract includes higher than standard liquidated damages or includes any additional penalties.",
@@ -39,7 +42,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract is signed with non ABB customer. ",
@@ -49,7 +53,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract includes BACK to BACK commercial conditions with our customer. ",
@@ -59,7 +64,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Conditioned billing in purchase order.",
@@ -69,7 +75,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Customer or contract does not support contractual delivery date postponement in case that customer fails to deliver drawings approval on time.  ",
@@ -79,7 +86,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Customer or contract does not support any price order variation based on our change management. ",
@@ -89,7 +97,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Signing of projects order confirmation from our side without having all commercial condition available, clarified or known. ",
@@ -99,7 +108,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract includes Performance Guarantee, Defect Liability Guarantee, Advance payment guarantee or any other type of bond.",
@@ -109,7 +119,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract includes commercial Letter of credit.",
@@ -119,7 +130,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract delivery date in purchase order is shorter than delivery date calculated by internal planning calculation tool and PPES.",
@@ -129,7 +141,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Non standard scope of supply in the projects purchase order. (for example site activities, protection realys settings, transpor base frames, RITTAL panel)",
@@ -139,7 +152,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          },
          {
             "name": "Contract requires free of charge switchgear storage that is longer than standard period of 8 days.",
@@ -149,7 +163,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Commercial Conditions"
          }
       ],
       "Technical Specification": [{
@@ -160,7 +175,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "List of deviation of customer’s technical switchgear specification against Unigear Pro specification is missing or not available.",
@@ -170,7 +186,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customer requires nonstandard form of schematic drawings.",
@@ -180,7 +197,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customer requires atypical or nonstandard documents. ",
@@ -190,7 +208,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customer orders new, not-tested technical solution that might require laboratory type testing. ",
@@ -200,7 +219,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Dual use material to be delivered as part of the switchgear. ",
@@ -210,7 +230,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Material with longer delivery time is part of the switchgear delivery. ",
@@ -220,7 +241,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customized FAT",
@@ -230,7 +252,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customer or contract requires special type of switchgear accessories packing and marking.",
@@ -240,7 +263,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          },
          {
             "name": "Customer or contract requires special type of switchgear packing and marking. ",
@@ -250,7 +274,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Technical Specification"
          }
       ],
       "Organizational": [{
@@ -261,7 +286,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Organizational"
          },
          {
             "name": "Discrepancy between customers and ABB s.r.o. technical specification exists (if customers specification exists). Unclear technical items. ",
@@ -271,7 +297,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Organizational"
          },
          {
             "name": "Project team availability and his experiences. ",
@@ -281,7 +308,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Organizational"
          }
       ],
       "External conditions": [{
@@ -292,7 +320,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "External conditions"
          },
          {
             "name": "Contract is signed with new customer who is not familiar with our product and/or with our internal processes.",
@@ -302,7 +331,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "External conditions"
          },
          {
             "name": "Customer has fixed plan for switchgear installation on site and/or that is to be realized in very short time after switchgear planned contractual delivery date.",
@@ -312,7 +342,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "External conditions"
          },
          {
             "name": "Customer is supplying his own material for its installation in the switchgear. ",
@@ -322,7 +353,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "External conditions"
          }
       ]
    },
@@ -335,7 +367,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Opportunities"
          },
          {
             "name": "Real development of project margin.",
@@ -345,7 +378,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Opportunities"
          },
          {
             "name": "Material cost saving",
@@ -355,7 +389,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Opportunities"
          },
          {
             "name": "Shortening of project standard or planned approval periods.",
@@ -365,7 +400,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Opportunities"
          },
          {
             "name": "Former projects experiences and solved problems and its application in present project. ",
@@ -375,7 +411,8 @@
             "plannedAction": "",
             "owner": "",
             "probability": "",
-            "priceImpact": ""
+            "priceImpact": "",
+            "category": "Opportunities"
          }
       ]
    }

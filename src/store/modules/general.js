@@ -41,11 +41,12 @@ const actions = {
     dispatch('checkDatabaseConnectivity')
   },
   async addNotification({ commit, dispatch },
-    { notification, log, forceActionSelf, forceActionOthers } = { notification: {}, log: false, forceActionSelf: false, forceActionOthers: false }) {
+    { notification, log, forceActionSelf, forceActionOthers, ...others }) {
     
-      if (log) {
-      const notifPlaceholder = notification
-      db.log.upsert(notification.name, doc => {return {notification: notifPlaceholder, log, forceActionOthers}})
+    if (log) {
+      const notifPlaceholder = JSON.parse(JSON.stringify(notification))
+      notifPlaceholder.actionDone = false
+      db.log.upsert(notification.name, doc => {return {notification: notifPlaceholder, log, forceActionSelf: forceActionOthers, ...others}})
     } 
     if (forceActionSelf) {
       dispatch(notification.action, notification.actionArgs)
@@ -53,8 +54,8 @@ const actions = {
     }
     if (notification.notify) commit('addNotification', notification)
   },
-  async removeNotification({ commit }, notification) {
-    commit('removeNotification', notification)
+  async removeNotification({ commit }, notifName) {
+    commit('removeNotification', notifName)
   },
   async checkDatabaseConnectivity({ commit }) {
     try {
@@ -66,6 +67,9 @@ const actions = {
       commit('setDatabaseConnectivity', false)
     }
     
+  },
+  async deleteLocalStorage() {
+    localStorage.clear()
   }
 }
 
@@ -73,9 +77,8 @@ const mutations = {
   setSnackbar: (state, snackbar) => state.snackbar = snackbar,
   setOffline: (state, online) => state.offline = !online,
   addNotification: (state, notification) => state.notifications.push(notification),
-  removeNotification: (state, notificationId) => {
-    const idx = state.notifications.map(e => e._id === notificationId).indexOf(true)
-    state.notifications.splice(idx, 1)
+  removeNotification: (state, notifName) => {
+    state.notifications = state.notifications.filter(e => e.name !== notifName)
   },
   setDatabaseConnectivity: (state, dbConnectivity) => state.dbConnectivity = dbConnectivity
 }

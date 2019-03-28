@@ -11,15 +11,6 @@
         <v-flex shrink>
           <v-container fluid grid-list-md>
             <v-layout row wrap>
-              <v-flex d-flex mr-1>
-                <v-btn
-                  title="Removes all projects that don't belong to me."
-                  outline
-                  color="error"
-                >
-                  Remove foreign projects
-                </v-btn>
-              </v-flex>
               <v-flex d-flex>
                 <v-layout row wrap>
                   <v-flex d-flex xs12>
@@ -39,6 +30,16 @@
                     <span :style="`color: ${generatorSelectionMode === 'project' ? '#ff5252' : ''}`">Project</span>
                   </v-flex>
                 </v-layout>
+              </v-flex>
+              <v-flex d-flex>
+                <v-btn
+                  title="Removes all projects that don't belong to me."
+                  :color="foreignProjectsBasic.length > 0 ? 'error' : ''"
+                  @click="removeForeignNets"
+                  icon
+                >
+                  <v-icon>supervisor_account</v-icon>
+                </v-btn>
               </v-flex>
               <v-flex d-flex>
                 <v-btn
@@ -78,15 +79,9 @@ import ProjectsMode from './ProjectsGrid/ProjectsMode'
 
 export default {
   components: { GenerateTemplateDialog, NetMode, ProjectsMode },
-  created: async function () {
-    this.fetchAllProjectsBasic(true);
-    this.fetchProjectsDetail();
-    this.fetchAllTemplates();
-    this.fetchForeignProjectsBasic();
-  },
-  computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading']),
+  computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading', 'foreignProjectsBasic']),
   methods: {
-    ...mapActions(['addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchAllProjectsBasic', 'fetchForeignProjectsBasic'])
+    ...mapActions(['addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchForeignProjectsBasic', 'removeForeignNets'])
   }
 }
 </script>
