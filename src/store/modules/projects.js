@@ -4,6 +4,8 @@ const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 import fs from 'fs'
 import store from '../index'
+import DataFrame from 'dataframe-js';
+const XLSX = require('xlsx')
 
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
@@ -29,7 +31,8 @@ const state = {
   chosenProjects: [],
   pmProjectsProjectMode: [],
   loading: false,
-  foreignProjectsBasic: []
+  foreignProjectsBasic: [],
+  taskInfo: null
 }
 
 const getters = {
@@ -166,7 +169,8 @@ const getters = {
     return { data, layout, config }
   },
   loading: state => state.loading,
-  foreignProjectsBasic: state => state.foreignProjectsBasic
+  foreignProjectsBasic: state => state.foreignProjectsBasic,
+  taskInfo: state => state.taskInfo
 }
 
 const actions = {
@@ -243,17 +247,47 @@ const actions = {
         return conn
           .request()
           .query(
-            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules] FROM [PPES].[dbo].[lvmv_networks] `
+            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules] FROM [PPES].[dbo].[lvmv_networks]`
           );
       })
       .then(data => {
-        const projUpserts = data.recordset.map(async (p) => {
+        const obDailyPath1301 = rootState.invoicing.obDailyPath1301
+        const obDailyPath1601 = rootState.invoicing.obDailyPath1601
+        if (!fs.existsSync(obDailyPath1301) || !fs.existsSync(obDailyPath1601)) return data
+
+        const obDailySheet1301 = XLSX.readFile(obDailyPath1301, {cellDates: true}).Sheets['zdroj']
+        const obDailySheet1601 = XLSX.readFile(obDailyPath1601, {cellDates: true}).Sheets['zdroj']
+
+        const obDailyData1301 = XLSX.utils.sheet_to_json(obDailySheet1301, {range: 2})
+        const obDailyData1601 = XLSX.utils.sheet_to_json(obDailySheet1601, {range: 2})
+        let obDailyData = obDailyData1301.concat(obDailyData1601)
+        obDailyData = obDailyData.map(r => {
+          return {
+            'Project Definition': r['Číslo projektu'],
+            'Project Name': r['Název projektu'],
+            'Customer Name': r['Jméno odběratele'],
+            'Customer Country': r['Stát'],
+            'Project Revenues': r['R celk. v CZK'] + r['OB v CZK'],
+            'Project OB': r['OB v CZK'],
+            'Project Panels': r['Počet polí']
+          }
+        })
+        
+        const obDailyDf = new DataFrame(obDailyData)
+        const dataDf = new DataFrame(data.recordset)
+
+        const joinedData = dataDf.leftJoin(obDailyDf, ['Project Definition'])
+        return joinedData.toCollection()
+      })
+      .then(data => {
+        const projUpserts = data.map(async (p) => {
           await projects.upsert(String(p['Network Num']), doc => {
             if (doc.hasOwnProperty('fixedFields')) {
               doc['fixedFields'].forEach(u => {
                 p[u] = doc[u]
               })
               p['fixedFields'] = doc['fixedFields']
+              p['Net Revenues'] = p['Project Panels'] > 0 ? p['Project Revenues'] * p['Number of Panels'] / p['Project Panels'] : p['Project Revenues']
             } else {
               p['fixedFields'] = ['riskRegister']
               p['riskRegister'] = []
@@ -309,7 +343,13 @@ const actions = {
     const projsDetail = isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'projectDetails.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
     commit('setProjectsDetail', projsDetail)
   },
-  async chooseProjects({ commit }, projData) {
+  async chooseProjects({ commit, rootState }, projData) {
+    const personalNum = rootState.user.userInfo.sapUsernumber
+    if ((projData.length > 0 || typeof(projData) === 'object') && personalNum ) {
+      const netNum = (Array.isArray(projData) && projData.length > 0) ? projData[0]['_id'] : projData['_id']
+
+      commit('setTaskInfo', {netNum, personalNum})
+    }
     commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
   },
   async changeProjectData({ dispatch }, projData) {
@@ -401,7 +441,32 @@ const mutations = {
   setPmProjectsNetMode: (state, projects) => state.pmProjectsNetMode = projects,
   setPmProjectsProjectMode: (state, projects) => state.pmProjectsProjectMode = projects,
   setLoading: (state, val) => state.loading = val,
-  setForeignProjectsBasic: (state, projs) => state.foreignProjectsBasic = projs
+  setForeignProjectsBasic: (state, projs) => state.foreignProjectsBasic = projs,
+  setTaskInfo: (state, {netNum, personalNum}) => {
+    if (typeof(netNum) === 'undefined' || !personalNum) {
+      console.log('canceled')
+      state.taskInfo = null
+      return
+    }
+    conn.connect()
+      .then(() => state.loading = true)
+      .then(() => {
+        return conn
+          .request()
+          .query(`SELECT [Task Num], [Task Description], [Task Status], [May Start], [Days To Start], [Total Float], [Normal Work], [Normal Work - unit], [Actual Work], [Priority], [Capacity], [Work percentage] FROM [ppes].[dbo].[lvmv_tasks] WHERE [Network Num] = ${Number(netNum)} AND [Personal Num] = ${personalNum}`);
+      })
+      .then((taskInfo) => {
+        console.log(taskInfo)
+        state.taskInfo = taskInfo.recordset
+      })
+      .then(() => conn.close())
+      .then(() => state.loading = false)
+      .catch(err => {
+        console.log(err)
+        conn.close()
+        state.loading = false
+      })
+  }
 }
 
 export default {

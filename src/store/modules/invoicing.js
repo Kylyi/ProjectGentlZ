@@ -8,11 +8,13 @@ import DataFrame from 'dataframe-js';
 const conn = isDev ? new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'databaseSettings.json'), 'utf-8'))) : new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
 
 const state = {
-
+  obDailyPath1301: localStorage.getItem('obDailyPath1301'),
+  obDailyPath1601: localStorage.getItem('obDailyPath1601')
 }
 
 const getters = {
-
+  obDailyPath1301: state => state.obDailyPath1301,
+  obDailyPath1601: state => state.obDailyPath1601
 }
 
 const actions = {
@@ -36,7 +38,7 @@ const actions = {
         })
       })
   },
-  getOBDaily({}, filePath) {
+  async getOBDaily({}, filePath) {
     const file = XLSX.readFile(filePath, {
       cellDates: true
     })
@@ -45,16 +47,14 @@ const actions = {
       range: 2,
     })
 
-
-
     data = data.map(r => {
       return {
         'Project Definition': r['Číslo projektu'],
         'Project Name': r['Název projektu'],
         'Customer Name': r['Jméno odběratele'],
         'Customer Country': r['Stát'],
-        'Net Revenues': r['R celk. v CZK'],
-        'OB': r['OB v CZK']
+        'Project Revenues': r['R celk. v CZK'] + r['OB v CZK'],
+        'Project OB': r['OB v CZK']
       }
     })
 
@@ -62,13 +62,18 @@ const actions = {
     const df2 = new DataFrame(JSON.parse(localStorage.getItem('allProjectsBasic')))
 
     const x = df2.leftJoin(df, ['Project Definition'])
-    console.dir(x.toCollection())
+    return x
+  },
+  async changeFileLocation({ commit }, {plant, path}) {
+    localStorage.setItem('obDailyPath'+plant, path)
+    commit('setObDailyPath'+plant, path)
   }
 }
 
 
 const mutations = {
-
+  setObDailyPath1301: (state, path) => state.obDailyPath1301 = path,
+  setObDailyPath1601: (state, path) => state.obDailyPath1601 = path,
 }
 
 export default {

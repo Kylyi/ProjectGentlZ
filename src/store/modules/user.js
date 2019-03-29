@@ -66,15 +66,16 @@ const actions = {
       console.log(err)
     }
   },
-  async changeUserSapName({ dispatch }, sapName) {
+  async changeUserSapName({ dispatch }, {sapUsername, sapUsernumber}) {
     try {
-      if (!sapName || sapName === '') throw 'SAP username not defined.'
+      if (!sapUsername || sapUsername === '' || !sapUsernumber || sapUsernumber === '') throw 'SAP username not defined.'
       const user = username.sync()
       const a = await db.user.upsert(user, doc => {
-        doc.sapUsername = sapName
+        doc.sapUsername = sapUsername
+        doc.sapUsernumber = sapUsernumber
         return doc
       })
-      localStorage.setItem('sapUsername', sapName)
+      localStorage.setItem('sapUsername', sapUsername)
       // dispatch('fetchAllProjectsBasic', true)
       dispatch('notify', {
         text: 'User modified',

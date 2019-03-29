@@ -18,12 +18,15 @@
                   </v-flex>
                   <v-flex column>
                     <v-flex row wrap mt-4>
-                      <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="czjmpri"></v-text-field>
+                      <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="Jméno Příjmení"></v-text-field>
+                    </v-flex>
+                    <v-flex row wrap mt-4>
+                      <v-text-field v-model="sapUsernumber" style="width: 200px;" hide-details label="SAP personal number" placeholder="0XXXXXXXX"></v-text-field>
                     </v-flex>
                   </v-flex>
                 </v-layout>
               </v-card-text>
-              <v-card-actions><v-btn @click="changeUserSapName(sapUsername)" flat icon><v-icon>save</v-icon></v-btn> </v-card-actions>
+              <v-card-actions><v-btn @click="changeUser(sapUsername, sapUsernumber)" flat icon><v-icon>save</v-icon></v-btn> </v-card-actions>
             </v-card>
           </v-expansion-panel-content>
 
@@ -74,7 +77,7 @@
                     Order of item matters as items will be shown accordingly to these settings.
                   </v-flex>
 
-                  <v-flex column>
+                  <v-layout column wrap shrink>
                     <v-flex row wrap class="subtit" mt-2>Available fields</v-flex>
                     <table class="draggableTable">
                       <thead class="el-table__header">
@@ -95,7 +98,22 @@
                       </draggable>
                     </table>
 
-                  </v-flex>
+                  </v-layout>
+                  <v-layout column wrap gow ml-3>
+                    <v-flex shrink column wrap>
+                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1301" title="Choose OB daily file path 1301" outline />
+                    </v-flex>
+                    <v-flex grow column wrap>
+                      <v-text-field :value="obDailyPath1301" :readonly="true" placeholder="Path to OB Daily file - 1301" label="Path to OB Daily file - 1301" />
+                    </v-flex>
+                  
+                    <v-flex shrink column wrap>
+                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1601" readonly title="Choose OB daily file path 1601" outline />
+                    </v-flex>
+                    <v-flex grow column wrap>
+                      <v-text-field :value="obDailyPath1601" :readonly="true" placeholder="Path to OB Daily file - 1601" label="Path to OB Daily file - 1601" />
+                    </v-flex>
+                  </v-layout>
 
                 </v-layout>
               </v-card-text>
@@ -173,6 +191,7 @@ table.draggableTable .v-input__control {
     name: 'settings',
     created: async function () {
       this.sapUsername = this.$store.getters.userInfo.sapUsername || null
+      this.sapUsernumber = this.$store.getters.userInfo.sapUsernumber || null
       this.projectsDetail = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
 
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
@@ -193,7 +212,7 @@ table.draggableTable .v-input__control {
       this.invoicingDetail =  x
     },
     computed: {
-      ...mapGetters([]),
+      ...mapGetters(['obDailyPath1301', 'obDailyPath1601']),
       dragOptions() {
         return {
           animation: 200,
@@ -207,10 +226,11 @@ table.draggableTable .v-input__control {
       invoicingDetail: [],
       drag: false,
       sapUsername: null,
+      sapUsernumber: null,
       projectsDetail: []
     }),
     methods: {
-      ...mapActions(['editProjectsDetail', 'changeUserSapName']),
+      ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation']),
       triggerEdit(jsonObj) {
         this.editProjectsDetail({jsonObj, projectsDetailObj: this.projectsDetail})
       },
@@ -225,9 +245,14 @@ table.draggableTable .v-input__control {
           if (err) throw err;
         })
       },
-      resetViews() {
-        sessionStorage.clear()
-        localStorage.clear()
+      setPath1301(file) {
+        this.changeFileLocation({plant: '1301', path: file.path})
+      },
+      setPath1601(file) {
+        this.changeFileLocation({plant: '1601', path: file.path})
+      },
+      changeUser(sapUsername, sapUsernumber) {
+        this.changeUserSapName({sapUsername, sapUsernumber})
       }
     },
     components: {draggable}

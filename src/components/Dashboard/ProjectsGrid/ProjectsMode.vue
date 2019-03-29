@@ -115,7 +115,7 @@
         :formatter="numberToThousands"
       >
         <template slot-scope="scope">
-          <span :class="scope.row.riskRegisterBilance.bilanceRisks > 0 ? 'error--text' : ''">{{scope.row.riskRegisterBilance.bilanceRisks}}</span>
+          <span :class="scope.row.riskRegisterBilance.bilanceRisks > 0 ? 'error--text' : ''" v-html="numberToThousands(scope)" />
         </template>
       </el-table-column>
 
@@ -127,7 +127,7 @@
         sortable 
       >
         <template slot-scope="scope">
-          <span :class="scope.row.riskRegisterBilance.bilanceOpps > 0 ? 'success--text' : ''">{{scope.row.riskRegisterBilance.bilanceOpps}}</span>
+          <span :class="scope.row.riskRegisterBilance.bilanceOpps > 0 ? 'success--text' : ''" v-html="numberToThousands(scope)" />
         </template>
       </el-table-column>
     </el-table>
@@ -152,12 +152,11 @@ export default {
     changeProjectSelection(proj) {
       this.chooseProjects(proj.nets[0].net_info[0].task_info)
     },
-    numberToThousands(r, c, val, i) {
-      console.log(r,c,val)
-      if (c.label === 'Risks') {
-        return (val/1000).toFixed(1) + ' K'
-      } else if(c.label === 'Opportunities') {
-        return (val/1000).toFixed(1) + ' K'
+    numberToThousands(scope) {
+      if (scope.column.label === 'Risks') {
+        return (scope.row.riskRegisterBilance.bilanceRisks/1000).toFixed(1) + ' K'
+      } else if(scope.column.label === 'Opportunities') {
+        return (scope.row.riskRegisterBilance.bilanceOpps/1000).toFixed(1) + ' K'
       }
     }
   }
