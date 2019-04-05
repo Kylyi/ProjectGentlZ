@@ -33,7 +33,7 @@ function createMainWindow() {
   //   window.webContents.openDevTools()
   // }
 
-  // window.webContents.openDevTools()
+  window.webContents.openDevTools()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -110,4 +110,8 @@ ipcMain.on('new-project-downloaded', (e, data) => {
 ipcMain.on('userInfo', (e, userInfo) => {
   global.user = userInfo
   e.sender.send('userInfo', userInfo)
+})
+
+ipcMain.on('invoicingArrReady', (e) => {
+  e.sender.send('invoicingArrReadyFromMain')
 })

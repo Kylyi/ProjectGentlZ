@@ -58,11 +58,14 @@ const actions = {
     commit('removeNotification', notifName)
   },
   async checkDatabaseConnectivity({ commit }) {
+    console.log('Connecting to database...')
     try {
       const pool = await conn.connect()
+      console.log(pool)
       commit('setDatabaseConnectivity', pool['_connected'])
       conn.close()
     } catch (err) {
+      console.log(err)
       conn.close()
       commit('setDatabaseConnectivity', false)
     }

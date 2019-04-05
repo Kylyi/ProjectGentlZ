@@ -1,5 +1,5 @@
 <template>
-  <v-container id="riskRegister">
+  <v-container id="riskRegister" fluid>
     <v-layout column wrap>
       <!-- Title -->
       <v-flex row wrap>
@@ -71,7 +71,6 @@ export default {
 <style>
 #app .el-table .cell {
   word-break: break-word;
-  text-align: justify;
 }
 #riskRegister .v-expansion-panel {
   box-shadow: none;

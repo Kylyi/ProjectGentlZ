@@ -310,12 +310,12 @@
       this.checkConnectivity(navigator.onLine)
       window.addEventListener('online',  this.changeConnectivity);
       window.addEventListener('offline', this.changeConnectivity);
-      this.changeOpenAfterGenerate()
-      this.changeGeneratorSelectionMode()
+      // this.changeOpenAfterGenerate()
+      // this.changeGeneratorSelectionMode()
       this.fetchAllProjectsBasic(true);
       this.fetchProjectsDetail();
       this.fetchAllTemplates(true);
-      this.fetchForeignProjectsBasic();
+      // this.fetchForeignProjectsBasic();
     },
     data: () => ({
       drawer: true,
@@ -332,7 +332,7 @@
       logo: require('./assets/Logo.png'),
       invoicing: [
         { icon: 'grid_on', title: 'Interface', to: '/invoicing' },
-        { icon: 'cloud_upload', title: 'Import data', to: '/importInvoicing' }
+        // { icon: 'cloud_upload', title: 'Import data', to: '/importInvoicing' }
       ],
       templates: [
         { icon: 'trip_origin', title: 'Template generator', to: '/templateGenerator'},

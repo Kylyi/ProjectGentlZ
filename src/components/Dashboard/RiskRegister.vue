@@ -1,5 +1,6 @@
 <template>
-  <v-container>
+  <v-container fluid style="padding: 0;">
+    <v-layout row wrap><h1 display-3 class="myHeading">Risk register</h1></v-layout>
     <graph :propData="riskRegisterTraces" divId="plot" style="height: 300px"></graph>
   </v-container>
 </template>

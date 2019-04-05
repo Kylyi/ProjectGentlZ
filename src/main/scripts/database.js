@@ -11,7 +11,6 @@ PouchDB.plugin(require('pouchdb-upsert-bulk'))
 const {ipcRenderer} = require('electron')
 
 // MY DB
-// const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
 const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
 const remoteBillings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/billings')
 const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/settings')
@@ -19,7 +18,6 @@ const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/t
 const remoteLog = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/log')
 
 // ABB DB
-// const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projects', { revs_limit: 2 })
 // const remoteUsers = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/users')
 // const remoteBillings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/billings')
 // const remoteSettings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/settings')

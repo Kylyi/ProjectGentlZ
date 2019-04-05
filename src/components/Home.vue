@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-btn @click="yikes">Yikes</v-btn>
   </v-container>
 </template>

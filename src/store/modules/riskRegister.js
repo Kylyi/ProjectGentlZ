@@ -32,7 +32,7 @@ const actions = {
         doc.riskRegister = editedRiskRegister
         return doc
       })
-      rootState.general.offline ? dispatch('fetchAllProjectsBasic', true) : null
+      dispatch('fetchAllProjectsBasic', true)
       dispatch('notify', {
         text: 'Saved.',
         color: 'success',

@@ -7,8 +7,8 @@ const state = {
   allTemplatesBasic: [],
   chosenTemplates: [],
   generateTemplateDialog: false,
-  openAfterGenerate: 'no',
-  generatorSelectionMode: 'net'
+  openAfterGenerate: localStorage.getItem('docOpen') || 'no',
+  generatorSelectionMode: localStorage.getItem('generatorMode') || 'net'
 }
 
 const getters = {

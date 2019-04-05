@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-layout align-start class="wrap row">
         <!-- Title -->
       <v-flex xs10 row wrap mb-4>
@@ -160,10 +160,8 @@
               </v-form>
             </v-flex>
             <v-flex row wrap>
-              <v-btn outline @click="deleteLocalStorage">Clear localStorage</v-btn>
               <v-btn outline @click="stopProjectsReplication">Stop project replication</v-btn>
               <v-btn outline @click="startProjectsReplication">Start project replication</v-btn>
-              <v-btn outline @click="addAllBillings">Get billings</v-btn>
             </v-flex>
           </v-layout>
         </v-flex>
@@ -245,10 +243,6 @@
         if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)
         }
-      },
-      async getNetTasksInfo() {
-        console.log(this.netPlaceholder)
-        this.fetchNetTasksInfo(this.netPlaceholder)
       }
     },
     components: {ProjectSelector, TemplateSelector}

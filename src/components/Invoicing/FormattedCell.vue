@@ -37,14 +37,11 @@
       }
     },
     methods: {
-      test () {
-        console.log(this._props)
-      },
       formatDate () {
         if (this._props.cellData['rowType'] === 'data') {
           const selector = this._props.cellData['data']
-          const currentDate = moment(selector['inv_date'][this._props.dates[0]])
-          const lastDate = moment(selector['inv_date'][this._props.dates[1]])
+          const currentDate = moment(selector['Invoice Date'][this._props.dates[0]])
+          const lastDate = moment(selector['Invoice Date'][this._props.dates[1]])
           const diff = currentDate.diff(lastDate)
 
           if (diff > 0) {

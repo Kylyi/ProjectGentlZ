@@ -16,7 +16,7 @@ export let configDatabaseSettings = function () {
   if (!fileFound) {
     fs.writeFileSync(p, JSON.stringify({
       "database": "ppes",
-      "server": "czbrq-s-apl1133",
+      "server": "czbrq-s-apl0115",
       "driver": "msnodesqlv8",
       "options": {
         "trustedConnection": true

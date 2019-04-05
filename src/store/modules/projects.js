@@ -1,5 +1,6 @@
 import path from 'path'
 import { readFile } from '../../main/scripts/misc'
+import db from '../../main/scripts/database'
 const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 import fs from 'fs'
@@ -13,12 +14,17 @@ PouchDB.plugin(require('pouchdb-upsert'))
 PouchDB.plugin(require('pouchdb-upsert-bulk'))
 
 const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
+
+// MY DB
 const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
+
+// ABB DB
+// const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projects')
 
 let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
   .on('change', (c) => {
     console.log(c)
-    store.dispatch('fetchAllProjectsBasic', true)
+    if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
   })
 
 
@@ -31,7 +37,7 @@ const state = {
   chosenProjects: [],
   pmProjectsProjectMode: [],
   loading: false,
-  foreignProjectsBasic: [],
+  foreignProjectsBasic: JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [],
   taskInfo: null
 }
 
@@ -57,14 +63,11 @@ const getters = {
         // Project ID not in aggregator
         return [...agg, {
           project_id: e['Project Definition'],
-          electrical_eng: e['Electrical Engineer'],
-          mechanical_eng: e['Mechanical Engineer'],
-          foreman: e['Foreman'],
-          zvr: e['ZVR']? e['ZVR'].substr(0,10) : null,
-          zvl: e['ZVL'] ? e['ZVL'].substr(0, 10) : null,
-          SSO: e['SSO'],
+          project_name: e['Project Name'],
+          project_panels: e['Number of Panels'],
+          project_modules: e['Number of Modules'],
+          project_revenue: e['Project Revenues'],
           riskRegisterBilance: e['riskRegister'].hasOwnProperty('risks') ? e.riskRegister.bilance : {bilanceRisks: 0, bilanceOpps: 0},
-          ied_programmer: e['IED Programmer'],
           nets_keys: [e['_id']],
           nets: [{
             net_num: e['Network Num'],
@@ -89,6 +92,9 @@ const getters = {
             }]
           })
           agg[f]['nets_keys'].push(e['_id'])
+          agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
+          agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
+
           if (e['riskRegister'].hasOwnProperty('risks')) {
             agg[f]['riskRegisterBilance'].bilanceRisks = agg[f]['riskRegisterBilance'].bilanceRisks + e.riskRegister.bilance.bilanceRisks
             agg[f]['riskRegisterBilance'].bilanceOpps = agg[f]['riskRegisterBilance'].bilanceOpps + e.riskRegister.bilance.bilanceOpps
@@ -247,13 +253,13 @@ const actions = {
         return conn
           .request()
           .query(
-            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules] FROM [PPES].[dbo].[lvmv_networks]`
+            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules], [Invoice Date] FROM [PPES].[dbo].[lvmv_networks]`
           );
       })
       .then(data => {
         const obDailyPath1301 = rootState.invoicing.obDailyPath1301
         const obDailyPath1601 = rootState.invoicing.obDailyPath1601
-        if (!fs.existsSync(obDailyPath1301) || !fs.existsSync(obDailyPath1601)) return data
+        if (!fs.existsSync(obDailyPath1301) || !fs.existsSync(obDailyPath1601)) throw 'OB Daily path not set. Check SETTINGS.'
 
         const obDailySheet1301 = XLSX.readFile(obDailyPath1301, {cellDates: true}).Sheets['zdroj']
         const obDailySheet1601 = XLSX.readFile(obDailyPath1601, {cellDates: true}).Sheets['zdroj']
@@ -267,49 +273,77 @@ const actions = {
             'Project Name': r['Název projektu'],
             'Customer Name': r['Jméno odběratele'],
             'Customer Country': r['Stát'],
-            'Project Revenues': r['R celk. v CZK'] + r['OB v CZK'],
-            'Project OB': r['OB v CZK'],
-            'Project Panels': r['Počet polí']
+            'Project Revenues': Number(r['R celk. v CZK']) + Number(r['OB v CZK']),
+            'Project OB': Number(r['OB v CZK']),
+            'Project Panels': Number(r['Počet polí'])
           }
         })
         
         const obDailyDf = new DataFrame(obDailyData)
         const dataDf = new DataFrame(data.recordset)
-
+        
         const joinedData = dataDf.leftJoin(obDailyDf, ['Project Definition'])
         return joinedData.toCollection()
       })
       .then(data => {
         const projUpserts = data.map(async (p) => {
           await projects.upsert(String(p['Network Num']), doc => {
+            p['Net Revenues'] = Number(p['Project Panels']) > 0 ? (Number(p['Project Revenues']) * Number(p['Number of Panels']) / Number(p['Project Panels'])) : 1
+            
+            console.log(p['Network Num'], p['Net Revenues'])
+          
             if (doc.hasOwnProperty('fixedFields')) {
+              const placeholderFixedFields = doc['fixedFields'].concat(['riskRegister', 'sign'])
+              p['fixedFields'] = [...new Set(placeholderFixedFields)]
+
               doc['fixedFields'].forEach(u => {
-                p[u] = doc[u]
-              })
-              p['fixedFields'] = doc['fixedFields']
-              p['Net Revenues'] = p['Project Panels'] > 0 ? p['Project Revenues'] * p['Number of Panels'] / p['Project Panels'] : p['Project Revenues']
+                if (doc.hasOwnProperty(u)) {
+                  p[u] = doc[u]
+                } else {
+                  p[u] = {}
+                }
+                
+              })    
+
             } else {
-              p['fixedFields'] = ['riskRegister']
-              p['riskRegister'] = []
+              p['fixedFields'] = ['riskRegister', 'sign']
+              p['riskRegister'] = {}
+              p['sign'] = {}
             }
+
+            const today = new Date().toISOString().substr(0,10)
+            if (doc.hasOwnProperty('Invoice Date')) {
+              p['Invoice Date'] = Object.assign({}, doc['Invoice Date'], {[today]: p['Invoice Date']})
+            } else {
+              p['Invoice Date'] = {[today]: p['Invoice Date']}
+            }
+ 
             return p
           })
         });
+        console.timeEnd("Projects");
         Promise.all(projUpserts)
-        .then(() => {
+          .then((x) => {
             projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-          .on('change', (c) => {
-            console.log(c)
-            store.dispatch('fetchAllProjectsBasic', true)
-          })
+              .on('change', (c) => {
+                console.log(c)
+                if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
+              })
         })
         .catch((err) => console.log(err))
-        console.timeEnd("Projects");
       })
       .then(() => conn.close())
-      .then(() => {
-          rootState.general.offline ? dispatch('fetchAllProjectsBasic', true) : dispatch('fetchAllProjectsBasic', true)
+      .then(() => db.settings.upsert('invoicing', doc => {
+        const today = new Date().toISOString().substr(0,10)
+        if (doc.hasOwnProperty('datesModified')) {
+          doc['datesModified'].includes(today) ? null : doc['datesModified'].push(today)
+        } else {
+          doc['datesModified'] = [today]
         }
+        doc.lastUpdate = today
+        return doc
+      }))
+      .then(() => dispatch('fetchAllProjectsBasic', true)
       )
       .then(() => commit('setLoading', false))
       .then(() => dispatch('notify', {
@@ -318,6 +352,7 @@ const actions = {
         state: true
       }))
       .catch(err => {
+        console.timeEnd("Projects");
         conn.close();
         dispatch('notify', {
           text: err,
@@ -428,8 +463,16 @@ const actions = {
     projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
     .on('change', (c) => {
       console.log(c)
-      store.dispatch('fetchAllProjectsBasic', true)
+      if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
     })
+  },
+  async fetchProjectRevisions({}, netNum) {
+    let doc = await projects.get(netNum, {revs_info: true})
+    doc['_revs_info'].shift()
+    return doc['_revs_info']
+  },
+  async getRevisionInfo({}, {netNum, revId}) {
+    return await projects.get(netNum, {rev: revId})
   }
 }
 

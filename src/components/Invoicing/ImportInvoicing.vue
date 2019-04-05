@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-layout row wrap>
       <v-flex xs12>
         <h3  class="display-2 primary--text"><span class="tit">Import billings data</span></h3>

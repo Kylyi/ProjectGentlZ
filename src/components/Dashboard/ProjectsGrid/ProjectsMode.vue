@@ -6,7 +6,7 @@
       :data="pmProjectsProjectMode"
       :default-sort="{prop:'_id', order: 'ascending'}"
       style="width: 100%;"
-      max-height="550"
+      height="500"
       @expand-change="changeProjectSelection"
       >
       <el-table-column type="expand">
@@ -28,7 +28,7 @@
                 v-for="net in props.row.nets"
                 :key="net.net_num"
               >
-                <v-container>
+                <v-container fluid>
                   <table style="width: 100%;">
                     <tr>
                       <!-- LEFT SIDE -->
@@ -85,25 +85,32 @@
         width="110"
       />
       <el-table-column
-        prop="electrical_eng"
-        label="Electrical ENG"
+        prop="project_name"
+        label="Project name"
         sortable
         align="left"
-        min-width="150"
+        min-width="165"
       />
       <el-table-column
-        prop="foreman"
-        label="Foreman"
-        sortable
-        align="left"
-        min-width="150"
-      />
-      <el-table-column
-        prop="SSO"
-        label="SSO"
+        prop="project_panels"
+        label="Panels"
         sortable
         align="left"
         min-width="90"
+      />
+      <el-table-column
+        prop="project_modules"
+        label="Modules"
+        sortable
+        align="left"
+        min-width="110"
+      />
+      <el-table-column
+        prop="project_revenue"
+        label="Revenue"
+        sortable
+        align="left"
+        min-width="110"
       />
 
       <el-table-column
@@ -122,7 +129,7 @@
       <el-table-column
         prop="riskRegisterBilance.bilanceOpps"
         label="Opportunities"
-        min-width="100"
+        min-width="140"
         align="center"
         sortable 
       >

@@ -6,12 +6,12 @@
       :data="pmProjectsBasic"
       :default-sort="{prop:'_id', order: 'ascending'}"
       style="width: 100%;"
-      max-height="550"
+      height="500"
       @expand-change="chooseProjects"
       >
       <el-table-column type="expand">
         <template slot-scope="props">
-          <v-container>
+          <v-container fluid>
             <table style="width: 100%;">
               <tr>
                 
@@ -59,13 +59,6 @@
         </template>
       </el-table-column>
       <el-table-column
-        prop="Project Definition"
-        label="Project #"
-        sortable
-        align="center"
-        width="110"
-      />
-      <el-table-column
         prop="_id"
         label="Network #"
         sortable
@@ -76,17 +69,34 @@
         prop="Network Description"
         label="Network description"
         sortable
-        min-width="375"
+        min-width="300"
+        align="justify"
       />
       <el-table-column
-        fixed="right"
-        label="Info"
-        width="120"
+        prop="Number of Panels"
+        label="Panels"
+        sortable
+        min-width="110"
+      />
+      <el-table-column
+        prop="Number of Modules"
+        label="Modules"
+        sortable
+        min-width="110"
+      />
+      <el-table-column
+        prop="Net Revenues"
+        label="Revenues"
+        sortable
+        min-width="120"
+      />
+      <el-table-column
+        label="Invoicing alert"
+        width="150"
         align="center"
       >
         <template slot-scope="scope">
-          <v-btn v-show="scope.row['FAT Fixed Date']" title="FAT is fixed." icon small style="margin: 0;"><v-icon color="red">whatshot</v-icon></v-btn>
-          <v-btn v-show="scope.row['Packing fixed']" title="Packing is fixed." icon small style="margin: 0;"><v-icon color="primary">all_inbox</v-icon></v-btn>
+          <invoicing-signs :signs="scope.row.sign" />
         </template>
       </el-table-column>
     </el-table>
@@ -95,7 +105,10 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import InvoicingSigns from './NetMode/InvoicingSigns'
 export default {
+  name: 'NetMode',
+  components: { InvoicingSigns },
   computed: mapGetters(['pmProjectsBasic', 'visibleProjectsDetail', 'generateTemplateDialog']),
   methods: {
     ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail']),

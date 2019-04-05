@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid id="dashboardWrapper">
     <v-layout row>
       <v-flex xs10>
         <h3 class="display-2 primary--text"><span class="tit">Dashboard</span></h3>
@@ -10,14 +10,24 @@
     </v-layout>
 
     <v-layout row mt-4>
-      <v-flex column wrap xs6>
+      <v-flex column wrap xs8>
         <projects-grid />
       </v-flex>
-      <v-flex column wrap xs6>
+      <v-flex column wrap xs4 pl-5>
         <!-- RISK REGISTER CHART -->
-        <risk-register v-if="riskRegisterTraces.data.length > 0" />
-        <v-layout row v-else justify-center align-center style="min-height:200px;">
+        <v-layout row wrap v-if="riskRegisterTraces.data.length > 0" style="min-height: 350px;">
+          <risk-register />
+        </v-layout>
+        
+        <v-layout row v-else justify-center align-center style="min-height: 350px;">
           No risk register available.
+        </v-layout>
+
+        <v-layout row wrap v-if="taskInfo">
+          <tasks style="margin-top: 20px;" />
+        </v-layout>
+        <v-layout v-else row justify-center align-center style="min-height: 350px;">
+          No network selected. Click any row in My projects table.
         </v-layout>
       </v-flex>
     </v-layout>
@@ -27,17 +37,33 @@
 <script>
 import ProjectsGrid from './Dashboard/ProjectsGrid'
 import RiskRegister from './Dashboard/RiskRegister'
+import Tasks from './Dashboard/Tasks'
 import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: 'Dashboard',
   components: {
     ProjectsGrid,
-    RiskRegister
+    RiskRegister,
+    Tasks
   },
   methods: {
     ...mapActions(['addActiveProjects'])
   },
-  computed: mapGetters(['riskRegisterTraces'])
+  computed: mapGetters(['riskRegisterTraces', 'taskInfo'])
 }
 </script>
+
+<style lang="scss">
+  #dashboardWrapper td {
+    padding: 0 2px;
+    div.cell {
+      line-height: 26px;
+      text-align: center;
+      .v-btn {
+        margin: 0;
+        height: unset;
+      }
+    }
+  }
+</style>

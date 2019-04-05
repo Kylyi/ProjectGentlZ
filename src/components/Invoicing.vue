@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-layout row wrap>
       <v-flex row wrap mb-4 xs10>
         <h3 class="display-2 primary--text"><span class="tit">Invoicing</span></h3>
@@ -22,17 +22,18 @@
 
           <v-card id="optionsMenu">
             <v-list>
-              <v-list-tile>
+              <!-- DEVTODO -->
+              <!-- <v-list-tile>
                 <v-list-tile-content>
                     <v-list-tile-action-text>
                       <v-list-tile-title>Group via</v-list-tile-title>
                       <v-flex row wrap>
-                        <v-btn-toggle v-model="groupingDate" @change="switchGroupingDate">
-                          <v-btn flat :value="lastUpdate">
+                        <v-btn-toggle :value="invoicingGroupingDate" @change="changeGroupingDate">
+                          <v-btn flat :value="invoicingLastUpdate">
                             Current invoice date
                           </v-btn>
-                          <v-btn flat :value="SELECTEDDATE">
-                            Selected invoice date
+                          <v-btn flat :value="invoicingCompareDate">
+                            Compare date
                           </v-btn>
                         </v-btn-toggle
                       ></v-flex>
@@ -40,7 +41,7 @@
                     </v-list-tile-action-text>
 
                 </v-list-tile-content>
-              </v-list-tile>
+              </v-list-tile> -->
 
               <v-divider></v-divider>
 
@@ -48,7 +49,7 @@
                 <v-list-tile-content>
                     <v-list-tile-action-text>
                       <v-list-tile-title>Week grouping</v-list-tile-title>
-                      <v-flex row wrap><v-btn-toggle v-model="weekGrouping" @change="setWeekGrouping">
+                      <v-flex row wrap><v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping">
                         <v-btn flat :value="true">
                           Shown
                         </v-btn>
@@ -92,14 +93,14 @@
                   <v-list-tile-title>Select date range</v-list-tile-title>
                     <v-list-tile-action-text>
                       <el-date-picker
-                        v-model="dateRange"
+                        :value="invoicingDateRange"
                         type="daterange"
                         range-separator="To"
                         start-placeholder="Start date"
                         end-placeholder="End date"
                         format="dd.MM.yyyy"
                         :firstDayOfWeek="1"
-                        @change="setInvoicingDateRange"
+                        @input="changeInvoicingDateRange"
                       />
                     </v-list-tile-action-text>
                 </v-list-tile-content>
@@ -121,28 +122,23 @@
             <v-flex column xs4>
               <v-text-field
                 label="Last update"
-                v-model="lastUpdate"
+                v-model="invoicingLastUpdate"
                 disabled
               ></v-text-field>
             </v-flex>
 
             <v-flex column xs6 ml-2>
               <v-autocomplete
-                v-model="SELECTEDDATE"
-                :items="revisionsAvailable"
+                :value="invoicingCompareDate"
+                :items="invoicingDatesModified"
                 placeholder="Select date to compare with"
                 no-data-text="There are no other revisions than the current one."
                 label="Compare date"
-                @change="changeDate"
+                @change="changeCompareDate"
               ></v-autocomplete>
             </v-flex>
 
             <v-flex column xs7>
-
-              <!-- <v-radio-group v-model="groupingDate" row label="Group by" @change="switchGroupingDate" v-if="groupingDate && SELECTEDDATE">
-                <v-radio label="Current invoice date" :value="lastUpdate"></v-radio>
-                <v-radio label="Selected invoice date" :value="SELECTEDDATE"></v-radio>
-              </v-radio-group> -->
 
             </v-flex>
           </v-layout>
@@ -159,7 +155,7 @@
       
 
       <!-- GRID -->
-      <v-flex column wrap xs12 v-if="lastUpdate">
+      <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="height: 80vh;">
         <dx-data-grid
           ref="invoicingGrid"
           :data-source="billingsFiltered ? billingsFiltered : billings"
@@ -172,14 +168,14 @@
           :show-row-lines="true"
           :show-column-lines="true"
           @context-menu-preparing="setContextMenu"
-          >
+          :word-wrap-enabled="true"
+          style="height: 100%;"
+        >
 
           <dx-header-filter
             :visible="true"
             :allow-search="true"
           />
-
-          <dx-paging :enabled="false"></dx-paging>
 
           <!-- <dx-editing
             :allow-updating="true"
@@ -196,9 +192,8 @@
 
           <dx-column-chooser :enabled="true"/>
 
-          <dx-column-fixing :enabled="true"/>
-
-          <dx-grouping :context-menu-enabled="false" :auto-expand-all="false"/>
+          <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" expandMode="rowClick" :allow-collapsing="true"/>
+          <dx-scrolling mode="virtual" show-scrollbar="always" />
 
           <dx-selection
             select-all-mode="page"
@@ -232,15 +227,15 @@
             :data-type="col.dataType"
             :alignment="col.hasOwnProperty('alignment') ? col.alignment : undefined"
             cell-template="cellTemplate"
-            :format="col.dataType === 'number' ? '#,##0.##' : col.dataType === 'date' ? 'dd.MM.yyyy' : ''"
+            :format="col.dataType === 'number' ? '#,##0.##' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
             header-cell-template="headerTemplate"
             />
 
           <dx-column
-            :data-field="`inv_date[${lastUpdate}]`"
+            :data-field="`Invoice Date[${invoicingLastUpdate}]`"
             caption="Current invoice date"
             data-type="date"
-            :format="dateFormatter"
+            format="dd.MM.yy"
             alignment="center"
             cell-template="cellTemplate"
             :showWhenGrouped="true"
@@ -248,10 +243,10 @@
           />
           
           <dx-column
-            :data-field="`inv_date[${SELECTEDDATE}]`"
+            :data-field="`Invoice Date[${invoicingCompareDate}]`"
             caption="Last invoice date"
             data-type="date"
-            format="dd.MM.yyyy"
+            format="dd.MM.yy"
             alignment="center"
             :showWhenGrouped="true"
             header-cell-template="headerTemplate"
@@ -285,7 +280,7 @@
           <dx-column
             :visible="false"
             :show-in-column-chooser="false"
-            :group-index="2"
+            :group-index="invoicingWeekGrouping ? 2 : null"
             :calculate-group-value="groupByWeek"
             caption="Week"
             data-type="number"
@@ -294,18 +289,18 @@
 
           <dx-summary>
             <dx-group-item
-              column="net_revenues"
+              column="Revenues"
               summary-type="sum"
-              display-format="Total: {0} CZK"
+              display-format="{0} CZK"
               :align-by-column="true"
               value-format="#,##0"
             />
             <dx-group-item
               :show-in-group-footer="false"
               :align-by-column="true"
-              column="project_ob"
+              column="Project OB"
               summary-type="sum"
-              display-format="Total: {0} CZK"
+              display-format="{0} CZK"
               value-format="#,##0"
             />
             <dx-group-item
@@ -317,16 +312,23 @@
             <dx-group-item
               :show-in-group-footer="false"
               :align-by-column="true"
-              column="net_panels_no"
+              column="Number of Panels"
               summary-type="sum"
-              display-format="Total: {0} panels."
+              display-format="{0} panels."
+            />
+            <dx-group-item
+              :show-in-group-footer="false"
+              :align-by-column="true"
+              column="Number of Modules"
+              summary-type="sum"
+              display-format="{0} modules."
             />
           </dx-summary>
 
           <div
             slot="formattedCell"
             slot-scope="data">
-            <formatted-cell :cell-data="data" :dates="[lastUpdate, SELECTEDDATE]"/>
+            <formatted-cell :cell-data="data" :dates="[invoicingLastUpdate, invoicingCompareDate]"/>
           </div>
 
           <div
@@ -411,12 +413,16 @@
   td[role=columnheader] > .dx-header-filter-indicator {
     width: 100%;
   }
+
+  .dx-master-detail-cell{
+    padding: 0px !important;  
+  }
 </style>
 
 
 
 <script>
-  import { DxDataGrid, DxColumnFixing, DxColumn, DxSelection, DxSummary, DxGroupItem, DxSortByGroupSummaryInfo, DxMasterDetail, DxStateStoring, DxHeaderFilter, DxGrouping, DxColumnChooser, DxGroupPanel, DxSearchPanel, DxFilterPanel, DxFilterRow, DxEditing, DxExport, DxPaging } from 'devextreme-vue/data-grid'
+  import { DxDataGrid, DxColumnFixing, DxColumn, DxScrolling, DxSelection, DxSummary, DxGroupItem, DxSortByGroupSummaryInfo, DxMasterDetail, DxStateStoring, DxHeaderFilter, DxGrouping, DxColumnChooser, DxGroupPanel, DxSearchPanel, DxFilterPanel, DxFilterRow, DxEditing, DxExport, DxPaging } from 'devextreme-vue/data-grid'
   import db from '../main/scripts/database'
   import localStorage from 'localStorage'
   import config from 'devextreme/core/config'
@@ -430,79 +436,41 @@
   import DetailTemplate from './Invoicing/DetailTemplate.vue'
   import CellTemplate from './Invoicing/CellTemplate.vue'
   import HeaderTemplate from './Invoicing/HeaderTemplate.vue'
+  import { mapGetters, mapActions } from 'vuex';
+  import { ipcRenderer } from 'electron';
   const moment = require('moment')
   const path = require('path')
 
   export default {
     name: 'Invoicing',
-    beforeCreate: async function () {
-
-      async function getBillings() {
-        const billings = await db.billings.find({
-          selector: {}
-        })
-        return billings.docs
-      }
-
-      const revisions = await db.settings.get('billings')
-      
-      this.revisionsAvailable = await revisions.dates_modified.slice(0, -1)
-      this.lastUpdate = await revisions.dates_modified.pop()
-      
-      const groupingDate = localStorage.getItem('invoicing') ? JSON.parse(localStorage.getItem('invoicing'))['groupingDate'] : this.lastUpdate
-      this.groupingDate = groupingDate !== undefined ? groupingDate !== undefined ? groupingDate : this.lastUpdate : this.lastUpdate
-
-      const weekGrouping = localStorage.getItem('invoicing') ? JSON.parse(localStorage.getItem('invoicing'))['weekGrouping'] : null
-      this.weekGrouping = weekGrouping !== undefined ? weekGrouping !== null ? weekGrouping : true : true
-
-      const dateRange = localStorage.getItem('invoicing') ? JSON.parse(localStorage.getItem('invoicing'))['dateRange'] : null
-      this.dateRange = dateRange !== undefined ? dateRange !== null ? dateRange : [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)] : [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)]
-    
-      const billings = await getBillings()
-
-      this.billings = billings.filter(e => {
-        return (e['inv_date'][this.lastUpdate] >= this.dateRange[0] && e['inv_date'][this.lastUpdate] <= this.dateRange[1])
+    created: async function () {
+      this.getInvoicingSettings()
+      ipcRenderer.on('invoicingArrReadyFromMain', () => {
+        this.billings = this.invoicingFilteredByDateRange
       })
-    
     },
     data: () => ({
-      SELECTEDDATE: localStorage.getItem('invoicing') ? JSON.parse(localStorage.getItem('invoicing'))['selectedDate'] : null,
       billings: [],
       columns: JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8')),
-      lastUpdate: null,
-      revisionsAvailable: [],
-      groupingDate: null,
       optionsMenu: false,
-      weekGrouping: null,
       billingsFiltered: false,
       signFilterActive: {warning: false, info: false, arrow_downward: false, arrow_upward: false},
       fieldSignFilter: null,
-      dateRange: []
     }),
+    computed: {
+      ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic',
+      'invoicingGroupingDate', 'invoicingDatesModified', 'invoicingLastUpdate', 'invoicingCompareDate', 'invoicingFilteredByDateRange'])
+    },
     methods: {
-      switchGroupingDate(e) {
-        this.$refs.invoicingGrid.instance.refresh()
-        const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
-        localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {groupingDate: e})))
-      },
-      setWeekGrouping (e) {
-        if (e) this.$refs.invoicingGrid.instance.columnOption('groupWeek', 'groupIndex', 2)
-        else this.$refs.invoicingGrid.instance.columnOption('groupWeek', 'groupIndex', undefined)
-        const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
-        localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {weekGrouping: e})))
-      },
-      changeDate (date) {
-        const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
-        localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {selectedDate: date})))
-      },
+      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate']),
       groupByYear (a) {
-        return moment(a['inv_date'][this.groupingDate]).format('YYYY')
+        return moment(a['Invoice Date'][this.invoicingGroupingDate]).format('YYYY')
       },
       groupByMonth (a) {
-        return moment(a['inv_date'][this.groupingDate]).month()
+        return moment(a['Invoice Date'][this.invoicingGroupingDate]).month()
       },
       groupByWeek (a) {
-        return moment(a['inv_date'][this.groupingDate]).week()
+        return moment(a['Invoice Date'][this.invoicingGroupingDate]).week()
       },
       x (x) {
         return moment(x+1, 'MM').format('MMMM')
@@ -511,31 +479,31 @@
         return moment(date).format('DD.MM.YYYY')
       },
       async getMissingBy(format) {
-        let a = await db.billings.find({ selector: {} })
-        if (format === "none") return this.billings = a.docs
-
-        return this.billings = a.docs.filter(doc => {
-          return moment(doc['inv_date'][this.lastUpdate]).format(format) !== moment(doc['inv_date'][this.SELECTEDDATE]).format(format)
+        let projects = this.allProjectsBasic
+        console.log(projects)
+        if (format === "none") return this.billings = projects
+        return this.billings = projects.filter(doc => {
+          return moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format)
         })
       },
-      async setInvoicingDateRange (e) {
-        const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
-        const fromDate = moment(e[0]).toISOString().substr(0, 10)
-        const toDate = moment(e[1]).toISOString().substr(0, 10)
+      // async setInvoicingDateRange (e) {
+      //   const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
+      //   const fromDate = moment(e[0]).toISOString().substr(0, 10)
+      //   const toDate = moment(e[1]).toISOString().substr(0, 10)
 
-        localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {dateRange: [fromDate, toDate]})))
-        async function getBillings() {
-          const billings = await db.billings.find({
-            selector: {}
-          })
-          return billings.docs
-        }
+      //   localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {dateRange: [fromDate, toDate]})))
+      //   async function getBillings() {
+      //     const billings = await db.billings.find({
+      //       selector: {}
+      //     })
+      //     return billings.docs
+      //   }
 
-        const billings = await getBillings()
-        this.billings = billings.filter(x => {
-          return (x['inv_date'][this.lastUpdate] >= fromDate && x['inv_date'][this.lastUpdate] <= toDate)
-        })
-      },
+      //   const billings = await getBillings()
+      //   this.billings = billings.filter(x => {
+      //     return (x['Invoice Date'][this.invoicingLastUpdate] >= fromDate && x['Invoice Date'][this.invoicingLastUpdate] <= toDate)
+      //   })
+      // },
       setContextMenu (e) {
        if (e.target === 'header') {
         e.items.push({text: 'Find warnings', beginGroup: true, value: e.column.dataField, icon: 'warning', onItemClick: this.u})
@@ -606,7 +574,8 @@
       CellTemplate,
       DxPaging,
       DxColumnFixing,
-      HeaderTemplate
+      HeaderTemplate,
+      DxScrolling
     }
   };
 </script>

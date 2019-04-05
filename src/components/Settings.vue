@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-layout row wrap>
       <v-flex class="xs12 row wrap" mb-4>
         <h3 class="display-2"><span class="tit">Settings</span></h3>
@@ -79,11 +79,12 @@
 
                   <v-layout column wrap shrink>
                     <v-flex row wrap class="subtit" mt-2>Available fields</v-flex>
+                    
                     <table class="draggableTable">
                       <thead class="el-table__header">
                         <tr>
                           <th></th>
-                          <!-- <th>Database field</th> -->
+                          <th>Database field</th>
                           <th>Display value</th>
                           <th style="text-align: center;">Visible</th>
                         </tr>
@@ -91,29 +92,39 @@
                       <draggable tag="tbody" v-model="invoicingDetail" class="list-group" handle=".handle" v-bind="dragOptions" @start="drag = true" @end="drag = false">
                           <tr v-for="(e) in invoicingDetail" :key="e.value" style="width: 100%;">
                             <td><v-icon class="handle" style="width: 30px; text-align: center; cursor: -webkit-grab;" small>drag_indicator</v-icon></td>
-                            <td>{{e.name}}</td>
-                            <!-- <td><input type="text" v-model="e.name" /></td> -->
+                            <td>{{e.value}}</td>
+                            <td><input type="text" v-model="e.name" /></td>
                             <td><v-checkbox hide-details v-model="e.visible"></v-checkbox></td>
                           </tr>
                       </draggable>
                     </table>
 
                   </v-layout>
-                  <v-layout column wrap gow ml-3>
-                    <v-flex shrink column wrap>
-                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1301" title="Choose OB daily file path 1301" outline />
-                    </v-flex>
-                    <v-flex grow column wrap>
-                      <v-text-field :value="obDailyPath1301" :readonly="true" placeholder="Path to OB Daily file - 1301" label="Path to OB Daily file - 1301" />
-                    </v-flex>
-                  
-                    <v-flex shrink column wrap>
-                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1601" readonly title="Choose OB daily file path 1601" outline />
-                    </v-flex>
-                    <v-flex grow column wrap>
-                      <v-text-field :value="obDailyPath1601" :readonly="true" placeholder="Path to OB Daily file - 1601" label="Path to OB Daily file - 1601" />
-                    </v-flex>
+
+                  <v-layout column wrap grow justify-start fill-height ml-3 mt-3>
+                    <v-layout row wrap>
+                      <v-flex column shrink>
+                        <upload-btn :uniqueId="true" :fileChangedCallback="setPath1301" title="Choose OB daily file path 1301" outline />
+                      </v-flex>
+                      <v-flex column grow>
+                        <v-text-field :value="obDailyPath1301" :readonly="true" placeholder="Path to OB Daily file - 1301" label="Path to OB Daily file - 1301" />
+                      </v-flex>
+                    </v-layout>
+
+                    <v-layout row wrap>
+                      <v-flex shrink column wrap>
+                        <upload-btn :uniqueId="true" :fileChangedCallback="setPath1601" readonly title="Choose OB daily file path 1601" outline />
+                      </v-flex>
+                      <v-flex grow column wrap>
+                        <v-text-field :value="obDailyPath1601" :readonly="true" placeholder="Path to OB Daily file - 1601" label="Path to OB Daily file - 1601" />
+                      </v-flex>
+                    </v-layout>
                   </v-layout>
+
+                  
+
+
+                  
 
                 </v-layout>
               </v-card-text>
@@ -121,15 +132,6 @@
             </v-card>
           </v-expansion-panel-content>
 
-          <!-- Other -->
-          <!-- <v-expansion-panel-content>
-            <v-flex slot="header">Some other settings</v-flex>
-            <v-card>
-              <v-card-text>
-                <v-btn @click="resetViews">Reset views</v-btn>
-              </v-card-text>
-            </v-card>
-          </v-expansion-panel-content> -->
         </v-expansion-panel>
       </v-layout>
 
@@ -196,7 +198,7 @@ table.draggableTable .v-input__control {
 
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
       const detailSettings = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8'))
-      allOptions.push({dataType: 'special', editable: false, name: 'Invoice date', value: 'inv_date', visible: false})
+      allOptions.push({dataType: 'special', editable: false, name: 'Invoice date', value: 'Invoice Date', visible: false})
 
       const x = allOptions.map(e => {
         const y = detailSettings.filter(u => e['value'] === u['value'])

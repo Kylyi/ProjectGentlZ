@@ -9,7 +9,7 @@
         </v-flex>
 
         <v-flex shrink>
-          <v-container fluid grid-list-md>
+          <v-container fluid grid-list-md style="padding: 0;">
             <v-layout row wrap>
               <v-flex d-flex>
                 <v-layout row wrap>
@@ -60,7 +60,6 @@
     <!-- Table -->
     <template v-if="generatorSelectionMode === 'net'">
       <net-mode />
-      <tasks style="margin-top: 20px;" />
     </template>
 
     <!-- Table -->
@@ -77,10 +76,9 @@ import { mapGetters, mapActions } from "vuex";
 import GenerateTemplateDialog from '../TemplateGenerator/GenerateTemplateDialog'
 import NetMode from './ProjectsGrid/NetMode'
 import ProjectsMode from './ProjectsGrid/ProjectsMode'
-import Tasks from './ProjectsGrid/Tasks'
 
 export default {
-  components: { GenerateTemplateDialog, NetMode, ProjectsMode, Tasks },
+  components: { GenerateTemplateDialog, NetMode, ProjectsMode },
   computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading', 'foreignProjectsBasic']),
   methods: {
     ...mapActions(['addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchForeignProjectsBasic', 'removeForeignNets'])

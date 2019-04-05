@@ -30,24 +30,24 @@
         <v-layout row wrap v-for="v in detailInfo" :key="v.value">
           <!-- FIELD NAMES -->
           <!-- INV DATE -->
-          <v-flex column xs3 style="display: grid;" v-if="v.value === 'inv_date'">
-            <v-layout row align-center @contextmenu="contextM($event, `inv_date[${lastUpdate}]`)">
-              <v-flex column xs2>
-                  <v-icon small v-for="(values,key) in templateData.data['sign'][`inv_date[${lastUpdate}]`]" :key="key" @click="signInfo($event, values, key, `inv_date[${lastUpdate}]`)"
+          <v-flex column xs3 style="display: grid;" v-if="v.value === 'Invoice Date'">
+            <v-layout row align-center @contextmenu="contextM($event, `Invoice Date[${invoicingLastUpdate}]`)">
+              <v-flex column shrink>
+                  <v-icon small v-for="(values,key) in templateData.data['sign'][`Invoice Date[${invoicingLastUpdate}]`]" :key="key" @click="signInfo($event, values, key, `Invoice Date[${invoicingLastUpdate}]`)"
                   :color="getColor(key)" v-html="key"></v-icon>
               </v-flex>
-              <v-flex column xs10 text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
+              <v-flex column grow text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
             </v-layout>
           </v-flex>
 
           <!-- NOT INV DATE -->
           <v-flex column xs3 style="display: grid;" v-else>
             <v-layout row align-center @contextmenu="contextM($event, v.value)">
-              <v-flex column xs2>
+              <v-flex column shrink>
                   <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
                   :color="getColor(key)" v-html="key"></v-icon>
               </v-flex>
-              <v-flex column xs10 text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
+              <v-flex column grow text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
             </v-layout>
           </v-flex>
 
@@ -61,7 +61,7 @@
                   size="mini"
                   v-model="templateData.data[v.value]"
                   type="date"
-                  :disabled="!v.editable"
+                  :readonly="!v.editable"
                   placeholder="Pick a day"
                   format="dd.MM.yyyy"
                   :firstDayOfWeek="1">
@@ -77,9 +77,9 @@
               <v-flex style="width:100%;">
                 <el-date-picker
                   size="mini"
-                  v-model="templateData.data[v.value][lastUpdate]"
+                  v-model="templateData.data[v.value][invoicingLastUpdate]"
                   type="date"
-                  :disabled="!v.editable"
+                  :readonly="!v.editable"
                   placeholder="Pick a day"
                   format="dd.MM.yyyy"
                   :firstDayOfWeek="1">
@@ -90,14 +90,35 @@
               </v-flex>
             </v-layout>
 
-            <!-- NON-DATE FIELDS -->
+            <!-- NUMBER FIELDS -->
+            <v-layout v-else-if="v.dataType === 'number'">
+              <v-flex style="width:100%;">
+                <el-input-number
+                  :type="v.dataType"
+                  size="mini"
+                  prefix-icon="el-icon-edit"
+                  :readonly="!v.editable"
+                  v-model="templateData.data[v.value]"
+                  :precision="0"
+                  :controls="false"
+                  style="width: 100%"
+                >
+                </el-input-number>
+              </v-flex>
+              <v-flex>
+                <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
+              </v-flex>
+            </v-layout>
+
+            <!-- TEXT FIELDS -->
             <v-layout v-else>
               <v-flex style="width:100%;">
                 <el-input
                   :type="v.dataType"
                   size="mini"
                   prefix-icon="el-icon-edit"
-                  :disabled="!v.editable"
+                  :step="v.dataType = 'number' ? '.01' : ''"
+                  :readonly="!v.editable"
                   v-model="templateData.data[v.value]">
                 </el-input>
               </v-flex>
@@ -117,7 +138,7 @@
                   size="mini"
                   v-model="oldDoc[v.value]"
                   type="date"
-                  :disabled="!v.editable"
+                  :readonly="!v.editable"
                   placeholder="Pick a day"
                   format="dd.MM.yyyy">
                 </el-date-picker>
@@ -129,12 +150,29 @@
               <v-flex style="width:100%;">
                 <el-date-picker
                   size="mini"
-                  v-model="oldDoc[v.value][selectedDate]"
+                  v-model="oldDoc[v.value][invoicingCompareDate]"
                   type="date"
-                  :disabled="!v.editable"
+                  :readonly="!v.editable"
                   placeholder="Pick a day"
                   format="dd.MM.yyyy">
                 </el-date-picker>
+              </v-flex>
+            </v-layout>
+
+            <!-- NUMBER FIELDS -->
+            <v-layout v-else-if="v.dataType === 'number'">
+              <v-flex style="width:100%;">
+                <el-input-number
+                  :type="v.dataType"
+                  size="mini"
+                  prefix-icon="el-icon-edit"
+                  :readonly="!v.editable"
+                  v-model="templateData.data[v.value]"
+                  :precision="0"
+                  :controls="false"
+                  style="width: 100%"
+                >
+                </el-input-number>
               </v-flex>
             </v-layout>
 
@@ -145,7 +183,7 @@
                   :type="v.dataType"
                   size="mini"
                   prefix-icon="el-icon-edit"
-                  :disabled="!v.editable"
+                  :readonly="!v.editable"
                   v-model="oldDoc[v.value]">
                 </el-input>
               </v-flex>
@@ -164,7 +202,7 @@
           <v-expansion-panel>
             <v-expansion-panel-content :disabled="hiddenFieldsCount === 0">
               <div slot="header">Hidden fields with attention</div>
-              <v-icon slot="actions" :color="hiddenFieldsCount > 0 ? 'error' : 'success'">{{hiddenFieldsCount > 0 ? 'error' : 'check'}}</v-icon>
+              <v-icon slot="actions" :color="hiddenFieldsCount > 0 ? 'error' : 'success'" v-html="hiddenFieldsCount > 0 ? 'warning' : 'check'"/>
 
               <v-card>
                 <v-card-text>
@@ -324,8 +362,12 @@
   const path = require('path')
   const isDev = require('electron-is-dev')
   const {remote} = require('electron')
+  import { mapGetters, mapActions } from 'vuex';
 
   export default {
+    async created() {
+      this.revisionsAvailable = await this.fetchProjectRevisions(this.templateData.key)
+    },
     data: function () {
       return {
         detailInfo: isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'invoicingDetails.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8')),
@@ -351,37 +393,19 @@
         default: () => {}
       }
     },
-    watch: {
-      templateData: {
-        immediate: true, 
-        async handler (val, oldVal) {
-          const doc = await db.billings.get(val.data['_id'], {revs_info: true})
-          doc['_revs_info'].shift()
-          this.revisionsAvailable = doc['_revs_info']
-        }
-      }
-    },
     computed: {
-      lastUpdate: {
-        get: function () {
-          return this.$parent.$parent.$parent.lastUpdate
-        }
-      },
-      selectedDate: {
-        get: function () {
-          return this.$parent.$parent.$parent.SELECTEDDATE
-        }
-      },
+      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate']),
       hiddenColumns: {
         get: function () {
-          this.allColumns.push({dataType: 'date', editable: false, name: 'Invoice date', value: `inv_date`, visible: true})
+          this.allColumns.push({dataType: 'date', editable: false, name: 'Invoice date', value: `Invoice Date`, visible: true})
           const hiddenC = this.allColumns.filter(e => {
             const isInDetail = this.detailInfo.filter(x => e.value === x.value)
 
             return isInDetail.length < 1
           })
-          const hiddenCols =  hiddenC.filter(e => {
-            return (this.$props.templateData.data.sign.hasOwnProperty(e.value) && this.$props.templateData.data.sign[e.value].length > 0)
+
+          const hiddenCols = hiddenC.filter(e => {
+            return (this.$props.templateData.data.sign.hasOwnProperty(e.value) && Object.keys(this.$props.templateData.data.sign[e.value]).length > 0)
           })
 
           this.hiddenFieldsCount = hiddenCols.length
@@ -390,9 +414,9 @@
       }
     },
     methods: {
+      ...mapActions(['fetchProjectRevisions', 'getRevisionInfo', 'changeProjectData']),
       async getRevData (e) {
-        // console.log(await db.billings.get(this['_props'].templateData.data._id, {rev: e}))
-        this.oldDoc = await db.billings.get(this['_props'].templateData.data._id, {rev: e})
+        this.oldDoc = await this.getRevisionInfo({netNum:this.templateData.key, revId: e})
       },
       async changeData(e) {
         const fixedFields = this.$props.templateData.data.fixedFields
@@ -407,10 +431,7 @@
         this.$props.templateData.data.fixedFields = fixedFields
       },
       async saveData() {
-        const docId = await db.billings.get(this.$props.templateData.data['_id'])
-        db.billings.upsert(this.$props.templateData.data['_id'], (doc) => {
-          return this.$props.templateData.data
-        })
+        this.changeProjectData(this.$props.templateData.data)
       },
       contextM (e, field) {
         e.preventDefault()
