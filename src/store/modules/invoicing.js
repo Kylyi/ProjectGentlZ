@@ -1,7 +1,7 @@
 import moment from 'moment'
-import db from '../../main/scripts/database'
 import store from '../index'
 import { ipcRenderer } from 'electron'
+import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/localFilesManipulation'
 
 const state = {
   obDailyPath1301: localStorage.getItem('obDailyPath1301'),
@@ -12,7 +12,8 @@ const state = {
   weekGrouping: JSON.parse(localStorage.getItem('invoicingWeekGrouping')) || false,
   groupingDate: null,
   compareDate: null,
-  filteredInvoicing: []
+  filteredInvoicing: [],
+  invoicingDetail: []
 }
 
 const getters = {
@@ -27,7 +28,8 @@ const getters = {
   },
   invoicingLastUpdate: state => state.lastUpdate,
   invoicingCompareDate: state => state.compareDate,
-  invoicingFilteredByDateRange: state => state.filteredInvoicing
+  invoicingFilteredByDateRange: state => state.filteredInvoicing,
+  invoicingDetail: state => state.invoicingDetail
 }
 
 const actions = {
@@ -48,19 +50,42 @@ const actions = {
     localStorage.setItem('invoicingWeekGrouping', JSON.stringify(val))
     commit('setWeekGrouping', val)
   },
-  async getInvoicingSettings({ commit }){
-    const invoicingSettingsDoc = await db.settings.get('invoicing')
-    commit('setLastUpdate', invoicingSettingsDoc.lastUpdate)
-    commit('setDatesModified', invoicingSettingsDoc.datesModified)
-    commit('setFilteredInvoicing', invoicingSettingsDoc.lastUpdate)
-    commit('setGroupingDate', invoicingSettingsDoc.lastUpdate)
+  async getInvoicingSettings({ commit, dispatch, rootState }){
+    try {
+      const invSettings = rootState.settings.invoicingSettings
+      commit('setLastUpdate', invSettings.lastUpdate)
+      commit('setDatesModified', invSettings.datesModified)
+      commit('setFilteredInvoicing', invSettings.lastUpdate)
+      commit('setGroupingDate', invSettings.lastUpdate)
+    } catch (error) {
+      dispatch('notify', {
+        text: ' ErrorID::1 - ' + error,
+        color: 'error',
+        state: true,
+        timeout: 5000 
+      })
+    }
   },
   async changeCompareDate({ commit }, val) {
     commit('setCompareDate', val)
   },
-  async changeGroupingDate({ commit }, val) {
+  async changeGroupingDate({}, val) {
     console.log(val)
     // commit('setGroupingDate', val)
+  },
+  async changeInvoicingDetail({ dispatch, commit }, {fileName, invoicingDetail}) {
+    rewriteDefaultSettingFile(fileName, invoicingDetail)
+    dispatch('notify', {
+      text: 'Saved.',
+      color: 'success',
+      state: 'true',
+      timeout: 1500
+    })
+    commit('setInvoicingDetail', invoicingDetail)
+  },
+  async fetchInvoicingDetail({ commit }) {
+    const invDetail = readDefaultSettingFile('invoicingDetails')
+    commit('setInvoicingDetail', invDetail)
   }
 }
 
@@ -74,9 +99,17 @@ const mutations = {
   setDatesModified: (state, datesModified) => state.datesModified = datesModified,
   setLastUpdate: (state, lastUpdate) => state.lastUpdate = lastUpdate,
   setCompareDate: (state, date) => state.compareDate = date,
+  setInvoicingDetail: (state, detail) => state.invoicingDetail = detail,
   setFilteredInvoicing: (state, lastUpdate) => {
     const allProjects = store.getters.allProjectsBasic
-    if (allProjects.length === 0 ) return
+    if (allProjects.length === 0 ) {
+      store.dispatch('notify', {
+        text: ' ErrorID::2 - There are no projects AT ALL. ',
+        color: 'error',
+        state: true,
+        timeout: 5000 
+      })
+    }
     const filteredProjects =  allProjects.filter(e => {
       return e['Invoice Date'][lastUpdate] >= state.dateRange[0] && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
     })

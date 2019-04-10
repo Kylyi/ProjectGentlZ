@@ -1,201 +1,225 @@
 <template>
-  <v-layout>
-    <template v-if="chosenProjects.length > 0">
-      <v-expansion-panel>
-        <v-expansion-panel-content
+  <v-layout id="risks">
+    <template>
+      <el-collapse v-model="selectedTab" style="width: 100%;">
+        <el-collapse-item
           v-for="(riskCategory, i) in riskRegister.risks"
+          :title="i" 
+          :name="i"
           :key="i"
         >
-          <template v-slot:header>
-            <div style="font-size: 16px;"><b>{{i}}</b></div>
-          </template>
+          <template v-if="selectedTab.includes(i)">
+            <dx-data-grid
+              :data-source="riskCategory"
+              show-borders
+              key-expr='name'
+              column-auto-width
+              :allow-column-resizing="true"
+              :row-alternation-enabled="true"
+              :show-row-lines="true"
+              :show-column-lines="true"
+              :word-wrap-enabled="true"
+              style="max-height: 300px;"
+              @cell-click="cellClick($event, i)"
+              :repaintChangesOnly="true"
+            >
+              <dx-editing
+                :allow-updating="true"
+                mode="cell"
+              />
 
-          <el-table
-            :data="riskCategory"
-            style="width: 100%"
-            max-height="500"
-          >
-            <!-- NAME -->
-            <el-table-column
-              id="COLNAME"
-              fixed
-              prop="name"
-              label="Name"
-              width="250"
+              <dx-column
+                data-field="name"
+                caption="Definition"
+                alignment="left"
+                :allow-sorting="false"
+                :allow-resizing="true"
+              />
+              <dx-column
+                data-field="info"
+                caption="Description"
+                alignment="left"
+                :allow-sorting="false"
+              />
+              <dx-column
+                data-field="exists"
+                caption="Exists"
+                alignment="center"
+                :allow-sorting="false"
+              />
+              <dx-column
+                data-field="description"
+                caption="Additional info"
+                alignment="left"
+                :allow-sorting="false"
+              />
+              <dx-column
+                data-field="plannedAction"
+                caption="Planned action for mitigation"
+                alignment="left"
+                :allow-sorting="false"
+                :allow-editing="false"
+              />
+              <dx-column
+                data-field="owner"
+                caption="Owner"
+                alignment="center"
+                :allow-sorting="true"
               >
-              <template slot-scope="scope">
-                {{scope.row.name}}
-              </template>
-            </el-table-column>
-            <!-- DESCRIPTION -->
-            <el-table-column
-              prop="info"
-              label="Description"
-              width="275"
-              >
-              <template slot-scope="scope">
-                {{scope.row.info}}
-              </template>
-            </el-table-column>
-            <!-- RISK EXISTS -->
-            <el-table-column
-              prop="exists"
-              label="Exists"
-              width="75"
-              >
-              <template slot-scope="scope">                
-                <v-switch
-                  v-model="scope.row.exists"
-                  color="error"
+              </dx-column>
+              <dx-column
+                data-field="probability"
+                caption="Probability [%]"
+                alignment="center"
+                data-type="number"
+                format="percent"
+                :allow-sorting="false"
+              />
+              <dx-column
+                data-field="priceImpact"
+                caption="Price impact [kCZK]"
+                alignment="center"
+                data-type="number"
+                format="thousands"
+              />
+
+              <!-- <v-textarea
+                slot="textAreaTemplate"
+                slot-scope="templateData"
+                :value="riskRegister.risks[i][templateData.rowIndex][templateData.column.dataField]"
+                @blur="commitChanges($event, i, templateData)"
+                no-resize
+                hide-details
+                rows="2"
+                row-height="14"
+                outline
+                style="font-size: 12px; margin: 0;"
+              ></v-textarea> -->
+
+              <!-- <div slot="booleanTemplate" slot-scope="templateData">
+                <v-checkbox
+                  v-model="riskRegister.risks[i][templateData.rowIndex][templateData.column.dataField]"
+                  color="red"
                   hide-details
-                ></v-switch>
-              </template>
-            </el-table-column>
-            <!-- ADDITIONAL INFO -->
-            <el-table-column
-              prop="description"
-              label="Additional info"
-              width="250"
-              >
-              <template slot-scope="scope">
-                <el-input
-                  type="textarea"
-                  :autosize="{ minRows: 2, maxRows: 2}"
-                  resize="none"
-                  v-model="scope.row.description">
-                </el-input>
-              </template>
-            </el-table-column>
-            <!-- PLANNED ACTION -->
-            <el-table-column
-              prop="plannedAction"
-              label="Planned action for mitigation"
-              width="250"
-              >
-              <template slot-scope="scope">
-                <el-input
-                  type="textarea"
-                  :autosize="{ minRows: 2, maxRows: 2}"
-                  resize="none"
-                  v-model="scope.row.plannedAction">
-                </el-input>
-              </template>
-            </el-table-column>
-            <!-- OWNER -->
-            <el-table-column
-              prop="owner"
-              label="Owner"
-              width="150"
-              >
-              <template slot-scope="scope">
-                <el-input
-                  v-model="scope.row.owner">
-                </el-input>
-              </template>
-            </el-table-column>
-            <!-- PROBABILITY -->
-            <el-table-column
-              prop="probability"
-              label="Probability [%]"
-              width="190"
-              >
-              <template slot-scope="scope">
-                <el-input-number v-model="scope.row.probability" controls-position="right" :min="0" :max="100"></el-input-number>
-              </template>
-            </el-table-column>
-            <!-- PRICE IMPACT -->
-            <el-table-column
-              prop="priceImpact"
-              label="Price impact [CZK]"
-              width="190"
-              >
-              <template slot-scope="scope">
-                <el-input-number v-model="scope.row.priceImpact" controls-position="right" :min="0" :step="1000"></el-input-number>
-              </template>
-            </el-table-column>
+                 ></v-checkbox>
 
-          </el-table>
-          
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </template>
+              </div> -->
 
-    <template v-else>
-      First, select a project.
+            </dx-data-grid>
+          </template>
+        </el-collapse-item>
+      </el-collapse>
+
+
+      <v-dialog
+        v-model="dialog"
+        width="500"
+      >
+        <v-card>
+          <v-card-title
+            class="headline grey lighten-2"
+            primary-title
+          >
+            {{selectedFieldCaption}}
+          </v-card-title>
+
+          <v-card-text>
+            <textarea style="width: 100%; outline-color:#1976D2; border: 1px dashed;"
+              @blur="commitChanges"
+              rows="12"
+              :value="selectedFieldValue"
+              placeholder="Text..."  
+            ></textarea>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              flat
+              @click="dialog = false"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
   </v-layout>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import {
+  DxTextArea
+} from 'devextreme-vue';
+import CheckTemplate from './Helpers/CheckTemplate'
 export default {
   name: 'Risks',
-  async created() {
-    this.mutationSub = this.$store.subscribe((mutation, state) => {
-      if (mutation.type === 'setChosenProjects') {
-        if (this.$store.state.projects.chosenProjects.length > 0) {
-          const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
-          const netWithRiskRegister = allNets[0]
-
-          if (!netWithRiskRegister.riskRegister.hasOwnProperty('opportunities')) {
-            this.fetchDefaultRiskRegister()
-            .then(() => this.riskRegister = this.defaultRiskRegister)
-            .catch(err => console.log(err))
-            return
-          }
-          
-          this.riskRegister = netWithRiskRegister.riskRegister
-        } else {
-          this.fetchDefaultRiskRegister()
-            .then(() => this.riskRegister = this.defaultRiskRegister)
-        }
-      }
-    })
-
-    if (this.$store.state.projects.chosenProjects.length > 0) {
-      const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
-      const netWithRiskRegister = allNets[0]
-
-      if (!netWithRiskRegister.riskRegister.hasOwnProperty('risks')) {
-        this.fetchDefaultRiskRegister()
-        .then(() => this.riskRegister = this.defaultRiskRegister)
-        .catch(err => console.log(err))
-        return
-      }
-      
-      this.riskRegister = netWithRiskRegister.riskRegister
-    } else {
-      this.fetchDefaultRiskRegister()
-        .then(() => this.riskRegister = this.defaultRiskRegister)
-    }
-  },
-  beforeDestroy() {
-    this.mutationSub()
+  props: ['riskRegister'],
+  components: {
+    CheckTemplate,
+    DxTextArea
   },
   data: () => {
     return {
-      riskRegister: []
+      selectedTab: [],
+      dialog: false,
+      selectedCategory: null,
+      selectedRowIndex: null,
+      selectedField: null,
+      selectedFieldValue: null,
+      selectedFieldCaption: null
     }
   },
   computed: {
-    ...mapGetters(['chosenProjects', 'defaultRiskRegister'])
+    ...mapGetters(['defaultRiskRegister'])
   },
   methods: {
-    ...mapActions(['fetchDefaultRiskRegister'])
-  },
-  watch: {
-    riskRegister: {
-      deep: true,
-      handler(newVal, oldVal) {
-        this.$root.$emit('riskRegisterChanged', newVal);
+    ...mapActions(['fetchDefaultRiskRegister']),
+    cellClick(e, i) {
+      console.log(e)
+      if (e.column.dataType === 'string') {
+        this.selectedCategory = i
+        this.selectedRowIndex = e.rowIndex
+        this.selectedField = e.column.dataField
+        this.selectedFieldValue = e.value
+        this.selectedFieldCaption = e.column.caption
+        this.dialog = true
       }
+    },
+    commitChanges(e) {
+      this.riskRegister.risks[this.selectedCategory][this.selectedRowIndex][this.selectedField] = e.target.value
     }
   }
 }
 </script>
 
 <style>
-.v-expansion-panel__body {
-  padding: 20px;
-}
+  #risks .dx-datagrid-content .dx-datagrid-table .dx-row > td, .dx-datagrid-content .dx-datagrid-table .dx-row > tr > td {
+    vertical-align: middle;
+  }
+
+  #risks textarea {
+    margin: 0 12px 0 0;
+    padding: 2px 5px;
+  }
+
+  #risks .v-text-field__slot {
+    padding: 0
+  }
+
+  #risks .v-input__slot {
+    padding: 0;
+  }
+
+  #risks .v-input__control {
+    margin: auto;
+  }
+
+  #risks .v-input--selection-controls {
+    margin-top: 0;
+  }
 </style>

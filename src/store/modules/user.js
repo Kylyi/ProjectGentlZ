@@ -1,8 +1,39 @@
 import username from 'username'
 import bcrypt from 'bcrypt'
 import keytar from 'keytar'
-import db from '../../main/scripts/database'
+import store from '../index'
 import { ipcRenderer } from 'electron';
+import PouchDB from 'pouchdb'
+PouchDB.plugin(require('pouchdb-find'))
+PouchDB.plugin(require('pouchdb-upsert'))
+
+const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
+const userDb = new PouchDB('src/db/user')
+
+async function getUserInfo() {
+  const loggedUser = username.sync()
+  let currentUser
+  
+  try {
+    currentUser = await userDb.get(loggedUser)
+    store.dispatch('checkLoggedIn', currentUser)
+  } catch (error) {
+    store.dispatch('checkLoggedIn', false)
+  }
+}
+getUserInfo()
+
+userDb.sync(remoteUsers, {
+  live: true,
+  retry: true,
+  "selector": {
+    "_id": {
+       "$eq": username.sync()
+    }
+  }
+}).on('change', e => {
+  getUserInfo()
+})
 
 const state = {
   loggedIn: false,
@@ -52,13 +83,13 @@ const actions = {
   async registerUser({commit}, password) {
     try {
       await keytar.setPassword('Gentl', username.sync(), password)
-      const doc = await db.user.upsert(username.sync(), (doc) => {
+      const doc = await userDb.upsert(username.sync(), (doc) => {
         doc.password = bcrypt.hashSync(password, 10)
         doc.roles = []
         return doc
       })
 
-      const addedUser = await db.user.get(doc.id)
+      const addedUser = await userDb.get(doc.id)
       commit('setLoggedIn', true)
       commit('setUserInfo', addedUser)
       commit('setUserPassword', password)
@@ -70,7 +101,7 @@ const actions = {
     try {
       if (!sapUsername || sapUsername === '' || !sapUsernumber || sapUsernumber === '') throw 'SAP username not defined.'
       const user = username.sync()
-      const a = await db.user.upsert(user, doc => {
+      await userDb.upsert(user, doc => {
         doc.sapUsername = sapUsername
         doc.sapUsernumber = sapUsernumber
         return doc
@@ -95,7 +126,7 @@ const actions = {
 const mutations = {
   setLoggedIn: (state, validLogin) => {
     state.loggedIn = validLogin
-    setTimeout(() => ipcRenderer.send('appIsReady', true), 200)
+    setTimeout(() => ipcRenderer.send('appIsReady', true))
   },
   setUserInfo: (state, userInfo) => state.userInfo = userInfo,
   setUserPassword: (state, password) => state.password = password

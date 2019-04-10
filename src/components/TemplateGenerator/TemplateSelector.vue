@@ -1,17 +1,11 @@
 <template>
   <v-flex class="row wrap">
-      <!-- <multiselect ref="tmplS" id="tmplS" v-model="TMPL" :options="tmpls"
-      placeholder="Select template" label="id" track-by="id" group-values="tmpls" group-label="name" @input="setTemplInParent"></multiselect> -->
-      <!-- <select-box></select-box> -->
-
-
-      <multiselect @input="chooseTemplate" track-by="_id" label="_id" :value="chosenTemplates" :options="allTemplatesBasic" :multiple="true" group-values="options" group-label="label" :group-select="true" placeholder="Select template"><span slot="noResult">No template found.</span></multiselect>
-    </v-flex>
+    <multiselect @input="chooseTemplate" track-by="_id" label="_id" :value="chosenTemplates" :options="allTemplatesByType" :multiple="true" group-values="options" group-label="label" :group-select="true" placeholder="Select template"><span slot="noResult">No template found.</span></multiselect>
+  </v-flex>
 </template>
 
 
 <script>
-import db from '../../main/scripts/database'
 import { mapGetters, mapActions } from "vuex";
 
 export default {
@@ -22,7 +16,7 @@ export default {
     TMPL: null,
   }),
   computed: {
-    ...mapGetters(['allTemplatesBasic', 'chosenTemplates'])
+    ...mapGetters(['allTemplatesByType', 'chosenTemplates'])
   },
   methods: {
     ...mapActions(['fetchAllTemplates', 'chooseTemplate']),

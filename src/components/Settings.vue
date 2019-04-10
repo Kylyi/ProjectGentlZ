@@ -186,7 +186,6 @@ table.draggableTable .v-input__control {
   const path = require('path')
   const localStorage = require('localStorage')
   import DataFrame from "dataframe-js"
-  import db from '../main/scripts/database'
   import { mapGetters, mapActions, mapState } from "vuex";
 
   export default {
@@ -232,20 +231,22 @@ table.draggableTable .v-input__control {
       projectsDetail: []
     }),
     methods: {
-      ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation']),
-      triggerEdit(jsonObj) {
-        this.editProjectsDetail({jsonObj, projectsDetailObj: this.projectsDetail})
+      ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation', 'changeInvoicingDetail']),
+      triggerEdit(fileName) {
+        this.editProjectsDetail({fileName, projectsDetailObj: this.projectsDetail})
       },
       removeFromList (val) {
         const idx = this.netDetailSettings.findIndex(item => item.value === val)
         this.netDetailSettings.splice(idx, 1)
       },
       setNetDetailsInfo() {
-        const toBeSaved = JSON.stringify(this.invoicingDetail.filter(e => e.visible))
+        const invoicingDetail = this.invoicingDetail.filter(e => e.visible)
+        this.changeInvoicingDetail({fileName: 'invoicingDetails', invoicingDetail})
 
-        fs.writeFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), toBeSaved, 'utf8', (err, res) => {
-          if (err) throw err;
-        })
+
+        // fs.writeFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), toBeSaved, 'utf8', (err, res) => {
+        //   if (err) throw err;
+        // })
       },
       setPath1301(file) {
         this.changeFileLocation({plant: '1301', path: file.path})

@@ -23,6 +23,31 @@
             </v-list-tile-content>
           </v-list-tile>
 
+          <!-- Projects -->
+          <v-list-group prepend-icon="work_outline">
+
+            <v-list-tile slot="activator">
+              <v-list-tile-title>Projects</v-list-tile-title>
+            </v-list-tile>
+            
+            <v-list-tile 
+              router
+              :to="item.to"
+              :key="i"
+              v-for="(item, i) in projects"
+              exact>
+
+              <v-list-tile-action>
+                <v-icon v-html="item.icon"></v-icon>
+              </v-list-tile-action>
+
+              <v-list-tile-content>
+                <v-list-tile-title v-text="item.title"></v-list-tile-title>
+              </v-list-tile-content>
+
+            </v-list-tile>
+          </v-list-group>
+
           <!-- Templates -->
           <v-list-group prepend-icon="assignment">
 
@@ -157,14 +182,28 @@
         </div>
         <table style="cursor: default; border-collapse: collapse;">
           <tr v-show="notifications[notificationsTypeSelected].notifs.length > 0">
+            <td style="width: 19px;"></td>
             <td style="width: 100px; text-align: center;">Info</td>
             <td style="text-align: center; padding: 0 3px;">Actions</td>
-            <td style="text-align: center; width: 34px"></td>
+            <td style="text-align: center; width: 38px"></td>
           </tr>
-          <tr v-for="notif in notifications[notificationsTypeSelected].notifs" :key="notif._id" :class="notif.type+'--text'">
+          <tr 
+            v-for="notif in notifications[notificationsTypeSelected].notifs"
+            :key="notif._id" 
+            :class="notif.type+'--text'"
+            :style="`border: 1px dashed ${notif.type === 'error' ? '#ff5252' : notif.type === 'info' ? '#2196f3' : '#4caf50' }`"
+            >
+            <td style="width: 19px; text-align: center;">
+              <v-icon small color="error" 
+                v-html="notif.actionForce ? 'report' : ''" 
+                :title="notif.actionForce ? 'Action associated with this notification was forced on you.' : ''" />
+              </td>
             <td style="width: 100px; text-align: center;">{{notif.name}}</td>
-            <td style="text-align: center; padding: 0 3px;">{{notif.actionInfo}}</td>
-            <td style="text-align: center; width: 34px"><v-icon v-if="notif.hasOwnProperty('actionDone') && !notif.actionDone" small color="success" @click="commitAction(notif.name, true, notif.action, notif.actionArgs)">check</v-icon><v-icon @click="commitAction(notif.name, false)" color="error" small>close</v-icon></td>
+            <td style="text-align: center; padding: 0 3px;">{{notif.actionDescription}}</td>
+            <td style="text-align: center; width: 34px">
+              <v-icon v-if="!notif.actionForce" small color="success">check</v-icon>
+              <v-icon color="error" small>close</v-icon>
+            </td>
           </tr>
         </table>
       </v-layout>
@@ -172,11 +211,9 @@
 
       <!-- Content -->
       <v-content>
-        <v-container fluid style="padding-top: 17px;">
-          <v-slide-y-transition mode="out-in">
-            <router-view></router-view>
-          </v-slide-y-transition>
-        </v-container>
+        <v-slide-y-transition mode="out-in">
+          <router-view></router-view>
+        </v-slide-y-transition>
       </v-content>
 
       <notifications group="new-tmpl"/>
@@ -203,7 +240,7 @@
       </v-system-bar>
 
       <v-card width="100%" height="100%">
-        <v-img :src="logo" width="480px" aspect-ratio="1" style="margin: 5px auto 5px auto;" mt-5/> 
+        <v-img :src="logo" width="480px" aspect-ratio="1" style="margin: 30px auto 5px auto;"/> 
 
         <v-card-title primary-title style="padding: 0px;">
           <v-layout column xs12 text-xs-center>
@@ -225,8 +262,8 @@
                 <el-form-item prop="pass2">
                   <el-input placeholder="Confirm password" type="password" v-model="createAccountForm.pass2" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item>
-                  <v-btn  outline depressed color="primary" @click="submitForm('createAccountForm')">Register</v-btn>
+                <el-form-item style="margin-bottom: 0px;">
+                  <v-btn outline depressed color="primary" @click="submitForm('createAccountForm')">Register</v-btn>
                 </el-form-item>
               </el-form>
               
@@ -238,10 +275,10 @@
       </v-card>
     </template>
 
-    <v-snackbar v-model="snackbar.state" :top="true" :right="true" :color="snackbar.color" :timeout=2000>
-      {{snackbar.text}}
+    <v-snackbar v-model="snackbar.state" :top="true" :right="true" :color="snackbar.color" :timeout="snackbar.timeout">
+      {{ snackbar.text }}
     </v-snackbar>
-</v-app>
+  </v-app>
 </template>
 
 <style lang="scss">
@@ -288,41 +325,32 @@
 
   export default {
     name: 'app',
-    beforeCreate: async function () {
-      ipcRenderer.on('new-template-added-info', (e, data) => this.notifyTmpls(data))
-      ipcRenderer.on('new-project-added-info', (e, data) => this.notifyProject(data))
-    },
     created: function () {
-      ipcRenderer.on('userInfo', (e, userInfo) => {
-        this.checkLoggedIn(userInfo)
-      })
-
-      ipcRenderer.on('generated', (e, p) => {
-        this.notify({
-          text: 'Template was successfuly generated.',
-          color: 'success',
-          state: true
-        })
-
-        if (this.openAfterGenerate === 'yes') shell.openItem(p)
-      })
-
       this.checkConnectivity(navigator.onLine)
       window.addEventListener('online',  this.changeConnectivity);
       window.addEventListener('offline', this.changeConnectivity);
-      // this.changeOpenAfterGenerate()
-      // this.changeGeneratorSelectionMode()
-      this.fetchAllProjectsBasic(true);
+
+
+      // FETCH PROJECTS
+      this.fetchAllProjectsBasic();
       this.fetchProjectsDetail();
-      this.fetchAllTemplates(true);
-      // this.fetchForeignProjectsBasic();
+
+      // FETCH TEMPLATES
+      this.fetchAllTemplates();
+
+      // FETCH INVOICING
+      this.fetchInvoicingDetail()
+
+      //FETCH SETTINGS
+      this.fetchInvoicingSettings()
+
     },
     data: () => ({
       drawer: true,
       rightDrawer: false,
       notificationsTypeSelected: 0,
       clipped: true,
-      miniVariant: true,
+      miniVariant: false,
       maximizedWindow: false,
       userPassword: '',
       createAccountForm: {
@@ -337,6 +365,9 @@
       templates: [
         { icon: 'trip_origin', title: 'Template generator', to: '/templateGenerator'},
         { icon: 'add', title: 'New template', to: '/newTemplate' },
+      ],
+      projects: [
+        { icon: 'supervised_user_circle', title: 'Delegate projects', to: '/delegateProjects'}
       ]
     }),
     computed: {
@@ -360,23 +391,9 @@
       }
     },
     methods: {
-      ...mapActions(['checkLoggedIn', 'loginWithPassword',
-      'registerUser', 'changeOpenAfterGenerate', 'notify', 'checkConnectivity',
-      'removeNotification', 'changeGeneratorSelectionMode', 'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchForeignProjectsBasic']),
-      async notifyTmpls (tmpls) {
-        this.$notify({
-          group: 'new-tmpl',
-          title: 'New template(s) added/modified.',
-          text: tmpls.toString()
-        });
-      },
-      async notifyProject (projData) {
-        this.$notify({
-          group: 'new-proj',
-          title: `Project change.`,
-          text: `Project ${projData._id} — ${projData.project_pm} was created/updated.`
-        });
-      },
+      ...mapActions([ 'loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification',
+      'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings',
+      'fetchInvoicingDetail']),
       callLogin() {
         this.loginWithPassword(this.userPassword)
       },

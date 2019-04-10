@@ -18,7 +18,7 @@
         <v-card-actions>
           <v-btn color="error" flat @click="openGenerateTemplateDialog(false)">Close</v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="generateTemplate('true')" > Generate </v-btn>
+          <v-btn color="primary" flat @click="generateTemplate" > Generate </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

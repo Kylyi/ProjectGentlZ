@@ -358,11 +358,10 @@
 
 <script>
   import {readFile} from '../../main/scripts/misc'
-  import db from '../../main/scripts/database'
   const path = require('path')
   const isDev = require('electron-is-dev')
-  const {remote} = require('electron')
   import { mapGetters, mapActions } from 'vuex';
+  import username from 'username'
 
   export default {
     async created() {
@@ -384,7 +383,7 @@
         selectedSign: 'info',
         signComment: '',
         hiddenFieldsCount: 0,
-        signOptions: remote.getGlobal('user')['roles'].includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
+        signOptions: ['warning', 'info', 'arrow_upward', 'arrow_downward']
       }
     },
     props: {
@@ -394,7 +393,7 @@
       }
     },
     computed: {
-      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate']),
+      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate', 'userInfo']),
       hiddenColumns: {
         get: function () {
           this.allColumns.push({dataType: 'date', editable: false, name: 'Invoice date', value: `Invoice Date`, visible: true})
@@ -454,7 +453,7 @@
           if (iconExists) {
             this.$props.templateData.data.sign[this.currentField][sign].push({
               comment: this.signComment,
-              owner: remote.getGlobal('user')['_id']
+              owner: username.sync()
             })
             // const ix = this.$props.templateData.data.sign[this.currentField].indexOf(iconExists)
             // iconExists = iconExists + ' - ' + this.signComment
@@ -464,7 +463,7 @@
             this.$props.templateData.data.sign[this.currentField] = Object.assign({}, this.$props.templateData.data.sign[[this.currentField]], {
               [sign]: [{
                 comment: this.signComment,
-                owner: remote.getGlobal('user')['_id']
+                owner: username.sync()
               }]
             })
             // this.$props.templateData.data.sign[this.currentField].push(sign+' - ' + this.signComment)
@@ -475,7 +474,7 @@
             [sign]: [
               {
                 comment: this.signComment,
-                owner: remote.getGlobal('user')['_id']
+                owner: username.sync()
               }
             ]
           }})
@@ -504,7 +503,7 @@
         })
       },
       removeSignComment (comment) {
-        if ((comment.owner !== remote.getGlobal('user')['_id']) && (!remote.getGlobal('user')['roles'].includes('invoicingAdmin'))) {
+        if ((comment.owner !== username.sync()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) {
           return 
         }
 

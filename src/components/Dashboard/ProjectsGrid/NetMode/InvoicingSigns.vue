@@ -1,9 +1,9 @@
 <template>
-  <v-layout align-center justify-start row fill-height wrap>
-    <v-flex column v-for="sign in Object.keys(invoicingSigns).sort()" :key="sign">
-      <v-icon v-html="sign" :color="getColor(sign)" />
-    </v-flex>
-  </v-layout>
+    <div>
+      <span v-for="sign in Object.keys(invoicingSigns).sort()" :key="sign">
+        <v-icon small v-html="sign" :color="getColor(sign)" />
+      </span>
+    </div>
 </template>
 
 <script>

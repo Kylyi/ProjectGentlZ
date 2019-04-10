@@ -1,105 +1,82 @@
 <template>
-  <v-layout>
-    <el-table
-      ref="myProjectsTable"
-      id="myProjectsTable"
-      :data="pmProjectsBasic"
-      :default-sort="{prop:'_id', order: 'ascending'}"
-      style="width: 100%;"
-      height="500"
-      @expand-change="chooseProjects"
-      >
-      <el-table-column type="expand">
-        <template slot-scope="props">
-          <v-container fluid>
-            <table style="width: 100%;">
-              <tr>
-                
-                <!-- LEFT SIDE -->
-                <td>
-                  <table class="detailTable" style="width: 100%;">
-                    <thead>
-                      <tr>
-                        <td><b>Field</b></td>
-                        <td><b>Value</b></td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="field in visibleProjectsDetail" :key="field.value">
-                        <td style="width:40%;">{{field.name}}</td>
-                        <td style="width:60%;">{{((field.dataType === 'date') && (props.row[field.value])) ?  props.row[field.value].substr(0, 10) : props.row[field.value]}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
+  <v-layout id="netMode" mt-3 style="max-height: 500px;">
+    <dx-data-grid
+      ref="networksTable"
+      :data-source="pmProjectsBasic"
+      show-borders
+      key-expr='_id'
+      column-auto-width
+      :allow-column-reordering="true"
+      :allow-column-resizing="true"
+      :row-alternation-enabled="true"
+      :show-row-lines="true"
+      :show-column-lines="true"
+      :word-wrap-enabled="true"
+    >
+      <dx-scrolling mode="virtual"/>
 
-                <!-- RIGHT SIDE -->
-                <td style="width: 96px; max-width: 96px; vertical-align: top; text-align: center;">
-                  <v-flex row style="color: #909399;"><b>Actions</b></v-flex>
-                  <v-layout id="generateTemplate" wrap @click="generateTemplateTrigger(props.row)"
-                    style="cursor: pointer;  margin-left: 2px; padding: 2px; border: 1px solid #7e57c2; border-radius: 5px;">
-                    <v-flex row><v-icon color="deep-purple lighten-1">trip_origin</v-icon></v-flex>
-                    <v-flex row class="deep-purple--text lighten-1">Generate template</v-flex>
-                  </v-layout>
-                  <v-layout id="generateTemplate" wrap
-                    mt-1
-                    style="cursor: pointer;  margin-left: 2px; padding: 2px; border: 1px solid #7e57c2; border-radius: 5px;"
-                  >
-                    <a href="#/riskRegister" style="text-decoration: none;">
-                      <v-flex row><v-icon color="deep-purple lighten-1">business</v-icon></v-flex>
-                      <v-flex row class="deep-purple--text lighten-1">Manage risk register</v-flex>
-                    </a>
-                  </v-layout>
-                </td>
-              </tr>
-            </table>
-            
-            
-          </v-container>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="_id"
-        label="Network #"
-        sortable
-        align="center"
-        width="130"
+      <dx-column
+        data-field="_id"
+        caption="Network #"
+        alignment="center"
       />
-      <el-table-column
-        prop="Network Description"
-        label="Network description"
-        sortable
-        min-width="300"
-        align="justify"
+      <dx-column
+        data-field="Network Description"
+        caption="Network description"
+        alignment="left"
       />
-      <el-table-column
-        prop="Number of Panels"
-        label="Panels"
-        sortable
-        min-width="110"
+      <dx-column
+        caption="Panels / Modules"
+        alignment="center"
+        cell-template="panelsModulesTemplate"
       />
-      <el-table-column
-        prop="Number of Modules"
-        label="Modules"
-        sortable
-        min-width="110"
+      <dx-column
+        data-field="Net Revenues"
+        caption="Revenues"
+        data-type="number"
+        format="thousands"
+        alignment="center"
       />
-      <el-table-column
-        prop="Net Revenues"
-        label="Revenues"
-        sortable
-        min-width="120"
+      <dx-column
+        caption="Inv. alert"
+        cell-template="invoicingIconsTemplate"
+        alignment="center"
       />
-      <el-table-column
-        label="Invoicing alert"
-        width="150"
-        align="center"
-      >
-        <template slot-scope="scope">
-          <invoicing-signs :signs="scope.row.sign" />
-        </template>
-      </el-table-column>
-    </el-table>
+      <dx-column
+        caption="Actions"
+        cell-template="actionsTemplate"
+        alignment="center"
+        :fixed="true"
+        fixed-position="right"
+      />
+
+
+      <div slot="panelsModulesTemplate" slot-scope="templateData">
+        {{templateData.data['Number of Panels']}} / {{templateData.data['Number of Modules']}}
+      </div>
+
+      <div slot="invoicingIconsTemplate" slot-scope="templateData">
+        <invoicing-signs :signs="templateData.data.sign" />
+      </div>
+
+      <div slot="actionsTemplate" slot-scope="templateData">
+          <v-icon @click="generateTemplate(templateData.data)" small title="Generate template" color="grey darken-1">trip_origin</v-icon>
+          <v-icon @click="manageRiskRegister(templateData.data)" small title="Manage risk register" color="teal lighten-1">business</v-icon>
+      </div>
+
+      <dx-state-storing
+        :enabled="true"
+        type="localStorage"
+        storage-key="netTable"
+        :savingTimeout="5000"
+      />
+    </dx-data-grid>
+
+
+
+
+
+
   </v-layout>
 </template>
 
@@ -112,14 +89,24 @@ export default {
   computed: mapGetters(['pmProjectsBasic', 'visibleProjectsDetail', 'generateTemplateDialog']),
   methods: {
     ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail']),
-    generateTemplateTrigger(projData) {
-      this.chooseProjects(projData)
+    async generateTemplate(data) {
+      await this.chooseProjects(data)
       this.openGenerateTemplateDialog(true)
+    },
+    async manageRiskRegister(data) {
+      await this.chooseProjects(data)
+      this.$router.push('/riskRegister')
     }
   }
 }
 </script>
 
 <style>
+  #netMode .dx-datagrid-rowsview {
+    font-size: medium;
+  }
 
+  #netMode .dx-datagrid-headers {
+    font-size: medium;
+  }
 </style>

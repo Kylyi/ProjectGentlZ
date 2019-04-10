@@ -21,6 +21,11 @@ export default new Router({
       component: require('../components/NewTemplate.vue').default
     },
     {
+      path: '/delegateProjects',
+      name: 'DelegateProjects',
+      component: require('../components/DelegateProjects.vue').default
+    },
+    {
       path: '/invoicing',
       name: 'invoicing',
       component: require('../components/Invoicing.vue').default

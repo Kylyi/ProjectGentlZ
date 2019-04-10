@@ -1,7 +1,21 @@
-import db from '../../main/scripts/database'
-import { ipcRenderer } from 'electron';
+import { shell } from 'electron';
 const { dialog } = require('electron').remote
 import fs from 'fs'
+import { generateDocx, generateXlsx } from '../helpers/templateGenerating'
+
+import PouchDB from 'pouchdb'
+PouchDB.plugin(require('pouchdb-find'))
+PouchDB.plugin(require('pouchdb-upsert'))
+
+const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
+const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
+
+templates.sync(remoteTemplates, { live: true, retry: true, batch_size: 50 })
+  .on('change', (c) => {
+    if (c.direction === 'pull') {
+      store.dispatch('fetchAllTemplates', true)
+    }
+  })
 
 const state = {
   allTemplatesBasic: [],
@@ -13,6 +27,20 @@ const state = {
 
 const getters = {
   allTemplatesBasic: state => state.allTemplatesBasic,
+  allTemplatesByType: (getters) => {
+    if (getters.allTemplatesBasic.length === 0) return []
+
+    return getters.allTemplatesBasic.reduce((agg, e) => {
+      const x = agg.map(a => a.label === e.template_type)
+      const y = x.indexOf(true)
+      if (y === -1) agg = [...agg, {
+        label: e.template_type,
+        options: [e]
+      }]
+      else agg[y]['options'].push(e)
+      return agg
+    }, [])
+  },
   chosenTemplates: state => state.chosenTemplates,
   generateTemplateDialog: state => state.generateTemplateDialog,
   openAfterGenerate: state => state.openAfterGenerate,
@@ -20,82 +48,57 @@ const getters = {
 }
 
 const actions = {
-  async fetchAllTemplates({ commit, dispatch }, force) {
+  async fetchAllTemplates({ commit }) {
     async function getTmpls() {
-      return await db.templates.find({ selector: { _id: { $gt: null } }, limit: null })
+      return await templates.find({ selector: { _id: { $gt: null } }, limit: null })
     }
-
-    if (force) {
-      const tmpls = await getTmpls()
-      const z = tmpls.docs.reduce((agg, e) => {
-        const x = agg.map(a => a.label === e.template_type)
-        const y = x.indexOf(true)
-        if (y === -1) agg = [...agg, {
-          label: e.template_type,
-          options: [e]
-        }]
-        else agg[y]['options'].push(e)
-        return agg
-      }, [])
-
-      localStorage.setItem('allTemplatesBasic', JSON.stringify(z))
-      commit('setAllTemplatesBasic', z)
-    } else if (!localStorage.getItem('allTemplatesBasic') && !force) {
-      const tmpls = await getTmpls()
-      const z = tmpls.docs.reduce((agg, e) => {
-        const x = agg.map(a => a.label === e.template_type)
-        const y = x.indexOf(true)
-        if (y === -1) agg = [...agg, {
-          label: e.template_type,
-          options: [e]
-        }]
-        else agg[y]['options'].push(e)
-        return agg
-      }, [])
-
-      localStorage.setItem('allTemplatesBasic', JSON.stringify(z))
-      commit('setAllTemplatesBasic', z)
-    } else {
-      commit('setAllTemplatesBasic', JSON.parse(localStorage.getItem('allTemplatesBasic')))
-    }
+    const tmpls = await getTmpls()
+    commit('setAllTemplatesBasic', tmpls.docs)
   },
   async chooseTemplate({ commit }, tmplNames) {
     commit('setChosenTemplates', tmplNames)
   },
-  async generateTemplate({ commit, rootState, dispatch }, single) {
+  async generateTemplate({ commit, rootState, dispatch }) {
     const tmplDataObj = rootState.templates.chosenTemplates
     const projData = rootState.projects.chosenProjects
 
     if (tmplDataObj.length > 0 && projData.length > 0) {
       projData.forEach(p => {
-            tmplDataObj.forEach(t => {
-              async function generate() {
-                try {
-                  // GET PROJECT DATA
-                  let pData
-                  if (single === 'true') { pData = projData[0] }
-                  else { pData = p } 
+        tmplDataObj.forEach(t => {
+          async function generate() {
+            try {
+              // GET PROJECT DATA
+              const projData = p
 
-                  // GET TEMPLATE DATA
-                  const tData = await db.templates.getAttachment(t._id, t.template_name)
+              // GET TEMPLATE DATA
+              const tmplData = await templates.getAttachment(t._id, t.template_name)
 
-                  dialog.showSaveDialog(null, {
-                    title: 'Save document',
-                    defaultPath: t['template_name'],
-                    buttonLabel: 'Save',
-                    filters:t['template_type'] === 'xlsx' ? [{name: 'Excel', extensions: ['xlsx']}] : [{name: 'Microsoft word', extensions: ['docx']}]
-                  }, path => {
-                    if (path) ipcRenderer.send('tmpl-gen', {savePath: path, projData: pData, tmplData: tData, tmplType: t['template_type']})
-                  })
-                } catch (error) {
-                  dispatch('notify', {
-                    text: error,
-                    color: 'error',
-                    state: 'true'
-                  })
+              const savePath = await dialog.showSaveDialog(null, {
+                title: 'Save document',
+                defaultPath: t['template_name'],
+                buttonLabel: 'Save',
+                filters: t['template_type'] === 'xlsx' ? [{name: 'Excel', extensions: ['xlsx']}] : [{name: 'Microsoft word', extensions: ['docx']}]
+              })
+              
+              if (savePath) {
+                const openFile = rootState.templates.openAfterGenerate === 'yes'
+                if (t.template_type === 'docx') {
+                  await generateDocx({savePath, projData, tmplData})
+                  if (openFile) dispatch('openFile', savePath)
+                } else if (t.template_type === 'xlsx') {
+                  await generateXlsx({savePath, projData, tmplData})
+                  if (openFile) dispatch('openFile', savePath)
                 }
               }
-              generate()
+            } catch (error) {
+              dispatch('notify', {
+                text: error,
+                color: 'error',
+                state: 'true'
+              })
+            }
+          }
+          generate()
         })
       })
     }
@@ -131,12 +134,12 @@ const actions = {
     try {
       const att = fs.readFileSync(tmpl.filePath)
 
-      const insertedTmpl = await db.templates.upsert(tmpl.template_name, (doc) => {
+      const insertedTmpl = await templates.upsert(tmpl.template_name, (doc) => {
         doc.template_type = tmpl.fileType
         doc.template_name = tmpl.fileName
         return doc
       })
-      await db.templates.putAttachment(tmpl.template_name, tmpl.fileName, insertedTmpl.rev, att, tmpl.fileType)
+      await templates.putAttachment(tmpl.template_name, tmpl.fileName, insertedTmpl.rev, att, tmpl.fileType)
       dispatch('fetchAllTemplates', true)
 
     } catch (err) {
@@ -146,6 +149,9 @@ const actions = {
         state: true
       })
     }
+  },
+  async openFile({}, path) {
+    shell.openItem(path)
   }
 }
 

@@ -1,8 +1,6 @@
 'use strict'
 
 import { app, BrowserWindow, ipcMain } from 'electron'
-import generate from './scripts/docx'
-import {generateXlsx} from './scripts/xlsx'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
 import {
@@ -33,7 +31,7 @@ function createMainWindow() {
   //   window.webContents.openDevTools()
   // }
 
-  window.webContents.openDevTools()
+  // window.webContents.openDevTools()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -82,17 +80,17 @@ app.on('ready', () => {
   // loginWindow = createMainWindow()
 })
 
-ipcMain.on('tmpl-gen', (e, data) => {
-  if (data.tmplType === 'docx') {
-    generate(data, (p) => {
-      e.sender.send('generated', p)
-    })
-  } else if (data.tmplType === 'xlsx') {
-    generateXlsx(data, (p) => {
-      e.sender.send('generated', p)
-    })
-  }
-})
+// ipcMain.on('tmpl-gen', (e, data) => {
+//   if (data.tmplType === 'docx') {
+//     generate(data, (p) => {
+//       e.sender.send('generated', p)
+//     })
+//   } else if (data.tmplType === 'xlsx') {
+//     generateXlsx(data, (p) => {
+//       e.sender.send('generated', p)
+//     })
+//   }
+// })
 
 ipcMain.on('appIsReady', (e, isReady) => {
   if (isReady) mainWindow.show()

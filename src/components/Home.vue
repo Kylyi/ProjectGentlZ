@@ -9,10 +9,6 @@
 </style>
 
 <script>
-  import db from '../main/scripts/database'
-  import PouchDB from 'pouchdb'
-  const remoteProjects = new PouchDB('https://admin:bf9cc5c5bfb6@couchdb-615ac0.smileupps.com/projects/')
-
   export default {
     data: () => ({
       value1: '',
@@ -78,14 +74,6 @@
         //   if (err) throw err;
         // })
         this.data = x
-      },
-      async yikes () {
-        // db.user.put({
-        //   _id: '01',
-        //   xxx: 'uuu'
-        // })
-
-        console.log(await db.user.allDocs({include_docs: true}))
       }
     },
     components: {

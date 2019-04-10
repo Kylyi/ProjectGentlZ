@@ -1,25 +1,24 @@
 <template>
-  <v-container fluid>
-    <v-layout align-start class="wrap row">
-        <!-- Title -->
-      <v-flex xs10 row wrap mb-4>
-        <h3 class="display-2 primary--text"><span class="tit">Template generator</span></h3>
+  <v-layout column xs12 wrap>
+    <v-layout row wrap align-center style="padding: 18.5px 24px; background-color: #424242;" >
+      <!-- Title -->
+      <v-flex column shrink>
+        <h3 class="display-2 white--text">Template generator</h3>
       </v-flex>
-      
-      <!-- Menu -->
-      <v-flex xs2 row wrap text-xs-right>
+
+      <!-- MENU -->
+      <v-flex column grow text-xs-right>
         <v-menu
           v-model="optionsMenu"
           :close-on-content-click="false"
           :nudge-width="300"
           nudge-left="335"
-        >
-          <v-icon
-            slot="activator"
-            color="primary"
-          >
-            settings
-          </v-icon>
+         >
+          <v-btn fab  slot="activator">
+            <v-icon color="primary" >
+              fas fa-cogs
+            </v-icon>
+          </v-btn>
 
           <v-card id="optionsMenu">
             <v-list>
@@ -29,7 +28,7 @@
                     <v-list-tile-action-text>
                       <v-flex row wrap>Mode</v-flex>
                       <v-flex row wrap>
-                        <v-btn-toggle v-model="generatorSelectionMode" @change="changeGeneratorSelectionMode">
+                        <v-btn-toggle v-model="generatorSelectionMode" @change="changeGeneratorSelectionMode" :mandatory="true">
                           <v-btn flat value="project">
                             Project
                           </v-btn>
@@ -50,7 +49,7 @@
                     <v-list-tile-action-text>
                       <v-flex row wrap>Open document after generating</v-flex>
                       <v-flex row wrap>
-                        <v-btn-toggle v-model="openAfterGenerate" @change="changeOpenAfterGenerate">
+                        <v-btn-toggle v-model="openAfterGenerate" @change="changeOpenAfterGenerate" :mandatory="true">
                           <v-btn flat value="yes">
                             Yes
                           </v-btn>
@@ -59,120 +58,99 @@
                           </v-btn>
                         </v-btn-toggle>
                       </v-flex>
-
                     </v-list-tile-action-text>
-
                 </v-list-tile-content>
               </v-list-tile>
-
             </v-list>
-
             <v-card-actions>
               <v-spacer></v-spacer>
-
               <v-btn flat @click="optionsMenu = false">Close</v-btn>
             </v-card-actions>
           </v-card>
         </v-menu>
       </v-flex>
-
-      <v-layout row wrap align-start fill-height>
-
-        <!-- Left side -->
-        <v-flex column xs5 style="max-width:600px">
-          
-          <!-- Project selector -->
-          <project-selector ref="projS" mt-5></project-selector>
-
-          <!-- Template selector -->
-          <template-selector ref="tmplS" style="margin-top:2em"></template-selector>
-
-          <!-- Button -->
-          <v-layout row wrap justify-end mb-1> 
-            <v-btn  outline depressed color="primary" @click="generateTemplate(`${generatorSelectionMode === 'project'}`)" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)" class="elevation-7 mt-4">Generate</v-btn>
-            <!-- @click="generateTemplateTrigger" -->
-          </v-layout>
-
-          <!-- INFOPANEL -->
-          <v-expansion-panel v-if="chosenProjects.length > 0">
-            <!-- NETWORK INFO -->
-            <v-expansion-panel-content>
-              <template v-slot:header><b>Network info</b></template>
-              <v-layout column wrap>
-                <v-flex row wrap mb-2><b>TBD - IF MORE NETS ARE SELECTED SHOW CHOOSE BAR</b></v-flex>
-                <v-flex row wrap>
-                  <table class="detailTable" style="width: 100%;" v-show="chosenProjects.length > 0">
-                    <tbody>
-                      <tr v-for="field in visibleProjectsDetail" :key="field.value">
-                        <td style="width:150px; text-align: right; padding-right:1em;">{{field.name}}</td>
-                        <td>
-                          {{((field.dataType === 'date') && (chosenProjects[0][field.value])) ?  chosenProjects[0][field.value].substr(0, 10) : chosenProjects[0][field.value]}}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </v-flex>
-              </v-layout>
-            </v-expansion-panel-content>
-
-            <!-- TEMPLATE INFO -->
-            <v-expansion-panel-content>
-              <template v-slot:header><b>Template info</b></template>
-              <v-layout>
-                Template info - TBD
-              </v-layout>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-
-          <!-- ADD NETWORK FORM -->
-          <v-layout column wrap mt-3>
-            <v-flex row wrap>
-              <v-form
-                ref="projectAddForm"
-                v-model="projectAddValid"
-                @submit.prevent="addProject()"
-              >
-                <v-text-field
-                  v-model="projectToAdd"
-                  :rules="[v => !!v || 'Net # is required', v => (v && v.length === 10) || 'Net # are 10 characters long.']"
-                  label="Add network (Net #) manually"
-                  required
-                  :loading="loading"
-                >
-                </v-text-field>
-              </v-form>
-            </v-flex>
-          </v-layout>
-
-          <!-- GET NET TASKS INFO -->
-          <v-layout column wrap v-shortkey="['ctrl', 'alt', 'o']" @shortkey="devMode = !devMode" :class="devMode? 'd-flex': 'd-none'">
-            <v-flex row wrap>
-              <v-form
-                @submit.prevent="getNetTasksInfo()"
-              >
-                <v-text-field
-                  v-model="netPlaceholder"
-                  :rules="[v => !!v || 'Net # is required', v => (v && v.length === 10) || 'Net # are 10 characters long.']"
-                  label="Get tasks info for network"
-                  required
-                >
-                </v-text-field>
-              </v-form>
-            </v-flex>
-            <v-flex row wrap>
-              <v-btn outline @click="stopProjectsReplication">Stop project replication</v-btn>
-              <v-btn outline @click="startProjectsReplication">Start project replication</v-btn>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-
-        <!-- Right side -->
-        <v-flex column pl-3 text-xs-center>
-          <img :src="templatePreview">
-        </v-flex>
-      </v-layout>
     </v-layout>
-  </v-container>
+
+    <v-container fluid>
+      <v-flex column xs6>
+        <v-flex row wrap mt-4>
+          <h5 class="headline"><b>Generate template</b></h5>
+        </v-flex>
+
+        <v-flex row wrap mt-4>
+          <project-selector ref="projS" />
+        </v-flex>
+
+        <v-flex row wrap mt-3>
+          <template-selector ref="tmplS" />
+        </v-flex>
+
+        <v-flex row wrap text-xs-right mt-1>
+          <v-btn outline color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)">Generate</v-btn>
+        </v-flex>
+        <v-flex row wrap>
+          <el-collapse v-model="selectedTab">
+            <el-collapse-item title="Projects" name="projects">
+              <v-carousel
+                v-if="chosenProjects.length > 0"
+                hide-controls
+                :cycle="false"
+                height="300"
+                style="box-shadow: none;"
+              >
+                <v-carousel-item
+                  v-for="(item,i) in chosenProjects"
+                  :key="i"
+                >
+                  <v-layout row wrap>
+                    <v-flex column xs4 v-for="field in Object.keys(item)" :key="field" style="border: 1px solid black;">
+                      <div>
+                        {{field}}
+                      </div>
+                      <div>
+                        {{item[field]}}
+                      </div>
+                    </v-flex>
+                  </v-layout>
+                </v-carousel-item>
+              </v-carousel>
+            </el-collapse-item>
+
+            <el-collapse-item title="Templates" name="templates">
+              <v-carousel
+                v-if="chosenTemplates.length > 0"
+                hide-controls
+                :cycle="false"
+                height="300"
+                style="box-shadow: none;"
+              >
+                <v-carousel-item
+                  v-for="(item,i) in chosenTemplates"
+                  :key="i"
+                >
+                  <v-layout row wrap>
+                    <v-flex column xs4 v-for="field in Object.keys(item)" :key="field" style="border: 1px solid black;">
+                      <div>
+                        {{field}}
+                      </div>
+                      <div>
+                        {{item[field]}}
+                      </div>
+                    </v-flex>
+                  </v-layout>
+                </v-carousel-item>
+              </v-carousel>
+            </el-collapse-item>
+          </el-collapse>
+        </v-flex>
+
+      </v-flex>
+    </v-container>
+
+  
+    
+    
+  </v-layout>
 
 </template>
 
@@ -216,29 +194,30 @@
   export default {
     name: 'TemplateGenerator',
     data: () => ({
-      activeTab: null,
-      showCustomerInfo: false,
       devMode: false,
-      openAfterGenerate: 'yes',
-      generatorSelectionMode: 'net',
       projectAddValid: false,
       projectToAdd: '',
-      projectAddInfo: null,
       optionsMenu: false,
-      divisionSelect: '[lvmv_networks]',
-      templatePreview: require('./../renderer/assets/template_preview.png'),
-      netPlaceholder: ''
+      selectedTab: []
     }),
     created: async function () {
       this.openAfterGenerate = this.$store.state.templates.openAfterGenerate
       this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
     },
     computed: {
-      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading'])
+      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading']),
+      accordionData: {
+        get: function() {
+          return [
+            { name: 'projects', values: this.chosenProjects },
+            { name: 'templates', values: this.chosenTemplates }
+          ]
+        }
+      }
     },
     methods: {
-      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'fetchNetTasksInfo', 'deleteLocalStorage',
-                    'stopProjectsReplication', 'startProjectsReplication', 'addAllBillings']),
+      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'fetchNetTasksInfo', 'clearLocalStorage',
+        'stopProjectsReplication', 'startProjectsReplication', 'addAllBillings']),
       addProject() {
         if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)

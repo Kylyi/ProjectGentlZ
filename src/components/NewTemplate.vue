@@ -126,7 +126,6 @@ import vueDropzone from "vue2-dropzone"
 const {app, dialog} = require('electron').remote
 const fs = require('fs')
 const path = require('path')
-import db from '../main/scripts/database'
 import { mapActions } from 'vuex';
 
 export default {

@@ -1,34 +1,29 @@
-import path from 'path'
-import { readFile } from '../../main/scripts/misc'
-import db from '../../main/scripts/database'
-const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 import fs from 'fs'
 import store from '../index'
 import DataFrame from 'dataframe-js';
 const XLSX = require('xlsx')
+import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/localFilesManipulation'
 
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
-PouchDB.plugin(require('pouchdb-upsert-bulk'))
 
+
+// LOCAL DB
 const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
-
 // MY DB
 const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
-
 // ABB DB
 // const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projects')
 
 let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
   .on('change', (c) => {
     console.log(c)
-    if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
+    if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
   })
 
-
-const conn = isDev ? new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'databaseSettings.json'), 'utf-8'))) : new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
+const conn = new sql.ConnectionPool(JSON.parse(readDefaultSettingFile('databaseSettings')))
 
 const state = {
   allProjectsBasic: [],
@@ -38,7 +33,8 @@ const state = {
   pmProjectsProjectMode: [],
   loading: false,
   foreignProjectsBasic: JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [],
-  taskInfo: null
+  taskInfo: null,
+  selectedPM: null
 }
 
 const getters = {
@@ -46,7 +42,9 @@ const getters = {
   pmProjectsBasic: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
     return state.allProjectsBasic.filter(e => {
-      return e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
+      return e['Project Manager'] === getters.userInfo.sapUsername ||
+      state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
+      (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
     })
   },
   projectsDetail: state => state.projectsDetail,
@@ -54,7 +52,11 @@ const getters = {
   chosenProjects: state => state.chosenProjects,
   pmProjectsProjectMode: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
+    const projsBasic = state.allProjectsBasic.filter(e => 
+      e['Project Manager'] === getters.userInfo.sapUsername || 
+      state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
+      (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
+      )
     if (projsBasic.length === 0) return []
     return projsBasic.reduce((agg, e) => {
       const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
@@ -69,13 +71,7 @@ const getters = {
           project_revenue: e['Project Revenues'],
           riskRegisterBilance: e['riskRegister'].hasOwnProperty('risks') ? e.riskRegister.bilance : {bilanceRisks: 0, bilanceOpps: 0},
           nets_keys: [e['_id']],
-          nets: [{
-            net_num: e['Network Num'],
-            net_info: [{
-              task_num: e['Task Num'],
-              task_info: e
-            }]
-          }]
+          nets: [e]
         }]
 
       } else {
@@ -84,13 +80,7 @@ const getters = {
 
         if (f2 === -1) {
           // Network num not in aggregator
-          agg[f]['nets'].push({
-            net_num: e['Network Num'],
-            net_info: [{
-              task_num: e['Task Num'],
-              task_info: e
-            }]
-          })
+          agg[f]['nets'].push(e)
           agg[f]['nets_keys'].push(e['_id'])
           agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
           agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
@@ -104,25 +94,75 @@ const getters = {
 
         } else {
           // Network num in aggregator
-          agg[f]['nets'][f2]['net_info'].push({
-            task_num: e['Task Num'],
-            task_info: e
-          })
-          return agg
+          // agg[f]['nets'][f2]['net_info'].push({
+          //   task_num: e['Task Num'],
+          //   task_info: e
+          // })
+          // return agg
         }
 
       }
     }, [])
 
   },
+  allProjectsProjectsMode: (getters) => {
+     const projsBasic = getters.allProjectsBasic
+
+     return projsBasic.reduce((agg, e) => {
+      const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
+
+      if (f === -1) {
+        // Project ID not in aggregator
+        return [...agg, {
+          project_id: e['Project Definition'],
+          project_name: e['Project Name'],
+          project_panels: e['Number of Panels'],
+          project_modules: e['Number of Modules'],
+          project_revenue: e['Project Revenues'],
+          project_pm: e['Project Manager'],
+          temporaryAssign: e['temporaryAssign'],
+          riskRegisterBilance: e['riskRegister'].hasOwnProperty('risks') ? e.riskRegister.bilance : {bilanceRisks: 0, bilanceOpps: 0},
+          nets_keys: [e['_id']],
+          nets: [e]
+        }]
+
+      } else {
+        // Project ID in aggregator
+        const f2 = agg[f]['nets'].map(a => a.net_num === e['Network Num']).indexOf(true)
+
+        if (f2 === -1) {
+          // Network num not in aggregator
+          agg[f]['nets'].push(e)
+          agg[f]['nets_keys'].push(e['_id'])
+          agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
+          agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
+
+          if (e['riskRegister'].hasOwnProperty('risks')) {
+            agg[f]['riskRegisterBilance'].bilanceRisks = agg[f]['riskRegisterBilance'].bilanceRisks + e.riskRegister.bilance.bilanceRisks
+            agg[f]['riskRegisterBilance'].bilanceOpps = agg[f]['riskRegisterBilance'].bilanceOpps + e.riskRegister.bilance.bilanceOpps
+          }
+
+          return agg
+        } else {
+          // Network num in aggregator
+          // agg[f]['nets'][f2]['net_info'].push({
+          //   task_num: e['Task Num'],
+          //   task_info: e
+          // })
+          // return agg
+        }
+      }
+    }, [])
+  },
   pmProjectsUniqueProjects: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0)
+    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
+    || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
+    || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername)))
     if (projsBasic.length === 0) return []
     
       return projsBasic.reduce((agg, e) => {
         const f = agg.map(a => a['Project Definition'] === e['Project Definition']).indexOf(true)
-
         if (f !== -1) {
           agg[f]['netsKeys'].push(e._id)
           return agg
@@ -176,77 +216,66 @@ const getters = {
   },
   loading: state => state.loading,
   foreignProjectsBasic: state => state.foreignProjectsBasic,
-  taskInfo: state => state.taskInfo
+  taskInfo: state => state.taskInfo,
+  uniquePms: state => {
+    const nonUniquePMs = state.allProjectsBasic.map(e => e['Project Manager'])
+    Array.prototype.unique = function() {
+      return this.filter(function (value, index, self) { 
+        return self.indexOf(value) === index;
+      });
+    }
+
+    return nonUniquePMs.unique()
+  },
+  selectedPmProjects: (state) => {
+    if (!state.selectedPM) return []
+    const projs = state.allProjectsBasic.filter(e => e['Project Manager'] === state.selectedPM ||
+    (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(state.selectedPM)))
+
+    return projs.reduce((agg, e) => {
+      const isIn = agg.map(n => n['Project Definition'] === e['Project Definition']).indexOf(true)
+
+      return isIn === -1 ? [...agg, {
+        project_id: e['Project Definition'],
+        project_name: e['Project Name'],
+        project_pm: e['Project Manager'],
+        temporaryAssign: e['temporaryAssign']
+      }] : agg
+
+    }, [])
+
+  },
+  selectedPM: state => state.selectedPM
 }
 
 const actions = {
-  async fetchAllProjectsBasic({ commit }, force) {
+  async fetchAllProjectsBasic({ commit }) {
     async function getProjects() {
-      return await projects.find({ selector: { "_id": { $gt: null } }, limit: null, sort: ['_id'] })
+      return projects.find({ selector: { "_id": { $gt: null } }, limit: null, sort: ['_id'] })
     }
-    if (force || !localStorage.getItem('allProjectsBasic')) {
-      const projs = await getProjects()
-      localStorage.setItem('allProjectsBasic', JSON.stringify(projs.docs))
-      commit('setAllProjects', projs.docs)
-    } else {
-      commit('setAllProjects', JSON.parse(localStorage.getItem('allProjectsBasic')))
-    }
+
+    const projs = await getProjects()
+    commit('setAllProjects', projs.docs)
+
+    // if (force || !localStorage.getItem('allProjectsBasic')) {
+    //   const projs = await getProjects()
+    //   localStorage.setItem('allProjectsBasic', JSON.stringify(projs.docs))
+    //   commit('setAllProjects', projs.docs)
+    // } else {
+    //   commit('setAllProjects', JSON.parse(localStorage.getItem('allProjectsBasic')))
+    // }
   },
   async fetchForeignProjectsBasic({ commit }) {
     commit('setForeignProjectsBasic', JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [])
   },
-  async addSingleProject({ dispatch, commit }, net_num) {
-    conn.connect()
-      .then(() => commit('setLoading', true))
-      .then(() => {
-        return conn.request().query(`select top 10 * from [lvmv_networks] where [Network Num] = '${net_num}'`)
-      })
-      .then(data => {
-        return projects.upsert(net_num, (doc) => {
-          if (doc.hasOwnProperty('fixedFields')) {
-            doc['fixedFields'].forEach(u => {
-              data.recordset[0][u] = doc[u]
-            })
-            data.recordset[0]['fixedFields'] = doc['fixedFields']
-          } else {
-            data.recordset[0]['fixedFields'] = ['riskRegister']
-            data.recordset[0]['riskRegister'] = []
-          }
-          return data.recordset[0]
-        })
-      })
-      .then(() => conn.close())
-      .then(() => dispatch('addNotification', { 
-        notification: {
-          name: 'Network added',
-          info: `Network was just added to db.`,
-          type: 'info',
-          notify: true,
-          action: 'fetchAllProjectsBasic',
-          actionInfo: 'Refresh projects',
-          actionArgs: {
-            force: true
-          }
-        },
-        log: true,
-        forceActionSelf: true,
-        forceActionOthers: true
-      }))
-      .then(() => commit('setLoading', false))
-      .catch(err => {
-        conn.close()
-        commit('setLoading', false)
-        dispatch('notify', {
-          text: err,
-          color: 'error',
-          state: 'true'
-        })
-      })
-  },
   async addActiveProjects({ dispatch, commit, rootState }) {
     console.time('Projects')
-
     conn.connect()
+      .then(() => {
+        const obDailyPath1301 = rootState.invoicing.obDailyPath1301
+        const obDailyPath1601 = rootState.invoicing.obDailyPath1601
+        if (!fs.existsSync(obDailyPath1301) || !fs.existsSync(obDailyPath1601)) throw 'OB Daily path not set. Check SETTINGS.'
+      })
       .then(() => commit('setLoading', true))
       .then(() => projectsReplicator.cancel())
       .then(() => {
@@ -259,7 +288,6 @@ const actions = {
       .then(data => {
         const obDailyPath1301 = rootState.invoicing.obDailyPath1301
         const obDailyPath1601 = rootState.invoicing.obDailyPath1601
-        if (!fs.existsSync(obDailyPath1301) || !fs.existsSync(obDailyPath1601)) throw 'OB Daily path not set. Check SETTINGS.'
 
         const obDailySheet1301 = XLSX.readFile(obDailyPath1301, {cellDates: true}).Sheets['zdroj']
         const obDailySheet1601 = XLSX.readFile(obDailyPath1601, {cellDates: true}).Sheets['zdroj']
@@ -286,29 +314,27 @@ const actions = {
         return joinedData.toCollection()
       })
       .then(data => {
+        const fixedFields = ['riskRegister', 'sign', 'temporaryAssign']
         const projUpserts = data.map(async (p) => {
           await projects.upsert(String(p['Network Num']), doc => {
             p['Net Revenues'] = Number(p['Project Panels']) > 0 ? (Number(p['Project Revenues']) * Number(p['Number of Panels']) / Number(p['Project Panels'])) : 1
-            
-            console.log(p['Network Num'], p['Net Revenues'])
-          
+
             if (doc.hasOwnProperty('fixedFields')) {
-              const placeholderFixedFields = doc['fixedFields'].concat(['riskRegister', 'sign'])
+              const placeholderFixedFields = doc['fixedFields'].concat(fixedFields)
               p['fixedFields'] = [...new Set(placeholderFixedFields)]
 
-              doc['fixedFields'].forEach(u => {
+              p['fixedFields'].forEach(u => {
                 if (doc.hasOwnProperty(u)) {
                   p[u] = doc[u]
                 } else {
                   p[u] = {}
                 }
-                
               })    
-
             } else {
-              p['fixedFields'] = ['riskRegister', 'sign']
+              p['fixedFields'] = fixedFields
               p['riskRegister'] = {}
               p['sign'] = {}
+              p['temporaryAssign'] = {}
             }
 
             const today = new Date().toISOString().substr(0,10)
@@ -323,69 +349,64 @@ const actions = {
         });
         console.timeEnd("Projects");
         Promise.all(projUpserts)
-          .then((x) => {
+          .then(() => {
             projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
               .on('change', (c) => {
-                console.log(c)
-                if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
+                if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
               })
-        })
-        .catch((err) => console.log(err))
+          })
+          .catch((err) => console.log(err))
       })
       .then(() => conn.close())
-      .then(() => db.settings.upsert('invoicing', doc => {
-        const today = new Date().toISOString().substr(0,10)
-        if (doc.hasOwnProperty('datesModified')) {
-          doc['datesModified'].includes(today) ? null : doc['datesModified'].push(today)
-        } else {
-          doc['datesModified'] = [today]
-        }
-        doc.lastUpdate = today
-        return doc
-      }))
-      .then(() => dispatch('fetchAllProjectsBasic', true)
+      .then(() => dispatch('overwriteInvoicingSettings'))
+      .then(() => dispatch('fetchAllProjectsBasic')
+      .then(() => dispatch('fetchInvoicingSettings'))
       )
       .then(() => commit('setLoading', false))
       .then(() => dispatch('notify', {
         text: 'Projects imported.',
         color: 'success',
-        state: true
+        state: true,
+        timeout: 2500
       }))
       .catch(err => {
         console.timeEnd("Projects");
+        projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+          .on('change', (c) => {
+            if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
+          })
         conn.close();
         dispatch('notify', {
           text: err,
           color: 'error',
-          state: true
+          state: true,
+          timeout: 4000
         })
         commit('setLoading', false)
       });
   },
-  async editProjectsDetail({ dispatch, commit }, {jsonObj, projectsDetailObj}) {
-    const p = isDev ? path.join(path.dirname(__dirname), '..', 'defaultSettings', 'projectDetails.json') : path.join(path.dirname(__dirname), 'defaultSettings', `${jsonObj}.json`)
-    fs.writeFile(p, JSON.stringify(projectsDetailObj), 'utf8', (err, res) => {
-      if (err) throw err;
-      dispatch('notify', {
-        text: 'Saved.',
-        color: 'success',
-        state: 'true'
-      })
-      commit('setProjectsDetail', projectsDetailObj)
+  async editProjectsDetail({ dispatch, commit }, {fileName, projectsDetailObj}) {
+    rewriteDefaultSettingFile(fileName, projectsDetailObj)
+    dispatch('notify', {
+      text: 'Saved.',
+      color: 'success',
+      state: 'true',
+      timeout: 1500
     })
+    commit('setProjectsDetail', projectsDetailObj)
   },
   async fetchProjectsDetail({ commit }) {
-    const projsDetail = isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'projectDetails.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
-    commit('setProjectsDetail', projsDetail)
+    const projsDetail = readDefaultSettingFile('projectDetails')
+    commit('setProjectsDetail', JSON.parse(projsDetail))
   },
   async chooseProjects({ commit, rootState }, projData) {
-    const personalNum = rootState.user.userInfo.sapUsernumber
-    if ((projData.length > 0 || typeof(projData) === 'object') && personalNum ) {
-      const netNum = (Array.isArray(projData) && projData.length > 0) ? projData[0]['_id'] : projData['_id']
+    // const personalNum = rootState.user.userInfo.sapUsernumber
+    // if ((projData.length > 0 || typeof(projData) === 'object') && personalNum ) {
+    //   const netNum = (Array.isArray(projData) && projData.length > 0) ? projData[0]['_id'] : projData['_id']
 
-      commit('setTaskInfo', {netNum, personalNum})
-    }
-    commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
+    //   commit('setTaskInfo', {netNum, personalNum})
+    // }
+    await commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
   },
   async changeProjectData({ dispatch }, projData) {
     try {
@@ -408,7 +429,6 @@ const actions = {
   },
   async addForeignNets({ dispatch, commit }, netIds) {
     if (!Array.isArray(netIds)) netIds = [netIds]
-
     try {
       const projsToAdd = await projects.find({
         selector: {
@@ -419,7 +439,6 @@ const actions = {
       })
   
       let foreignProjs = JSON.parse(localStorage.getItem('foreignProjectsBasic')) || []
-
       projsToAdd.docs.map(p => {
         const isIn = foreignProjs.map(e => e._id === p._id).indexOf(true)
         isIn === -1 ? foreignProjs.push(p._id) : null
@@ -429,9 +448,10 @@ const actions = {
       commit('setForeignProjectsBasic', foreignProjs)
 
       dispatch('notify', {
-        text: 'Network temporarily added.',
+        text: 'Temporarily added to my projects',
         color: 'success',
-        state: true
+        state: true,
+        timeout: 2000
       })
     } catch (err) {
       dispatch('notify', {
@@ -462,8 +482,7 @@ const actions = {
   async startProjectsReplication() {
     projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
     .on('change', (c) => {
-      console.log(c)
-      if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic', true)
+      if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
     })
   },
   async fetchProjectRevisions({}, netNum) {
@@ -473,6 +492,12 @@ const actions = {
   },
   async getRevisionInfo({}, {netNum, revId}) {
     return await projects.get(netNum, {rev: revId})
+  },
+  async delegateProjects({ commit }, {projId, pmName}) {
+    
+  },
+  async selectPM({ commit }, pmName) {
+    commit('setSelectedPM', pmName)
   }
 }
 
@@ -480,7 +505,7 @@ const mutations = {
   setAllProjects: (state, projects) => state.allProjectsBasic = projects,
   setPmProjects: (state, projects) => state.pmProjectsBasic = projects,
   setProjectsDetail: (state, projsDetail) => state.projectsDetail = projsDetail,
-  setChosenProjects: (state, projData) => state.chosenProjects = projData,
+  setChosenProjects: async (state, projData) => state.chosenProjects = projData,
   setPmProjectsNetMode: (state, projects) => state.pmProjectsNetMode = projects,
   setPmProjectsProjectMode: (state, projects) => state.pmProjectsProjectMode = projects,
   setLoading: (state, val) => state.loading = val,
@@ -509,7 +534,8 @@ const mutations = {
         conn.close()
         state.loading = false
       })
-  }
+  },
+  setSelectedPM: (state, pmName) => state.selectedPM = pmName
 }
 
 export default {

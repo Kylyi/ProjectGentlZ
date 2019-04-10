@@ -1,96 +1,250 @@
 <template>
-  <v-layout column wrap>
-    <v-layout row wrap>
+  <v-layout row wrap>
+    <v-flex column xs6 pr-3>
+      <v-flex row wrap mb-3><h6 class="title"><b>RISKS</b></h6></v-flex>
+        <!-- RISKS -->
+        <dx-data-grid
+          :data-source="filteredRisks"
+          show-borders
+          key-expr='name'
+          column-auto-width
+          :allow-column-resizing="true"
+          :row-alternation-enabled="true"
+          :show-row-lines="true"
+          :show-column-lines="true"
+          :word-wrap-enabled="true"
+          style="max-height: 300px;"
+          :repaintChangesOnly="true"
+        >
+          <dx-summary>
+            <dx-total-item
+              column="weightedPriceImpact"
+              summary-type="sum"
+              value-format="thousands"
+            />
+            <dx-total-item
+              column="priceImpact"
+              summary-type="sum"
+              value-format="thousands"
+            />
+          </dx-summary>
 
-      <!-- RISKS -->
-      <v-flex column xs6 wrap pr-2 style="border-right-style: groove;">
-        <v-flex row wrap>
-          <h5 class="myHeading" display-1>Existing risks</h5>
-        </v-flex>
-        <v-flex row wrap>
-          <el-table
-            :data="existingRisks"
-            style="width: 100%;"
-            >
-            <el-table-column
-              prop="name"
-              label="Name"
-              width="350"
-            />
-            <el-table-column
-              prop="owner"
-              label="Owner"
-            />
-            <el-table-column
-              prop="priceImpact"
-              label="Maximum price impact"
-            />
-          </el-table>
-        </v-flex>
-      </v-flex>
+          <dx-column
+            data-field="name"
+            caption="Definition"
+            alignment="left"
+            :allow-sorting="false"
+            :allow-resizing="true"
+          />
+          <dx-column
+            data-field="plannedAction"
+            caption="Planned action for mitigation"
+            alignment="left"
+            :allow-sorting="false"
+            :allow-editing="false"
+          />
+          <dx-column
+            data-field="owner"
+            caption="Owner"
+            alignment="center"
+            :allow-sorting="true"
+          >
+          </dx-column>
+          <dx-column
+            data-field="weightedPriceImpact"
+            caption="Weighted price impact [kCZK]"
+            alignment="center"
+            data-type="number"
+            format="thousands"
+          />
+          <dx-column
+            data-field="priceImpact"
+            caption="Price impact [kCZK]"
+            alignment="center"
+            data-type="number"
+            format="thousands"
+          />
+        </dx-data-grid>
+    </v-flex>
 
+    <v-flex column xs6 pl-3>
+      <v-flex row wrap mb-3><h6 class="title"><b>OPPORTUNITIES</b></h6></v-flex>
       <!-- OPPORTUNITIES -->
-      <v-flex column xs6 wrap pl-2>
-        <v-flex row wrap>
-          <h5 class="myHeading" display-1>Existing opportunities</h5>
-        </v-flex>
-        <v-flex row wrap>
-          <el-table
-            :data="existingOpps"
-            style="width: 100%;"
-            >
-            <el-table-column
-              prop="name"
-              label="Name"
-              width="350"
-            />
-            <el-table-column
-              prop="owner"
-              label="Owner"
-            />
-            <el-table-column
-              prop="priceImpact"
-              label="Maximum price impact"
-            />
-          </el-table>
-        </v-flex>
-      </v-flex>
-    </v-layout>
+      <dx-data-grid
+        :data-source="filteredOpps"
+        show-borders
+        key-expr='name'
+        column-auto-width
+        :allow-column-resizing="true"
+        :row-alternation-enabled="true"
+        :show-row-lines="true"
+        :show-column-lines="true"
+        :word-wrap-enabled="true"
+        style="max-height: 900px;"
+        :repaintChangesOnly="true"
+      >
+        <dx-summary>
+          <dx-total-item
+            column="weightedPriceImpact"
+            summary-type="sum"
+            value-format="thousands"
+          />
+          <dx-total-item
+            column="priceImpact"
+            summary-type="sum"
+            value-format="thousands"
+          />
+        </dx-summary>
 
-    <!-- GRAF -->
-    <v-layout row wrap style="min-height: 100px;" mt-5>
-      <img :src="graf" style="margin:auto;">
-    </v-layout>
+        <dx-column
+          data-field="name"
+          caption="Definition"
+          alignment="left"
+          :allow-sorting="false"
+          :allow-resizing="true"
+        />
+        <dx-column
+          data-field="plannedAction"
+          caption="Planned action for mitigation"
+          alignment="left"
+          :allow-sorting="false"
+          :allow-editing="false"
+        />
+        <dx-column
+          data-field="owner"
+          caption="Owner"
+          alignment="center"
+          :allow-sorting="true"
+        >
+        </dx-column>
+        <dx-column
+          data-field="weightedPriceImpact"
+          caption="Weighted price impact [kCZK]"
+          alignment="center"
+          data-type="number"
+          format="thousands"
+        />
+        <dx-column
+          data-field="priceImpact"
+          caption="Price impact [kCZK]"
+          alignment="center"
+          data-type="number"
+          format="thousands"
+        />
 
-    <v-layout row wrap>
-      <v-flex column wrap text-xs-right>
-        <v-btn outline depressed color="primary" @click="setProjectRiskRegister">Update</v-btn>
-      </v-flex>
-    </v-layout>
+      </dx-data-grid>
+    </v-flex>
+
+    <v-flex row wrap text-xs-center>
+      <dx-chart
+        :data-source="chartData"
+        title="Gross State Product within the Great Lakes Region"
+      >
+        <dx-common-series-settings
+          argument-field="type"
+          type="stackedbar"
+          hover-mode="allArgumentPoints"
+          selection-mode="allArgumentPoints"
+        >
+          <dx-label :visible="true">
+          </dx-label>
+        </dx-common-series-settings>
+        <dx-series
+          value-field="HealthandSafety"
+          name="2004"
+          stack="yikes"
+        />
+        <dx-series
+          value-field="Organizational"
+          stack="pikes"
+        />
+        <dx-legend
+          vertical-alignment="bottom"
+          horizontal-alignment="center"
+        />
+        <dx-export :enabled="true"/>
+      </dx-chart>
+    </v-flex>
   </v-layout>
 </template>
 
 <script>
-import _ from 'underscore'
-import { mapActions } from 'vuex';
+import { mapActions } from 'vuex'
+import {
+  DxChart,
+  DxSeries,
+  DxCommonSeriesSettings,
+  DxValueAxis,
+  DxTitle,
+  DxLegend,
+  DxExport,
+  DxTooltip,
+  DxBorder,
+  DxLabel
+} from 'devextreme-vue/chart'
 export default {
-  mounted() {
-    this.$root.$on('riskRegisterChanged', newRiskRegister => {
-      this.existingRisks = _.flatten(_.values(newRiskRegister.risks)).filter(e => e.exists)
-      this.existingOpps = _.flatten(_.values(newRiskRegister.opportunities)).filter(e => e.exists)
-      const bilanceRisks = this.existingRisks.reduce((agg, e) => agg + e.priceImpact , 0)
-      const bilanceOpps = this.existingOpps.reduce((agg, e) => agg + e.priceImpact , 0)
-
-      this.newRiskRegister = Object.assign({}, newRiskRegister, {bilance: {bilanceRisks, bilanceOpps}})
-    })
+  components: {
+    DxChart,
+    DxSeries,
+    DxCommonSeriesSettings,
+    DxValueAxis,
+    DxTitle,
+    DxLegend,
+    DxExport,
+    DxTooltip,
+    DxBorder,
+    DxLabel
   },
   data: () => {
     return {
-      newRiskRegister: {},
-      existingRisks: [],
-      existingOpps: [],
+      filteredRisks: [],
+      filteredOpps: [],
       graf: require('./../../renderer/assets/graf_tbd.png')
     }
+  },
+  props: ['riskRegister'],
+  created() {
+    if (!this.riskRegister.risks || !this.riskRegister.risks) return []
+
+    let allRisks = []
+    const filteredRisks = Object.keys(this.riskRegister.risks).reduce((agg, riskCategory) => {
+      const y = this.riskRegister.risks[riskCategory].reduce((agg2, risk) => {
+        risk.weightedPriceImpact = risk.priceImpact * risk.probability
+        risk.mainCategory = 'risk'
+        allRisks.concat(risk)
+
+        if (risk.exists) {
+          agg2 = agg2.concat(risk)
+          return agg2
+        } else {
+          return agg2
+        }
+      }, [])
+
+      return agg.concat(y)
+    }, [])
+
+    this.filteredRisks = filteredRisks
+
+    let allOpps = []
+    const filteredOpps = Object.keys(this.riskRegister.opportunities).reduce((agg, riskCategory) => {
+      const y = this.riskRegister.opportunities[riskCategory].reduce((agg2, risk) => {
+        risk.weightedPriceImpact = risk.priceImpact * risk.probability
+        risk.mainCategory = 'opportunity'
+        allOpps.concat(risk)
+
+        if (risk.exists) {
+          agg2 = agg2.concat(risk)
+          return agg2
+        } else {
+          return agg2
+        }
+      }, [])
+
+      return agg.concat(y)
+    }, [])
+
+    this.filteredOpps = filteredOpps
   },
   methods: {
     ...mapActions(['changeProjectRiskRegister']),
@@ -101,6 +255,30 @@ export default {
         
         this.changeProjectRiskRegister({editedRiskRegister: this.newRiskRegister, netId: netWithRiskRegister._id})
       }   
+    }
+  },
+  computed: {
+    chartData() {
+      return this.filteredRisks.concat(this.filteredOpps).reduce((agg,e) => {
+        const category = e.category.replace(/ /g,'')
+
+        if (e.mainCategory === 'risk') {
+          if (agg[0].hasOwnProperty([category])) {
+            agg[0][category] = agg[0][category] + e.priceImpact
+          } else {
+            agg[0][category] = e.priceImpact
+          }
+          
+        } else {
+          if (agg[1].hasOwnProperty([category])) {
+            agg[1][category] = agg[0][category] + e.priceImpact
+          } else {
+            agg[1][category] = e.priceImpact
+          }
+        }
+
+        return agg
+      }, [{type: 'Risks'}, {type: 'Opportunities'}])   
     }
   }
 }

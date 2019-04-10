@@ -155,7 +155,7 @@
       
 
       <!-- GRID -->
-      <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="height: 80vh;">
+      <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="max-height: 80vh;">
         <dx-data-grid
           ref="invoicingGrid"
           :data-source="billingsFiltered ? billingsFiltered : billings"
@@ -422,15 +422,7 @@
 
 
 <script>
-  import { DxDataGrid, DxColumnFixing, DxColumn, DxScrolling, DxSelection, DxSummary, DxGroupItem, DxSortByGroupSummaryInfo, DxMasterDetail, DxStateStoring, DxHeaderFilter, DxGrouping, DxColumnChooser, DxGroupPanel, DxSearchPanel, DxFilterPanel, DxFilterRow, DxEditing, DxExport, DxPaging } from 'devextreme-vue/data-grid'
-  import db from '../main/scripts/database'
   import localStorage from 'localStorage'
-  import config from 'devextreme/core/config'
-  config({
-    decimalSeparator: ",",
-    thousandsSeparator: " "
-  })
-
   import {readFile} from '../main/scripts/misc'
   import FormattedCell from './Invoicing/FormattedCell.vue'
   import DetailTemplate from './Invoicing/DetailTemplate.vue'
@@ -486,24 +478,6 @@
           return moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format)
         })
       },
-      // async setInvoicingDateRange (e) {
-      //   const invObjOld = JSON.parse(localStorage.getItem('invoicing'))
-      //   const fromDate = moment(e[0]).toISOString().substr(0, 10)
-      //   const toDate = moment(e[1]).toISOString().substr(0, 10)
-
-      //   localStorage.setItem('invoicing', JSON.stringify(Object.assign({}, invObjOld, {dateRange: [fromDate, toDate]})))
-      //   async function getBillings() {
-      //     const billings = await db.billings.find({
-      //       selector: {}
-      //     })
-      //     return billings.docs
-      //   }
-
-      //   const billings = await getBillings()
-      //   this.billings = billings.filter(x => {
-      //     return (x['Invoice Date'][this.invoicingLastUpdate] >= fromDate && x['Invoice Date'][this.invoicingLastUpdate] <= toDate)
-      //   })
-      // },
       setContextMenu (e) {
        if (e.target === 'header') {
         e.items.push({text: 'Find warnings', beginGroup: true, value: e.column.dataField, icon: 'warning', onItemClick: this.u})
@@ -552,30 +526,10 @@
       }
     },
     components: {
-      DxDataGrid,
-      DxColumn,
-      DxSelection,
-      DxSummary,
-      DxGroupItem,
-      DxSortByGroupSummaryInfo,
       FormattedCell,
-      DxMasterDetail,
-      DxStateStoring,
-      DxHeaderFilter,
-      DxGrouping,
-      DxColumnChooser,
-      DxGroupPanel,
-      DxSearchPanel,
-      DxFilterPanel,
-      DxFilterRow,
-      DetailTemplate,
-      DxEditing,
-      DxExport,
       CellTemplate,
-      DxPaging,
-      DxColumnFixing,
       HeaderTemplate,
-      DxScrolling
+      DetailTemplate
     }
   };
 </script>

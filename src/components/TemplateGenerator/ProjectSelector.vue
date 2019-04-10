@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import db from '../../main/scripts/database';
 import { mapGetters, mapActions } from "vuex";
 
 export default {

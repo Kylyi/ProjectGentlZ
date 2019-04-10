@@ -1,8 +1,5 @@
-import path from 'path';
-import fs from 'fs';
-import { readFile } from '../../main/scripts/misc';
-const isDev = require('electron-is-dev')
 import { projectsDb } from './projects'
+import { readDefaultSettingFile, rewriteDefaultSettingFile } from '../helpers/localFilesManipulation'
 
 const state = {
   defaultRiskRegister: []
@@ -14,17 +11,13 @@ const getters = {
 
 const actions = {
   async fetchDefaultRiskRegister({ commit }) {
-    const defaultRiskRegister = isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'defaultRiskRegister.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'defaultRiskRegister.json'), 'utf-8'))
-    commit('setDefaultRiskRegister', defaultRiskRegister)
+    const defaultRiskRegister = readDefaultSettingFile('defaultRiskRegister')
+    commit('setDefaultRiskRegister', JSON.parse(defaultRiskRegister))
   },
   setDefaultRiskRegisterTemplate({}, defaultRiskRegister) {
-    if (isDev) {
-      fs.writeFileSync(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'defaultRiskRegister.json'), defaultRiskRegister);
-    } else {
-      fs.writeFileSync(path.join(path.dirname(__dirname), 'defaultSettings', 'defaultRiskRegister.json'), defaultRiskRegister);
-    }
+    rewriteDefaultSettingFile('defaultRiskRegister', defaultRiskRegister)
   },
-  async changeProjectRiskRegister({ dispatch, rootState }, {editedRiskRegister, netId}) {
+  async changeProjectRiskRegister({ dispatch }, {editedRiskRegister, netId}) {
     try {
       if (!netId) return
       const projId = netId
@@ -32,7 +25,7 @@ const actions = {
         doc.riskRegister = editedRiskRegister
         return doc
       })
-      dispatch('fetchAllProjectsBasic', true)
+      dispatch('fetchAllProjectsBasic')
       dispatch('notify', {
         text: 'Saved.',
         color: 'success',

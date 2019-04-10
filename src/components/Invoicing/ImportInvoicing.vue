@@ -110,7 +110,6 @@
 <script>
 import vueDropzone from "vue2-dropzone"
 import db from '../../main/scripts/database'
-import {invoicingImport} from '../../main/scripts/invoicingFromExcel'
 import { mapActions } from 'vuex';
 
 const {app, dialog} = require('electron').remote
@@ -150,105 +149,105 @@ export default {
     filePathChanged (file) {
       this.obDailyFilePath = file.path
     },
-    async submit() {
-      if (this.$refs.addTemplateForm.validate()) {
-        try {
-          function readFileSync_encoding(filename, encoding) {
-            var content = fs.readFileSync(filename);
-            return iconvlite.decode(content, encoding);
-          }
+    // async submit() {
+    //   if (this.$refs.addTemplateForm.validate()) {
+    //     try {
+    //       function readFileSync_encoding(filename, encoding) {
+    //         var content = fs.readFileSync(filename);
+    //         return iconvlite.decode(content, encoding);
+    //       }
 
-          const data = readFileSync_encoding(this.filePath, 'utf-8')
-          const dataObj = csvjson.toObject(data, {delimiter: this.dataSeparator})
+    //       const data = readFileSync_encoding(this.filePath, 'utf-8')
+    //       const dataObj = csvjson.toObject(data, {delimiter: this.dataSeparator})
 
-          const dateFields = ['inv_date', 'net_orig_delivery', 'net_contract_delivery', 'contract_dispatch', 'net_package_date', 'actual_dispatch_date']
-          const currentDate = this.cheatDate? this.cheatDate : this.fileLastModified  // moment(Date.now()).format('DD_MM_YYYY')
+    //       const dateFields = ['inv_date', 'net_orig_delivery', 'net_contract_delivery', 'contract_dispatch', 'net_package_date', 'actual_dispatch_date']
+    //       const currentDate = this.cheatDate? this.cheatDate : this.fileLastModified  // moment(Date.now()).format('DD_MM_YYYY')
 
-          const objMapped = dataObj.map(e => {
-            e['_id'] = e['net_num']
-            e['net_revenues'] = Number(e['net_revenues'])
-            e['net_bpo'] = Number(e['net_bpo'])
-            e['project_ob'] = Number(e['project_ob'])
-            e['net_panels_no'] = Number(e['net_panels_no'])
-            e['change_date'] = currentDate
-            e['sign'] = {}
-            e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
+    //       const objMapped = dataObj.map(e => {
+    //         e['_id'] = e['net_num']
+    //         e['net_revenues'] = Number(e['net_revenues'])
+    //         e['net_bpo'] = Number(e['net_bpo'])
+    //         e['project_ob'] = Number(e['project_ob'])
+    //         e['net_panels_no'] = Number(e['net_panels_no'])
+    //         e['change_date'] = currentDate
+    //         e['sign'] = {}
+    //         e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
 
-            dateFields.forEach(dateField => {
+    //         dateFields.forEach(dateField => {
 
-              const date = moment(e[dateField], 'DD.MM.YYYY', false).add(1, 'day').toISOString()
+    //           const date = moment(e[dateField], 'DD.MM.YYYY', false).add(1, 'day').toISOString()
 
-              if (dateField === 'inv_date') {
-                e['inv_date'] = {[currentDate]: date.substr(0, 10)}
+    //           if (dateField === 'inv_date') {
+    //             e['inv_date'] = {[currentDate]: date.substr(0, 10)}
                 
-                // date ? date.substr(0, 10) : null
-              } else {
-                e[dateField] = date ? date.substr(0, 10) : null 
-              }
+    //             // date ? date.substr(0, 10) : null
+    //           } else {
+    //             e[dateField] = date ? date.substr(0, 10) : null 
+    //           }
 
-            });
+    //         });
 
-            // delete e['delay_type']
+    //         // delete e['delay_type']
 
-            return e
-          })
+    //         return e
+    //       })
 
 
-          objMapped.forEach(e => {
-            db.billings.upsert(e['_id'],  (doc) => {
-              if (doc.hasOwnProperty('fixedFields')) {
-                doc['fixedFields'].forEach(u => {
-                  e[u] = doc[u]
-                })
+    //       objMapped.forEach(e => {
+    //         db.billings.upsert(e['_id'],  (doc) => {
+    //           if (doc.hasOwnProperty('fixedFields')) {
+    //             doc['fixedFields'].forEach(u => {
+    //               e[u] = doc[u]
+    //             })
 
-                e['fixedFields'] = doc['fixedFields']
-              }
+    //             e['fixedFields'] = doc['fixedFields']
+    //           }
 
-              if (doc['_rev']) {
-                Object.assign(e['inv_date'], doc['inv_date'])
+    //           if (doc['_rev']) {
+    //             Object.assign(e['inv_date'], doc['inv_date'])
 
-                return e
-              } else {
-                return Object.assign(e, {fixedFields: ['sign']})
-              }
+    //             return e
+    //           } else {
+    //             return Object.assign(e, {fixedFields: ['sign']})
+    //           }
 
-            })
-          });
+    //         })
+    //       });
 
-          // // db.billings.upsertBulk(objMapped)
-          // // .then(() => {
-          // //   this.snackbar = true
-          // //   this.color = 'success'
-          // //   this.snackText = 'Data were successfuly imported'
-          // // })
+    //       // // db.billings.upsertBulk(objMapped)
+    //       // // .then(() => {
+    //       // //   this.snackbar = true
+    //       // //   this.color = 'success'
+    //       // //   this.snackText = 'Data were successfuly imported'
+    //       // // })
 
-          db.settings.get('billings')
-          .then(res => {
-              const newChangeDateAdded = res.dates_modified.concat(currentDate)
+    //       db.settings.get('billings')
+    //       .then(res => {
+    //           const newChangeDateAdded = res.dates_modified.concat(currentDate)
 
-            if (!res.dates_modified.includes(currentDate)) {  
-              // settings.set('billings.lastUpdate', currentDate)
+    //         if (!res.dates_modified.includes(currentDate)) {  
+    //           // settings.set('billings.lastUpdate', currentDate)
               
-              db.settings.put({
-                _id: 'billings',
-                _rev: res._rev,
-                dates_modified: newChangeDateAdded
-              })
-                .then(() => {
-                  this.snackbar = true
-                  this.color = 'success'
-                  this.snackText = 'Data were successfuly imported'
-                })
-            }
-          })
+    //           db.settings.put({
+    //             _id: 'billings',
+    //             _rev: res._rev,
+    //             dates_modified: newChangeDateAdded
+    //           })
+    //             .then(() => {
+    //               this.snackbar = true
+    //               this.color = 'success'
+    //               this.snackText = 'Data were successfuly imported'
+    //             })
+    //         }
+    //       })
 
-        } catch (err) {
-           this.snackbar = true
-          this.color = 'error'
-          this.snackText = err
-        }
-      }
-    },
+    //     } catch (err) {
+    //        this.snackbar = true
+    //       this.color = 'error'
+    //       this.snackText = err
+    //     }
+    //   }
+    // },
     async onDrop (e) {
       e.stopPropagation()
       e.preventDefault()
@@ -283,92 +282,92 @@ export default {
           }
         })
     },
-    async submitExcel () {
-      if (this.$refs.addTemplateForm.validate()) {
-        try {
-          const dataObj = await invoicingImport(this.filePath)
+    // async submitExcel () {
+    //   if (this.$refs.addTemplateForm.validate()) {
+    //     try {
+    //       const dataObj = await invoicingImport(this.filePath)
 
-          const dateFields = ['inv_date', 'net_orig_delivery', 'net_contract_delivery', 'contract_dispatch', 'net_package_date', 'actual_dispatch_date']
-          const currentDate = this.cheatDate? this.cheatDate : this.fileLastModified  // moment(Date.now()).format('DD_MM_YYYY')
+    //       const dateFields = ['inv_date', 'net_orig_delivery', 'net_contract_delivery', 'contract_dispatch', 'net_package_date', 'actual_dispatch_date']
+    //       const currentDate = this.cheatDate? this.cheatDate : this.fileLastModified  // moment(Date.now()).format('DD_MM_YYYY')
 
-          const objMapped = dataObj.map(e => {
-            e['_id'] = String(e['net_num'])
-            e['net_revenues'] = Number(e['net_revenues'])
-            e['net_bpo'] = Number(e['net_bpo'])
-            e['project_ob'] = Number(e['project_ob'])
-            e['net_panels_no'] = Number(e['net_panels_no'])
-            e['change_date'] = currentDate
-            e['sign'] = {}
-            e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
+    //       const objMapped = dataObj.map(e => {
+    //         e['_id'] = String(e['net_num'])
+    //         e['net_revenues'] = Number(e['net_revenues'])
+    //         e['net_bpo'] = Number(e['net_bpo'])
+    //         e['project_ob'] = Number(e['project_ob'])
+    //         e['net_panels_no'] = Number(e['net_panels_no'])
+    //         e['change_date'] = currentDate
+    //         e['sign'] = {}
+    //         e['ppes_comments'] = e['ppes_comments'].trim().split('|').filter(e => e.trim() !== "")
 
-            dateFields.forEach(dateField => {
+    //         dateFields.forEach(dateField => {
 
-              const date = moment(e[dateField]).add(1, 'day').toISOString()
+    //           const date = moment(e[dateField]).add(1, 'day').toISOString()
 
-              if (dateField === 'inv_date') {
-                e['inv_date'] = {[currentDate]: date.substr(0, 10)}
+    //           if (dateField === 'inv_date') {
+    //             e['inv_date'] = {[currentDate]: date.substr(0, 10)}
                 
-                // date ? date.substr(0, 10) : null
-              } else {
-                e[dateField] = date ? date.substr(0, 10) : null 
-              }
+    //             // date ? date.substr(0, 10) : null
+    //           } else {
+    //             e[dateField] = date ? date.substr(0, 10) : null 
+    //           }
 
-            });
+    //         });
 
-            // delete e['delay_type']
+    //         // delete e['delay_type']
 
-            return e
-          })
+    //         return e
+    //       })
 
 
-          objMapped.forEach(e => {
-            db.billings.upsert(e['_id'],  (doc) => {
-              if (doc.hasOwnProperty('fixedFields')) {
-                doc['fixedFields'].forEach(u => {
-                  e[u] = doc[u]
-                })
+    //       objMapped.forEach(e => {
+    //         db.billings.upsert(e['_id'],  (doc) => {
+    //           if (doc.hasOwnProperty('fixedFields')) {
+    //             doc['fixedFields'].forEach(u => {
+    //               e[u] = doc[u]
+    //             })
 
-                e['fixedFields'] = doc['fixedFields']
-              }
+    //             e['fixedFields'] = doc['fixedFields']
+    //           }
 
-              if (doc['_rev']) {
-                Object.assign(e['inv_date'], doc['inv_date'])
+    //           if (doc['_rev']) {
+    //             Object.assign(e['inv_date'], doc['inv_date'])
 
-                return e
-              } else {
-                return Object.assign(e, {fixedFields: ['sign']})
-              }
+    //             return e
+    //           } else {
+    //             return Object.assign(e, {fixedFields: ['sign']})
+    //           }
 
-            })
-          });
+    //         })
+    //       });
 
-          db.settings.get('billings')
-          .then(res => {
-              const newChangeDateAdded = res.dates_modified.concat(currentDate)
+    //       db.settings.get('billings')
+    //       .then(res => {
+    //           const newChangeDateAdded = res.dates_modified.concat(currentDate)
 
-            if (!res.dates_modified.includes(currentDate)) {  
-              // settings.set('billings.lastUpdate', currentDate)
+    //         if (!res.dates_modified.includes(currentDate)) {  
+    //           // settings.set('billings.lastUpdate', currentDate)
               
-              db.settings.put({
-                _id: 'billings',
-                _rev: res._rev,
-                dates_modified: newChangeDateAdded
-              })
-                .then(() => {
-                  this.snackbar = true
-                  this.color = 'success'
-                  this.snackText = 'Data were successfuly imported'
-                })
-            }
-          })
+    //           db.settings.put({
+    //             _id: 'billings',
+    //             _rev: res._rev,
+    //             dates_modified: newChangeDateAdded
+    //           })
+    //             .then(() => {
+    //               this.snackbar = true
+    //               this.color = 'success'
+    //               this.snackText = 'Data were successfuly imported'
+    //             })
+    //         }
+    //       })
 
-        } catch (err) {
-          this.snackbar = true
-          this.color = 'error'
-          this.snackText = err
-        }
-      }
-    }
+    //     } catch (err) {
+    //       this.snackbar = true
+    //       this.color = 'error'
+    //       this.snackText = err
+    //     }
+    //   }
+    // }
     
   },
   components: { vueDropzone }

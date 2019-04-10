@@ -4,7 +4,7 @@
     <v-layout row wrap>
         <v-flex grow>
           <v-layout column wrap justify-center fill-height>
-            <h1 display-3 class="myHeading">My projects</h1>
+            <h5 class="headline"><b>My projects overview</b></h5>
           </v-layout>
         </v-flex>
 
@@ -31,7 +31,7 @@
                   </v-flex>
                 </v-layout>
               </v-flex>
-              <v-flex d-flex>
+              <!-- <v-flex d-flex>
                 <v-btn
                   title="Removes all projects that don't belong to me."
                   :color="foreignProjectsBasic.length > 0 ? 'error' : ''"
@@ -40,7 +40,7 @@
                 >
                   <v-icon>supervisor_account</v-icon>
                 </v-btn>
-              </v-flex>
+              </v-flex> -->
               <v-flex d-flex>
                 <v-btn
                   v-if="dbConnectivity"
@@ -49,7 +49,7 @@
                   title="Refresh all projects"
                   :disabled="loading"
                 >
-                  <v-icon>refresh</v-icon
+                  <v-icon :class="loading ? 'fa-spin' : ''">fas fa-sync</v-icon
                 ></v-btn>
               </v-flex>
             </v-layout>

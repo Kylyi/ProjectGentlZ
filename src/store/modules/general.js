@@ -1,13 +1,19 @@
-import db from '../../main/scripts/database'
 import path from 'path'
 import { readFile } from '../../main/scripts/misc'
 const isDev = require('electron-is-dev')
 const sql = require("mssql/msnodesqlv8")
 const conn = isDev ? new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'databaseSettings.json'), 'utf-8'))) : new sql.ConnectionPool(JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'databaseSettings.json'), 'utf-8')))
 
+import PouchDB from 'pouchdb'
+PouchDB.plugin(require('pouchdb-find'))
+PouchDB.plugin(require('pouchdb-upsert'))
+
+// const remoteLog = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/log')
+// const log = new PouchDB('src/db/log')
+
 const state = {
   offline: true,
-  snackbar: { text: null, color: null, state: null },
+  snackbar: { text: null, color: null, state: null, timeout: 3000 },
   notifications: [],
   dbConnectivity: false
 }
@@ -40,40 +46,39 @@ const actions = {
     commit('setOffline', online)
     dispatch('checkDatabaseConnectivity')
   },
-  async addNotification({ commit, dispatch },
-    { notification, log, forceActionSelf, forceActionOthers, ...others }) {
-    
-    if (log) {
-      const notifPlaceholder = JSON.parse(JSON.stringify(notification))
-      notifPlaceholder.actionDone = false
-      db.log.upsert(notification.name, doc => {return {notification: notifPlaceholder, log, forceActionSelf: forceActionOthers, ...others}})
-    } 
-    if (forceActionSelf) {
-      dispatch(notification.action, notification.actionArgs)
-      notification.actionDone = true
-    }
-    if (notification.notify) commit('addNotification', notification)
+  async addNotifications({ commit, dispatch }, notifications) {
+    const notifs = notifications.reduce((agg, e) => {
+      const isIn = agg.map(n => n.actionId === e.actionId).indexOf(true)
+      
+      if (isIn !== -1) {
+        agg[isIn].actionArgs = agg[isIn].actionArgs.concat(e.actionArgs)
+        return agg
+      } else {
+        return [...agg, e]
+      }
+    }, [])
+
+    notifs.forEach(n => {
+      if (n.actionForce) dispatch(n.actionName, n.actionArgs)
+      commit('addNotification', n)
+    });
   },
   async removeNotification({ commit }, notifName) {
     commit('removeNotification', notifName)
   },
   async checkDatabaseConnectivity({ commit }) {
-    console.log('Connecting to database...')
     try {
       const pool = await conn.connect()
-      console.log(pool)
       commit('setDatabaseConnectivity', pool['_connected'])
       conn.close()
     } catch (err) {
-      console.log(err)
       conn.close()
       commit('setDatabaseConnectivity', false)
     }
-    
   },
-  async deleteLocalStorage() {
+  async clearLocalStorage() {
     localStorage.clear()
-  }
+  },
 }
 
 const mutations = {
