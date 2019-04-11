@@ -135,36 +135,30 @@
       </dx-data-grid>
     </v-flex>
 
-    <v-flex row wrap text-xs-center>
+    
+    <v-layout v-if="chartData.length > 0" row wrap justify-center align-center="">
       <dx-chart
+        :size="{width:600}"
         :data-source="chartData"
-        title="Gross State Product within the Great Lakes Region"
       >
+        <dx-series-template
+          name-field="category"
+        />
         <dx-common-series-settings
-          argument-field="type"
+          argument-field="mainCategory"
+          value-field="priceImpact"
           type="stackedbar"
           hover-mode="allArgumentPoints"
-          selection-mode="allArgumentPoints"
-        >
-          <dx-label :visible="true">
-          </dx-label>
-        </dx-common-series-settings>
-        <dx-series
-          value-field="HealthandSafety"
-          name="2004"
-          stack="yikes"
         />
-        <dx-series
-          value-field="Organizational"
-          stack="pikes"
-        />
+        <dx-title text="Overview">
+        </dx-title>
         <dx-legend
           vertical-alignment="bottom"
           horizontal-alignment="center"
         />
         <dx-export :enabled="true"/>
       </dx-chart>
-    </v-flex>
+    </v-layout>
   </v-layout>
 </template>
 
@@ -180,7 +174,8 @@ import {
   DxExport,
   DxTooltip,
   DxBorder,
-  DxLabel
+  DxLabel,
+  DxSeriesTemplate
 } from 'devextreme-vue/chart'
 export default {
   components: {
@@ -193,59 +188,17 @@ export default {
     DxExport,
     DxTooltip,
     DxBorder,
-    DxLabel
+    DxLabel,
+    DxSeriesTemplate
   },
   data: () => {
     return {
       filteredRisks: [],
       filteredOpps: [],
-      graf: require('./../../renderer/assets/graf_tbd.png')
+      risksAndOpp: []
     }
   },
   props: ['riskRegister'],
-  created() {
-    if (!this.riskRegister.risks || !this.riskRegister.risks) return []
-
-    let allRisks = []
-    const filteredRisks = Object.keys(this.riskRegister.risks).reduce((agg, riskCategory) => {
-      const y = this.riskRegister.risks[riskCategory].reduce((agg2, risk) => {
-        risk.weightedPriceImpact = risk.priceImpact * risk.probability
-        risk.mainCategory = 'risk'
-        allRisks.concat(risk)
-
-        if (risk.exists) {
-          agg2 = agg2.concat(risk)
-          return agg2
-        } else {
-          return agg2
-        }
-      }, [])
-
-      return agg.concat(y)
-    }, [])
-
-    this.filteredRisks = filteredRisks
-
-    let allOpps = []
-    const filteredOpps = Object.keys(this.riskRegister.opportunities).reduce((agg, riskCategory) => {
-      const y = this.riskRegister.opportunities[riskCategory].reduce((agg2, risk) => {
-        risk.weightedPriceImpact = risk.priceImpact * risk.probability
-        risk.mainCategory = 'opportunity'
-        allOpps.concat(risk)
-
-        if (risk.exists) {
-          agg2 = agg2.concat(risk)
-          return agg2
-        } else {
-          return agg2
-        }
-      }, [])
-
-      return agg.concat(y)
-    }, [])
-
-    this.filteredOpps = filteredOpps
-  },
   methods: {
     ...mapActions(['changeProjectRiskRegister']),
     setProjectRiskRegister() {
@@ -255,30 +208,57 @@ export default {
         
         this.changeProjectRiskRegister({editedRiskRegister: this.newRiskRegister, netId: netWithRiskRegister._id})
       }   
+    },
+    customizeSeries (e) {
+      console.log(e)
+      return e
     }
   },
   computed: {
     chartData() {
-      return this.filteredRisks.concat(this.filteredOpps).reduce((agg,e) => {
-        const category = e.category.replace(/ /g,'')
+      if (!this.riskRegister.risks || !this.riskRegister.risks) return []
 
-        if (e.mainCategory === 'risk') {
-          if (agg[0].hasOwnProperty([category])) {
-            agg[0][category] = agg[0][category] + e.priceImpact
-          } else {
-            agg[0][category] = e.priceImpact
-          }
-          
-        } else {
-          if (agg[1].hasOwnProperty([category])) {
-            agg[1][category] = agg[0][category] + e.priceImpact
-          } else {
-            agg[1][category] = e.priceImpact
-          }
-        }
+      let allRisks = []
+      const filteredRisks = Object.keys(this.riskRegister.risks).reduce((agg, riskCategory) => {
+        const y = this.riskRegister.risks[riskCategory].reduce((agg2, risk) => {
+          risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          risk.mainCategory = 'risk'
+          allRisks.concat(risk)
 
-        return agg
-      }, [{type: 'Risks'}, {type: 'Opportunities'}])   
+          if (risk.exists) {
+            agg2 = agg2.concat(risk)
+            return agg2
+          } else {
+            return agg2
+          }
+        }, [])
+
+        return agg.concat(y)
+      }, [])
+
+      this.filteredRisks = filteredRisks
+
+      let allOpps = []
+      const filteredOpps = Object.keys(this.riskRegister.opportunities).reduce((agg, riskCategory) => {
+        const y = this.riskRegister.opportunities[riskCategory].reduce((agg2, risk) => {
+          risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          risk.mainCategory = 'opportunity'
+          allOpps.concat(risk)
+
+          if (risk.exists) {
+            agg2 = agg2.concat(risk)
+            return agg2
+          } else {
+            return agg2
+          }
+        }, [])
+
+        return agg.concat(y)
+      }, [])
+
+      this.filteredOpps = filteredOpps
+
+      return filteredRisks.concat(filteredOpps)
     }
   }
 }
