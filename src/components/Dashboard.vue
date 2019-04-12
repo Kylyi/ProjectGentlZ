@@ -15,7 +15,7 @@
         </v-flex>
         <v-flex column wrap xs4 pl-5>
           <!-- RISK REGISTER CHART -->
-          <v-layout row wrap v-if="riskRegisterTraces.data.length > 0" style="min-height: 350px;">
+          <v-layout row wrap v-if="chosenProjects.length > 0 && chosenProjects[0].riskRegister.hasOwnProperty('bilance')" style="min-height: 350px;">
             <risk-register />
           </v-layout>
           
@@ -53,7 +53,7 @@ export default {
   methods: {
     ...mapActions(['addActiveProjects'])
   },
-  computed: mapGetters(['riskRegisterTraces', 'taskInfo'])
+  computed: mapGetters(['chosenProjects', 'taskInfo'])
 }
 </script>
 

@@ -2,6 +2,7 @@ import { shell } from 'electron';
 const { dialog } = require('electron').remote
 import fs from 'fs'
 import { generateDocx, generateXlsx } from '../helpers/templateGenerating'
+import * as blobUtil from 'blob-util'
 
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
@@ -132,16 +133,27 @@ const actions = {
   },
   async addTemplate({ dispatch }, tmpl = null) {
     try {
-      const att = fs.readFileSync(tmpl.filePath)
+      if (!tmpl) throw 'Template not found'
 
-      const insertedTmpl = await templates.upsert(tmpl.template_name, (doc) => {
-        doc.template_type = tmpl.fileType
-        doc.template_name = tmpl.fileName
+      const att = fs.readFileSync(tmpl.doc.filePath)
+      const att2 = fs.readFileSync(tmpl.preview.filePath)
+
+      const insertedTmpl = await templates.upsert(tmpl.templateName, (doc) => {
+        doc.template_type = tmpl.doc.fileType
+        doc.template_name = tmpl.doc.fileName
+        doc.template_preview_name = tmpl.preview.fileName
         return doc
       })
-      await templates.putAttachment(tmpl.template_name, tmpl.fileName, insertedTmpl.rev, att, tmpl.fileType)
-      dispatch('fetchAllTemplates', true)
+      const insertedAtt = await templates.putAttachment(tmpl.templateName, tmpl.doc.fileName, insertedTmpl.rev, att, tmpl.doc.fileType)
+      await templates.putAttachment(tmpl.templateName, tmpl.preview.fileName, insertedAtt.rev, att2, tmpl.doc.fileType)
 
+      dispatch('fetchAllTemplates', true)
+      dispatch('notify', {
+        text: 'Successfuly imported.',
+        color: 'success',
+        state: true,
+        timeout: 2500
+      })
     } catch (err) {
       dispatch('notify', {
         text: err,
@@ -152,6 +164,12 @@ const actions = {
   },
   async openFile({}, path) {
     shell.openItem(path)
+  },
+  async getTemplatePreview({ rootState }) {
+    if (!rootState.templates.chosenTemplates[0].hasOwnProperty('template_preview_name')) return 
+    const data = await templates.getAttachment(rootState.templates.chosenTemplates[0]['_id'], rootState.templates.chosenTemplates[0]['template_preview_name'])
+    const blob = await blobUtil.arrayBufferToBlob(data)
+    return await blobUtil.blobToDataURL(blob)
   }
 }
 

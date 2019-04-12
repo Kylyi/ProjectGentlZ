@@ -9,7 +9,7 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import Vuetify from 'vuetify'
 Vue.use(Vuetify, {
   theme: {
-    primary: colors.blue.darken2,
+    primary: colors.red.accent2,
     accent: colors.grey.darken3,
     secondary: colors.amber.darken3,
     info: colors.blue.darken1,

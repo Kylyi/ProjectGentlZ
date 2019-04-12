@@ -15,7 +15,7 @@ const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
 // MY DB
 const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
 // ABB DB
-// const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projects')
+// const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects')
 
 let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
   .on('change', (c) => {
@@ -69,7 +69,7 @@ const getters = {
           project_panels: e['Number of Panels'],
           project_modules: e['Number of Modules'],
           project_revenue: e['Project Revenues'],
-          riskRegisterBilance: e['riskRegister'].hasOwnProperty('risks') ? e.riskRegister.bilance : {bilanceRisks: 0, bilanceOpps: 0},
+          riskRegisterBilance: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.bilance : null,
           nets_keys: [e['_id']],
           nets: [e]
         }]
@@ -84,11 +84,6 @@ const getters = {
           agg[f]['nets_keys'].push(e['_id'])
           agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
           agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
-
-          if (e['riskRegister'].hasOwnProperty('risks')) {
-            agg[f]['riskRegisterBilance'].bilanceRisks = agg[f]['riskRegisterBilance'].bilanceRisks + e.riskRegister.bilance.bilanceRisks
-            agg[f]['riskRegisterBilance'].bilanceOpps = agg[f]['riskRegisterBilance'].bilanceOpps + e.riskRegister.bilance.bilanceOpps
-          }
 
           return agg
 
@@ -121,7 +116,7 @@ const getters = {
           project_revenue: e['Project Revenues'],
           project_pm: e['Project Manager'],
           temporaryAssign: e['temporaryAssign'],
-          riskRegisterBilance: e['riskRegister'].hasOwnProperty('risks') ? e.riskRegister.bilance : {bilanceRisks: 0, bilanceOpps: 0},
+          riskRegisterBilance: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.bilance : 0,
           nets_keys: [e['_id']],
           nets: [e]
         }]
@@ -136,11 +131,6 @@ const getters = {
           agg[f]['nets_keys'].push(e['_id'])
           agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
           agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
-
-          if (e['riskRegister'].hasOwnProperty('risks')) {
-            agg[f]['riskRegisterBilance'].bilanceRisks = agg[f]['riskRegisterBilance'].bilanceRisks + e.riskRegister.bilance.bilanceRisks
-            agg[f]['riskRegisterBilance'].bilanceOpps = agg[f]['riskRegisterBilance'].bilanceOpps + e.riskRegister.bilance.bilanceOpps
-          }
 
           return agg
         } else {
@@ -172,48 +162,48 @@ const getters = {
         }
       }, [])
   },
-  riskRegisterTraces: state => {
-    if (state.chosenProjects.length === 0) return { data: [], layout: {}, config: { responsive: true } }
+  // riskRegisterTraces: state => {
+  //   if (state.chosenProjects.length === 0) return { data: [], layout: {}, config: { responsive: true } }
 
-    const allNets = state.allProjectsBasic.filter(e => e['Project Definition'] === state.chosenProjects[0]['Project Definition'])
-    const netWithRiskRegister = allNets[0]
-    if (!netWithRiskRegister.riskRegister.hasOwnProperty('risks')) return { data: [], layout: {}, config: { responsive: true } }
+  //   const allNets = state.allProjectsBasic.filter(e => e['Project Definition'] === state.chosenProjects[0]['Project Definition'])
+  //   const netWithRiskRegister = allNets[0]
+  //   if (!netWithRiskRegister.riskRegister.hasOwnProperty('risks')) return { data: [], layout: {}, config: { responsive: true } }
 
-    const data = ['risks', 'opportunities'].reduce((agg3, e) => {
-      const q = Object.keys(netWithRiskRegister.riskRegister[e]).reduce((agg, category) => {
-        const categoryPriceImpact = netWithRiskRegister.riskRegister[e][category].reduce((agg2, r) => {
-          return r.exists ? agg2 + r.priceImpact : agg2
-        }, 0)
+  //   const data = ['risks', 'opportunities'].reduce((agg3, e) => {
+  //     const q = Object.keys(netWithRiskRegister.riskRegister[e]).reduce((agg, category) => {
+  //       const categoryPriceImpact = netWithRiskRegister.riskRegister[e][category].reduce((agg2, r) => {
+  //         return r.exists ? agg2 + r.priceImpact : agg2
+  //       }, 0)
 
-        return categoryPriceImpact > 0 ? [...agg, {
-          x: [e],
-          y: [categoryPriceImpact],
-          name: category,
-          type: "bar"
-        }] : agg
+  //       return categoryPriceImpact > 0 ? [...agg, {
+  //         x: [e],
+  //         y: [categoryPriceImpact],
+  //         name: category,
+  //         type: "bar"
+  //       }] : agg
 
-      }, [])
+  //     }, [])
 
-      return q.length > 0 ? [...agg3, ...q] : agg3
-    }, [])
-    const layout = {
-      margin: {
-        t: 25,
-        b: 25,
-        r: 25,
-        l: 40,
-      },
-      showlegend: false,
-      barmode: 'stack',
-      title: `Project: ${netWithRiskRegister['Project Definition']}`
-    }
-    const config = {
-      responsive: true,
-      displaylogo: false,
-    }
+  //     return q.length > 0 ? [...agg3, ...q] : agg3
+  //   }, [])
+  //   const layout = {
+  //     margin: {
+  //       t: 25,
+  //       b: 25,
+  //       r: 25,
+  //       l: 40,
+  //     },
+  //     showlegend: false,
+  //     barmode: 'stack',
+  //     title: `Project: ${netWithRiskRegister['Project Definition']}`
+  //   }
+  //   const config = {
+  //     responsive: true,
+  //     displaylogo: false,
+  //   }
 
-    return { data, layout, config }
-  },
+  //   return { data, layout, config }
+  // },
   loading: state => state.loading,
   foreignProjectsBasic: state => state.foreignProjectsBasic,
   taskInfo: state => state.taskInfo,
@@ -233,15 +223,36 @@ const getters = {
     (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(state.selectedPM)))
 
     return projs.reduce((agg, e) => {
-      const isIn = agg.map(n => n['Project Definition'] === e['Project Definition']).indexOf(true)
+      const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
 
-      return isIn === -1 ? [...agg, {
-        project_id: e['Project Definition'],
-        project_name: e['Project Name'],
-        project_pm: e['Project Manager'],
-        temporaryAssign: e['temporaryAssign']
-      }] : agg
+      if (f === -1) {
+        // Project ID not in aggregator
+        return [...agg, {
+          project_id: e['Project Definition'],
+          project_name: e['Project Name'],
+          project_pm: e['Project Manager'],
+          temporaryAssign: e['temporaryAssign'],
+          nets_keys: [e['_id']],
+        }]
 
+      } else {
+        // Project ID in aggregator
+        const f2 = agg[f]['nets_keys'].includes(e._id)
+
+        if (!f2) {
+          // Network num not in aggregator
+          agg[f]['nets_keys'].push(e['_id'])
+
+          return agg
+        } else {
+          // Network num in aggregator
+          // agg[f]['nets'][f2]['net_info'].push({
+          //   task_num: e['Task Num'],
+          //   task_info: e
+          // })
+          // return agg
+        }
+      }
     }, [])
 
   },
@@ -289,7 +300,7 @@ const actions = {
         const obDailyPath1301 = rootState.invoicing.obDailyPath1301
         const obDailyPath1601 = rootState.invoicing.obDailyPath1601
 
-        const obDailySheet1301 = XLSX.readFile(obDailyPath1301, {cellDates: true}).Sheets['zdroj']
+        const obDailySheet1301 = XLSX.readFile(obDailyPath1301, {cellDates: true}).Sheets['3101_zdroj']
         const obDailySheet1601 = XLSX.readFile(obDailyPath1601, {cellDates: true}).Sheets['zdroj']
 
         const obDailyData1301 = XLSX.utils.sheet_to_json(obDailySheet1301, {range: 2})
@@ -493,8 +504,63 @@ const actions = {
   async getRevisionInfo({}, {netNum, revId}) {
     return await projects.get(netNum, {rev: revId})
   },
-  async delegateProjects({ commit }, {projId, pmName}) {
-    
+  async delegateProjects({ dispatch, rootState }, { projs, LTR }) {
+    try {
+      if (!rootState.projects.selectedPM) throw 'PM not selected'
+      if (projs.length === 0) throw 'No projects selected'
+
+      const netsToUpdate = projs.reduce((agg, e) => {
+        agg = agg.concat(e.nets_keys)
+        return agg
+      }, [])
+      await projectsReplicator.cancel()
+
+      const updateData = netsToUpdate.map(async (netId) => {
+        projects.upsert(netId, doc => {
+          if (doc.temporaryAssign.hasOwnProperty('personName')) {
+            if (LTR) doc.temporaryAssign.personName.push(rootState.projects.selectedPM)
+            else {
+              const idx = doc.temporaryAssign.personName.indexOf(rootState.projects.selectedPM)
+              doc.temporaryAssign.personName.splice(idx, 1)
+            }
+          } else {
+            if (LTR) doc.temporaryAssign.personName = [rootState.projects.selectedPM]
+            else throw 'This shouldn\'t be possible..'
+          }
+          return doc
+        })
+      })
+
+      Promise.all(updateData)
+        .then(() => {
+          projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+            .on('change', (c) => {
+              if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
+            })
+          dispatch('fetchAllProjectsBasic')
+          dispatch('notify', {
+            text: 'Saved.',
+            color: 'success',
+            state: true,
+            timeout: 2000
+          })
+        })
+        .catch(err => {
+          dispatch('notify', {
+            text: error,
+            color: 'error',
+            state: true,
+            timeout: 5000
+          })
+        })
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        color: 'error',
+        state: true,
+        timeout: 5000
+      })
+    }
   },
   async selectPM({ commit }, pmName) {
     commit('setSelectedPM', pmName)

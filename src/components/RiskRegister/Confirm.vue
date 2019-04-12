@@ -136,7 +136,7 @@
     </v-flex>
 
     
-    <v-layout v-if="chartData.length > 0" row wrap justify-center align-center="">
+    <v-layout v-if="chartData.length > 0" row wrap justify-center align-center>
       <dx-chart
         :size="{width:600}"
         :data-source="chartData"
@@ -156,7 +156,6 @@
           vertical-alignment="bottom"
           horizontal-alignment="center"
         />
-        <dx-export :enabled="true"/>
       </dx-chart>
     </v-layout>
   </v-layout>
@@ -195,24 +194,12 @@ export default {
     return {
       filteredRisks: [],
       filteredOpps: [],
-      risksAndOpp: []
+      bilance: null
     }
   },
   props: ['riskRegister'],
   methods: {
-    ...mapActions(['changeProjectRiskRegister']),
-    setProjectRiskRegister() {
-      if (this.$store.state.projects.chosenProjects.length > 0) {
-        const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.$store.state.projects.chosenProjects[0]['Project Definition'])
-        const netWithRiskRegister = allNets[0]
-        
-        this.changeProjectRiskRegister({editedRiskRegister: this.newRiskRegister, netId: netWithRiskRegister._id})
-      }   
-    },
-    customizeSeries (e) {
-      console.log(e)
-      return e
-    }
+    ...mapActions([''])
   },
   computed: {
     chartData() {
@@ -258,7 +245,32 @@ export default {
 
       this.filteredOpps = filteredOpps
 
-      return filteredRisks.concat(filteredOpps)
+      const risksAndOpp = filteredRisks.concat(filteredOpps)
+
+      let bilance = risksAndOpp.reduce((agg, e) => {
+        if (e.mainCategory === 'risk') {
+          agg.bilanceRisks = agg.bilanceRisks + e.priceImpact
+          agg.bilanceWeightedRisks = agg.bilanceWeightedRisks + e.weightedPriceImpact
+        } else {
+          agg.bilanceOpps = agg.bilanceOpps + e.priceImpact
+          agg.bilanceWeightedOpps = agg.bilanceWeightedOpps + e.weightedPriceImpact
+        }
+        
+        return agg
+      }, {
+        bilanceOpps: 0,
+        bilanceRisks: 0,
+        bilanceWeightedOpps: 0,
+        bilanceWeightedRisks: 0
+      })
+      bilance.chartData = risksAndOpp
+      bilance.bilanceRisks = Number(bilance.bilanceRisks)
+      bilance.bilanceOpps = Number(bilance.bilanceOpps)
+
+      this.bilance = bilance
+
+
+      return risksAndOpp
     }
   }
 }

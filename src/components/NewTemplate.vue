@@ -1,13 +1,16 @@
 <template>
-  <v-container fluid grid-list-sm>
-    <v-layout row wrap>
-      <v-flex xs12>
-        <h3  class="display-2 primary--text"><span class="tit">New template</span></h3>
+  <v-layout column wrap>
+    <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
+      <v-flex column shrink>
+        <h3 class="display-2 white--text">Import template</h3>
+      </v-flex>
+      <v-flex column grow>
+
       </v-flex>
     </v-layout>
 
-    <v-layout row wrap mt-3>
-
+    <v-container fluid>
+      <v-layout row wrap>
         <!-- // Left side -->
         <v-flex column xs5>
           
@@ -15,14 +18,21 @@
           <v-flex row xs7>
             <v-form v-model="valid" ref="addTemplateForm" v-on:submit.prevent>
                 <v-text-field
-                  v-model="template_name"
+                  v-model="templateName"
                   :rules="tmplNameRules"
                   label="Template name"
                   required
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="fileName"
+                  v-model="files.doc.fileName"
+                  :rules="fileNameRules"
+                  required
+                  style="display:none"
+                ></v-text-field>
+
+                <v-text-field
+                  v-model="files.preview.fileName"
                   :rules="fileNameRules"
                   required
                   style="display:none"
@@ -31,17 +41,17 @@
               </v-form>
           </v-flex>
 
-          <!-- // Dropzone -->
+          <!-- DROPZONE DOC -->
           <v-layout row>
-            <v-flex column xs4 @click="getDoc" style="cursor:pointer">
-              <table style=" width: 100%; border: 1px dashed darkgrey" @dragover.prevent @drop="onDrop">
+            <v-flex column xs4 @click="getDoc('doc')" style="cursor:pointer">
+              <table style=" width: 100%; border: 1px dashed darkgrey" @dragover.prevent @drop="onDrop($event, 'doc')">
                 
 
-                <tr v-if="fileName" style="height: 45px; vertical-align:middle; text-align:center;">
-                  <td><img :src="thumbnail"></td>
+                <tr v-if="files.doc.fileName" style="height: 45px; vertical-align:middle; text-align:center;">
+                  <td><img :src="files.doc.thumbnail"></td>
                 </tr>
-                <tr v-if="fileName" style="height: 15px; vertical-align:middle; text-align:center">
-                  <td><span>{{fileName}}</span></td>
+                <tr v-if="files.doc.fileName" style="height: 15px; vertical-align:middle; text-align:center">
+                  <td><span>{{files.doc.fileName}}</span></td>
                 </tr>
 
                 <tr v-else style="height: 60px; vertical-align:middle; text-align:center;">
@@ -52,30 +62,62 @@
 
             <v-flex xs8 column ml-3>
               <table style="height:100%; width: 100%">
-                <tr v-if="filePath" style="vertical-align:middle; text-align:left">
-                  <td><span>Filepath: {{filePath}}</span></td>
+                <tr v-if="files.doc.filePath" style="vertical-align:middle; text-align:left">
+                  <td><span>Filepath: {{files.doc.filePath}}</span></td>
                 </tr>
-                <tr v-if="fileType" style="vertical-align:middle; text-align:left">
-                  <td><span>Filetype: {{fileType}}</span></td>
+                <tr v-if="files.doc.fileType" style="vertical-align:middle; text-align:left">
+                  <td><span>Filetype: {{files.doc.fileType}}</span></td>
                 </tr>
               </table>
             </v-flex>
           </v-layout>
 
-          <!-- // Button -->
-          <v-flex row>
+          <!-- DROPZONE PREVIEW -->
+          <v-layout row mt-3>
+            <v-flex column xs4 @click="getDoc('preview')" style="cursor:pointer">
+              <table style=" width: 100%; border: 1px dashed darkgrey" @dragover.prevent @drop="onDrop($event, 'preview')">
+                
+
+                <tr v-if="files.preview.fileName" style="height: 45px; vertical-align:middle; text-align:center;">
+                  <td><img :src="files.preview.thumbnail"></td>
+                </tr>
+                <tr v-if="files.preview.fileName" style="height: 15px; vertical-align:middle; text-align:center">
+                  <td><span>{{files.preview.fileName}}</span></td>
+                </tr>
+
+                <tr v-else style="height: 60px; vertical-align:middle; text-align:center;">
+                  <td>Click me or drop a file to import template <b>PREVIEW</b></td>
+                </tr>
+              </table>
+            </v-flex>
+
+            <v-flex xs8 column ml-3>
+              <table style="height:100%; width: 100%">
+                <tr v-if="files.preview.filePath" style="vertical-align:middle; text-align:left">
+                  <td><span>Filepath: {{files.preview.filePath}}</span></td>
+                </tr>
+                <tr v-if="files.preview.fileType" style="vertical-align:middle; text-align:left">
+                  <td><span>Filetype: {{files.preview.fileType}}</span></td>
+                </tr>
+              </table>
+            </v-flex>
+          </v-layout>
+
+          <!-- BUTTON -->
+          <v-flex row mt-3>
             <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="submit" depressed color="primary"> Insert template </v-btn>
           </v-flex>
 
-          <!-- // How to add new template -->
+          <!-- HOWTO -->
           <v-flex xs12 row mt-4>
             <v-flex row>
-              <h4 class="display-5 primary--text"><span class="tit">How to add new template</span></h4>
+              <h5 class="headline primary--text"><b>How to</b></h5>
             </v-flex>
             <v-flex row>
               <p>Basic guidelines and rules to add new templates:
                 <ul>
                   <li>Template generator supports <b>.docx</b> and <b>.xlsx</b> formats.</li>
+                  <li>Previews of templates support <b>.PNG</b> and <b>JPG</b> formats.</li>
                   <li>Template name doesn't have to be the same as the file name.</li>
                   <li>If you want to properly use the power of template generator, you can add fields that will automatically
                     fill when generated. These fields must be in following format:
@@ -87,7 +129,7 @@
                   </li>
                   <li>
                     Currently, templates have these fields to autofill: <br>
-                      <b>[Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules] </b>
+                      <b>[Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules], [Project Name], [Customer Name], [Customer Country], [Project Revenues], [Project OB], [Project Panels] </b>
                   </li>
                 </ul>
               </p>
@@ -95,22 +137,18 @@
             
           </v-flex>
         </v-flex>
-
-        <!-- Right side -->
-        <v-layout column xs7 ml-4>
-          <v-flex row><h3 class="display-1 primary--text"><span class="tit">Template example</span></h3></v-flex>
+        
+        <!-- RIGHT SIDE -->
+        <v-flex column xs7 pl-5>
+          <v-flex row><h5 class="headline primary--text"><b>Template example</b></h5></v-flex>
           <v-flex row>
-            <v-img :contain="true" :src="templateExample"></v-img>
+            <v-img style="border: 1px solid black" :contain="true" :src="templateExample"></v-img>
           </v-flex>
-        </v-layout>
+        </v-flex>
 
-      <v-snackbar v-model="snackbar" :top="true" :right="true" :color="color" :timeout=2000>
-        {{snackText}}
-        <v-btn dark flat @click="snackbar = false" > Close </v-btn>
-      </v-snackbar>
-
-    </v-layout>
-  </v-container>
+      </v-layout>     
+    </v-container>
+  </v-layout>
 </template>
 
 
@@ -131,14 +169,21 @@ import { mapActions } from 'vuex';
 export default {
   data: () => ({
     valid: false,
-    template_name: '',
-    thumbnail: '',
-    fileName: null,
-    filePath: null,
-    fileType:null,
-    snackText: null,
-    color: null,
-    snackbar: false,
+    templateName: '',
+    files: {
+      doc: {
+        thumbnail: null,
+        fileName: null,
+        filePath: null,
+        fileType: null
+      },
+      preview: {
+        thumbnail: null,
+        fileName: null,
+        filePath: null,
+        fileType: null
+      },
+    },
     tmplNameRules: [
       v => !!v || 'Template name is required',
       v => /^[^.]*$/.test(v) || 'Template name mustn\'t contain dots'
@@ -146,51 +191,73 @@ export default {
     fileNameRules: [
       v => !!v || 'Template name is required'
     ],
-    dropOptions: {
-      url: 'https://httpbin.org/post'
-    },
-    templateExample: require('../renderer/assets/template_example.jpg')
+    templateExample: require('../renderer/assets/templateExample.png')
   }),
   methods: {
-    ...mapActions(['addTemplate']),
+    ...mapActions(['addTemplate', 'notify']),
     clear () {
       this.$refs.addTemplateForm.reset()
     },
     async submit() {
       if (this.$refs.addTemplateForm.validate()) {
-        this.addTemplate({filePath: this.filePath, fileType: this.fileType, fileName: this.fileName, template_name: this.template_name})
+        this.addTemplate({
+          templateName: this.templateName,
+          doc: {
+            filePath: this.files.doc.filePath,
+            fileName: this.files.doc.fileName,
+            fileType: this.files.doc.fileType
+          },
+          preview: {
+            filePath: this.files.preview.filePath,
+            fileName: this.files.preview.fileName,
+            fileType: this.files.preview.fileType
+          }
+        })
       }
     },
-    async onDrop (e) {
+    async onDrop (e, type) {
       e.stopPropagation()
       e.preventDefault()
+      const allowedFiles = type === 'doc' ? ['xlsx', 'docx'] : ['png', 'jpg']
+
       const files = e.dataTransfer.files
+      const fileType = files[0].path.split('.')[1]
+      if (!allowedFiles.includes(fileType)) {
+        this.notify({
+          text: 'This format is unsupported.',
+          color: 'error',
+          timouet: 3000,
+          state: true
+        })
 
-
-      const icon = app.getFileIcon(files[0].path, (err, res) => {
-        this.thumbnail = res.toDataURL()
-        this.fileName = files[0].name
-        this.filePath = files[0].path
-        this.fileType = files[0].path.split('.')[1]
+        return
+      }
+      app.getFileIcon(files[0].path, (err, res) => {
+        this.files[type].thumbnail = res.toDataURL()
+        this.files[type].fileName = files[0].name
+        this.files[type].filePath = files[0].path
+        this.files[type].fileType = fileType
       })
     },
-    getDoc () {
+    getDoc (type) {
+      const allowedFiles = type === 'doc' ? ['xlsx', 'docx'] : ['png', 'jpg']
+
       dialog.showOpenDialog(null, {
           title: 'Get template',
           defaultPath: 'desktop',
           filters: [
-            {name: 'Microsoft word', extensions: ['docx']},
-            {name: 'Excel', extensions: ['xlsx']}
+            {name: 'Supported formats ' + String(allowedFiles), extensions: allowedFiles}
           ],
           buttonLabel: 'Import template'
         }, (p) => {
           if (p) {
+
             const icon = app.getFileIcon(p[0], (err, res) => {
-              this.thumbnail = res.toDataURL()
+              this.files[type].thumbnail = res.toDataURL()
               const len = p[0].split('\\').length
-              this.fileName =  p[0].split('\\')[len-1]
-              this.filePath = p[0]
-              this.fileType = p[0].split('.')[1]
+              this.files[type].fileName =  p[0].split('\\')[len-1]
+              this.files[type].filePath = p[0]
+              this.files[type].fileType = p[0].split('.')[1]
 
             })
           }

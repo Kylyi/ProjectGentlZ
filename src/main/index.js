@@ -24,7 +24,10 @@ function createMainWindow() {
     frame: false,
     minHeight: 700,
     minWidth: 1280,
-    show: false
+    show: false,
+    webPreferences: {
+      plugins: true
+    }
   })
 
   // if (isDevelopment) {

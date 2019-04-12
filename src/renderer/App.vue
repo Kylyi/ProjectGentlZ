@@ -122,7 +122,7 @@
         </v-list>
 
         <v-list-tile class="bottom">
-          <v-btn icon @click.native.stop="miniVariant = !miniVariant" class="abs-center">
+          <v-btn icon @click.native.stop="miniVariant = !miniVariant" class="abs-center" style="margin: auto;">
             <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
           </v-btn>
         </v-list-tile>
@@ -321,7 +321,7 @@
 <script>
   const {ipcRenderer, remote, shell} = require('electron')
   import { mapGetters, mapActions } from "vuex";
-  import db from '../main/scripts/database'
+  
 
   export default {
     name: 'app',

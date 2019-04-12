@@ -2,7 +2,7 @@
   <v-layout row wrap style="margin:10px;">
 
     <v-flex column xs12 wrap>
-      <v-flex row wrap xs1><h4 class="subtit2">Detailed info</h4></v-flex>
+      <v-flex row wrap xs1><p class="subheading primary--text" style="margin-bottom: 0;">Detailed info</p></v-flex>
       <v-flex row wrapx>You can modify detailed info in settings.</v-flex>
     </v-flex>
 
@@ -265,10 +265,10 @@
       transition="slide-y-transition"
     >
       <v-list style="padding: 0;" id="checkSignsList">
-        <v-list-tile v-for="comment in signComments" :key="comment.comment">
+        <v-list-tile v-for="comment in reversedSignComments" :key="comment.comment">
           <v-list-tile-action>
             <tr style="vertical-align: middle;">
-              <td style="width: 250px; word-break: break-word;"><span style="color: gray;">{{comment.owner}}: </span>{{comment.comment}}</td>
+              <td style="width: 350px; word-break: break-word;"><span style="color: gray;">{{comment.owner}} - {{comment.time}}: </span>{{comment.comment}}</td>
               <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment)" color="error">close</v-icon></td>
             </tr>
           </v-list-tile-action>
@@ -410,6 +410,10 @@
           this.hiddenFieldsCount = hiddenCols.length
           return hiddenCols
         }
+      },
+      reversedSignComments() {
+        const reversed = this.signComments.reverse()
+        return reversed
       }
     },
     methods: {
@@ -451,9 +455,11 @@
           
           let iconExists = Object.keys(this.$props.templateData.data.sign[this.currentField]).includes(sign)
           if (iconExists) {
+            const time = new Date()
             this.$props.templateData.data.sign[this.currentField][sign].push({
               comment: this.signComment,
-              owner: username.sync()
+              owner: username.sync(),
+              time: time.toUTCString()
             })
             // const ix = this.$props.templateData.data.sign[this.currentField].indexOf(iconExists)
             // iconExists = iconExists + ' - ' + this.signComment

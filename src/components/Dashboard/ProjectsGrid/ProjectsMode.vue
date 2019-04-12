@@ -12,8 +12,14 @@
       :show-row-lines="true"
       :show-column-lines="true"
       :word-wrap-enabled="true"
+      :selection="{ mode: 'single' }"
+      @selection-changed="onSelectionChanged"
     >
       <dx-scrolling mode="virtual"/>
+      <dx-master-detail
+        :enabled="true"
+        template="detailTemplate"
+      />
       
       <dx-column
         data-field="project_id"
@@ -59,12 +65,44 @@
       </div>
 
       <div slot="bilanceTemplate" slot-scope="templateData">
-        <span class="success--text">{{(templateData.data.riskRegisterBilance.bilanceOpps/1000).toFixed(1)}}K</span> / <span class="error--text">{{(templateData.data.riskRegisterBilance.bilanceRisks/1000).toFixed(1)}}K</span>
+        <span v-if="templateData.data.riskRegisterBilance" class="success--text"> {{(templateData.data.riskRegisterBilance.bilanceOpps/1000).toFixed(0)}}K</span>
+           / 
+        <span v-if="templateData.data.riskRegisterBilance" class="error--text">{{(templateData.data.riskRegisterBilance.bilanceRisks/1000).toFixed(0)}}K</span>
       </div>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click="generateTemplate(templateData.data)" small title="Generate template">trip_origin</v-icon>
-          <v-icon @click="manageRiskRegister(templateData.data)" small title="Manage risk register">business</v-icon>
+          <v-icon @click="generateTemplate(templateData.data)" color="grey darken-4" title="Generate template">trip_origin</v-icon>
+          <v-icon @click="manageRiskRegister(templateData.data)" color="teal lighten-1" title="Manage risk register">business</v-icon>
+      </div>
+
+      <div slot="detailTemplate" slot-scope="templateData">
+        <v-tabs>
+          <v-tab
+            v-for="netId in templateData.data.nets_keys"
+            :key="netId"
+          >
+            <span class="primary--text">{{netId}}</span>
+          </v-tab>
+
+          <v-tabs-items>
+            <v-tab-item
+              v-for="(net, i) in templateData.data.nets"
+              :key="i"
+            >
+              <v-layout row wrap mt-2 mb-2>
+                <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
+                  <v-flex row wrap text-xs-center>
+                    <b>{{field.name}}</b>
+                  </v-flex>
+
+                  <v-flex row wrap text-xs-center style="min-height: 21px;">
+                    {{net[field.value]}}
+                  </v-flex>
+                </v-flex>
+              </v-layout>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-tabs>
       </div>
 
       <dx-state-storing
@@ -98,6 +136,7 @@ export default {
       this.chooseProjects(proj.nets[0].net_info[0].task_info)
     },
     bilanceValue(row) {
+      if (!row.riskRegisterBilance) return 0
       return row.riskRegisterBilance.bilanceOpps - row.riskRegisterBilance.bilanceRisks
     },
     async generateTemplate(data) {
@@ -107,6 +146,9 @@ export default {
     async manageRiskRegister(data) {
       await this.chooseProjects(data.nets[0])
       this.$router.push('/riskRegister')
+    },
+    async onSelectionChanged (data) {
+      await this.chooseProjects(data.selectedRowsData[0].nets[0])
     }
   }
 }

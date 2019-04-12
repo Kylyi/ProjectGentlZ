@@ -32,16 +32,19 @@
 
           <!-- Dashboard -->
           <v-expansion-panel-content>
-            <v-flex slot="header"><b>Projects grid</b></v-flex>
-            <v-card>
-              <v-card-text style="padding-top: 0">
-                <v-layout row wrap>
-                  <v-flex column wrap xs12>
+            <span slot="header"><b>Dashboard & Template Generator</b></span>
+
+            <v-layout row wrap>
+              <v-layout row wrap>
+                <v-flex column style="max-width: 650px; padding: 10px 24px; text-align:justify">
+                  <v-flex row wrap mb-4>
                     This sets up which data will be shown when clicked on <b>detail</b> in <b>Dashboard - My projects</b> table.
                     Select fields you want to see. Order of items matters as items will be shown accordingly to these settings.
+                    Don't forget to <b style="color: red;">SAVE</b>.
                   </v-flex>
-                  <v-flex column>
-                    <v-flex row wrap class="subtit" mt-2>Available fields</v-flex>
+
+                  <v-flex row wrap>
+                    <v-flex row wrap><p class="subheading primary--text" style="margin-bottom: 0;">Available fields</p></v-flex>
                     <table class="draggableTable">
                       <thead class="el-table__header">
                         <tr>
@@ -52,34 +55,37 @@
                         </tr>
                       </thead>
                       <draggable tag="tbody" v-model="projectsDetail" class="list-group" handle=".handle" v-bind="dragOptions" @start="drag = true" @end="drag = false">
-                          <tr v-for="(e) in projectsDetail" :key="e.value" style="width: 100%;">
-                            <td><v-icon class="handle" style="width: 30px; text-align: center; cursor: -webkit-grab;" small>drag_indicator</v-icon></td>
-                            <td>{{e.value}}</td>
-                            <td><input type="text" v-model="e.name" /></td>
-                            <td><v-checkbox hide-details v-model="e.visible"></v-checkbox></td>
-                          </tr>
+                        <tr v-for="(e) in projectsDetail" :key="e.value" style="width: 100%;">
+                          <td><v-icon class="handle" style="width: 30px; text-align: center; cursor: -webkit-grab;" small>drag_indicator</v-icon></td>
+                          <td style="width: 249px;">{{e.value}}</td>
+                          <td style="width: 249px;"><input style="width: 100%;" type="text" v-model="e.name" /></td>
+                          <td><v-checkbox hide-details v-model="e.visible"></v-checkbox></td>
+                        </tr>
                       </draggable>
                     </table>
                   </v-flex>
-                </v-layout>
-              </v-card-text>
-              <v-card-actions><v-btn flat icon @click="triggerEdit('projectDetails')"><v-icon>save</v-icon></v-btn> </v-card-actions>
-            </v-card>
+                </v-flex>
+                <v-flex column>
+                  <v-btn flat icon @click="triggerEdit('projectDetails')"><v-icon>save</v-icon></v-btn>
+                </v-flex>
+              </v-layout>
+            </v-layout>
           </v-expansion-panel-content>
-
           <!-- Invoicing -->
           <v-expansion-panel-content>
-            <v-flex slot="header"><b>Invoicing</b></v-flex>
-            <v-card>
-              <v-card-text style="padding-top: 0">
-                <v-layout row wrap>
-                  <v-flex column wrap xs12>This sets up which data will be shown when clicked on <b>detail</b> in <b>Invoicing table</b>. Select which fields you want to see.
-                    Order of item matters as items will be shown accordingly to these settings.
+            <span slot="header"><b>Invoicing</b></span>
+
+            <v-layout row wrap>
+              <v-layout row wrap>
+                <v-flex column style="max-width: 650px; padding: 10px 24px; text-align:justify">
+                  <v-flex row wrap mb-4>
+                    This sets up which data will be shown when clicked on <b>detail</b> in <b>Invoicing table</b>.
+                    Select which fields you want to see. Order of item matters as items will be shown accordingly to these settings.
+                    Don't forget to <b style="color: red;">SAVE</b>.
                   </v-flex>
 
-                  <v-layout column wrap shrink>
-                    <v-flex row wrap class="subtit" mt-2>Available fields</v-flex>
-                    
+                  <v-flex row wrap>
+                    <v-flex row wrap><p class="subheading primary--text" style="margin-bottom: 0;">Available fields</p></v-flex>
                     <table class="draggableTable">
                       <thead class="el-table__header">
                         <tr>
@@ -98,38 +104,37 @@
                           </tr>
                       </draggable>
                     </table>
-
+                  </v-flex>
+                </v-flex>
+                <v-flex column>
+                  <v-btn flat icon @click="setNetDetailsInfo"><v-icon>save</v-icon></v-btn>
+                  <v-layout row wrap pr-3>
+                    <v-flex column shrink>
+                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1301" title="Choose OB daily file path 1301" outline />
+                    </v-flex>
+                    <v-flex column grow>
+                      <v-text-field :value="obDailyPath1301" :readonly="true" placeholder="Path to OB Daily file - 1301" label="Path to OB Daily file - 1301" />
+                    </v-flex>
                   </v-layout>
 
-                  <v-layout column wrap grow justify-start fill-height ml-3 mt-3>
-                    <v-layout row wrap>
-                      <v-flex column shrink>
-                        <upload-btn :uniqueId="true" :fileChangedCallback="setPath1301" title="Choose OB daily file path 1301" outline />
-                      </v-flex>
-                      <v-flex column grow>
-                        <v-text-field :value="obDailyPath1301" :readonly="true" placeholder="Path to OB Daily file - 1301" label="Path to OB Daily file - 1301" />
-                      </v-flex>
-                    </v-layout>
-
-                    <v-layout row wrap>
-                      <v-flex shrink column wrap>
-                        <upload-btn :uniqueId="true" :fileChangedCallback="setPath1601" readonly title="Choose OB daily file path 1601" outline />
-                      </v-flex>
-                      <v-flex grow column wrap>
-                        <v-text-field :value="obDailyPath1601" :readonly="true" placeholder="Path to OB Daily file - 1601" label="Path to OB Daily file - 1601" />
-                      </v-flex>
-                    </v-layout>
+                  <v-layout row wrap pr-3>
+                    <v-flex shrink column wrap>
+                      <upload-btn :uniqueId="true" :fileChangedCallback="setPath1601" readonly title="Choose OB daily file path 1601" outline />
+                    </v-flex>
+                    <v-flex grow column wrap>
+                      <v-text-field :value="obDailyPath1601" :readonly="true" placeholder="Path to OB Daily file - 1601" label="Path to OB Daily file - 1601" />
+                    </v-flex>
                   </v-layout>
+                </v-flex>
+              </v-layout>
+            </v-layout>
 
-                  
 
 
-                  
 
-                </v-layout>
-              </v-card-text>
-              <v-card-actions><v-btn flat icon @click="setNetDetailsInfo"><v-icon>save</v-icon></v-btn> </v-card-actions>
-            </v-card>
+
+
+
           </v-expansion-panel-content>
 
         </v-expansion-panel>

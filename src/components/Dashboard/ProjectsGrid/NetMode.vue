@@ -12,8 +12,14 @@
       :show-row-lines="true"
       :show-column-lines="true"
       :word-wrap-enabled="true"
+      :selection="{ mode: 'single' }"
+      @selection-changed="onSelectionChanged"
     >
       <dx-scrolling mode="virtual"/>
+      <dx-master-detail
+        :enabled="true"
+        template="detailTemplate"
+      />
 
       <dx-column
         data-field="_id"
@@ -26,13 +32,13 @@
         alignment="left"
       />
       <dx-column
-        caption="Panels / Modules"
+        caption="Net #Panels/#Modules"
         alignment="center"
         cell-template="panelsModulesTemplate"
       />
       <dx-column
         data-field="Net Revenues"
-        caption="Revenues"
+        caption="Net revenues"
         data-type="number"
         format="thousands"
         alignment="center"
@@ -50,7 +56,6 @@
         fixed-position="right"
       />
 
-
       <div slot="panelsModulesTemplate" slot-scope="templateData">
         {{templateData.data['Number of Panels']}} / {{templateData.data['Number of Modules']}}
       </div>
@@ -60,8 +65,32 @@
       </div>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click="generateTemplate(templateData.data)" small title="Generate template" color="grey darken-1">trip_origin</v-icon>
-          <v-icon @click="manageRiskRegister(templateData.data)" small title="Manage risk register" color="teal lighten-1">business</v-icon>
+          <v-icon @click="generateTemplate(templateData.data)" title="Generate template" color="grey darken-4">trip_origin</v-icon>
+          <v-icon @click="manageRiskRegister(templateData.data)" title="Manage risk register" color="teal lighten-1">business</v-icon>
+      </div>
+
+      <div slot="detailTemplate" slot-scope="templateData">
+        <v-tabs>
+          <v-tab>
+            <span class="primary--text">{{templateData.data._id}}</span>
+          </v-tab>
+
+          <v-tabs-items>
+            <v-tab-item>
+              <v-layout row wrap mt-2 mb-2>
+                <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
+                  <v-flex row wrap text-xs-center>
+                    <b>{{field.name}}</b>
+                  </v-flex>
+
+                  <v-flex row wrap text-xs-center style="min-height: 21px;">
+                    {{templateData.data[field.value]}}
+                  </v-flex>
+                </v-flex>
+              </v-layout>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-tabs>
       </div>
 
       <dx-state-storing
@@ -71,11 +100,6 @@
         :savingTimeout="5000"
       />
     </dx-data-grid>
-
-
-
-
-
 
   </v-layout>
 </template>
@@ -88,7 +112,7 @@ export default {
   components: { InvoicingSigns },
   computed: mapGetters(['pmProjectsBasic', 'visibleProjectsDetail', 'generateTemplateDialog']),
   methods: {
-    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail']),
+    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail', 'fetchNetTasksInfo']),
     async generateTemplate(data) {
       await this.chooseProjects(data)
       this.openGenerateTemplateDialog(true)
@@ -96,6 +120,10 @@ export default {
     async manageRiskRegister(data) {
       await this.chooseProjects(data)
       this.$router.push('/riskRegister')
+    },
+    async onSelectionChanged (data) {
+      this.fetchNetTasksInfo(data.selectedRowsData[0]._id)
+      await this.chooseProjects(data.selectedRowsData[0])
     }
   }
 }

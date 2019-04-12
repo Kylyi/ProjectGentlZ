@@ -8,9 +8,6 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-// const remoteLog = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/log')
-// const log = new PouchDB('src/db/log')
-
 const state = {
   offline: true,
   snackbar: { text: null, color: null, state: null, timeout: 3000 },

@@ -1,57 +1,63 @@
 <template>
   <v-container fluid style="padding: 0;">
-    <v-layout row wrap><h1 display-3 class="myHeading">Risk register</h1></v-layout>
-    <graph :propData="riskRegisterTraces" divId="plot" style="height: 300px"></graph>
+    <v-layout column wrap>
+      <v-flex row wrap><h5 class="headline"><b>Risk register quickview</b></h5></v-flex>
+      <v-flex row wrap>
+        <dx-chart
+        :data-source="chosenProjects[0].riskRegister.bilance.chartData"
+      >
+        <dx-series-template
+          name-field="category"
+        />
+        <dx-common-series-settings
+          argument-field="mainCategory"
+          value-field="priceImpact"
+          type="stackedbar"
+          hover-mode="allArgumentPoints"
+        />
+        </dx-title>
+        <dx-legend
+          vertical-alignment="bottom"
+          horizontal-alignment="center"
+        />
+      </dx-chart>
+      </v-flex>
+    </v-layout>
+
   </v-container>
 </template>
 
 <script>
-import Graph from './RiskRegister/Graph'
 import { mapGetters } from 'vuex';
+import {
+  DxChart,
+  DxSeries,
+  DxCommonSeriesSettings,
+  DxValueAxis,
+  DxTitle,
+  DxLegend,
+  DxExport,
+  DxTooltip,
+  DxBorder,
+  DxLabel,
+  DxSeriesTemplate
+} from 'devextreme-vue/chart'
 export default {
-  components: { Graph },
-  data: () => {
-    return {
-      plotInfo: {
-        data: [],
-        layout: {},
-        config: {responsive: true}
-      }
-    }
+  components: {
+    DxChart,
+    DxSeries,
+    DxCommonSeriesSettings,
+    DxValueAxis,
+    DxTitle,
+    DxLegend,
+    DxExport,
+    DxTooltip,
+    DxBorder,
+    DxLabel,
+    DxSeriesTemplate
   },
   computed: {
-    ...mapGetters(['chosenProjects', 'riskRegisterTraces'])
-  },
-  methods: {
-    updatePlot() {
-      let x = [0,1,2,3,4,5];
-      let y = [5,5,5,5,5,5];
-      let data = [{
-        x: x,
-        y: y,
-        type: 'scatter',
-        line: {
-          width: 4
-        },
-        text: ['B-a', 'B-b', 'B-c', 'B-d', 'B-e', 'B-f'],
-      }];
-      let layout = {
-        // get rid of all the extra whitespace around plots
-        margin: {
-          t: 25,
-          b: 25,
-          r: 25,
-          l: 25
-        },
-        title: 'Kokos',
-        paper_bgcolor:"#ECEFF1"
-      }
-      let config = {
-        // newish in plotly...auto-resizes on window resize
-        responsive: true
-      }
-      this.plotInfo = { data, layout, config }
-    },
+    ...mapGetters(['chosenProjects'])
   }
 }
 </script>

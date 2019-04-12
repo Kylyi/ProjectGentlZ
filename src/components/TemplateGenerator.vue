@@ -72,84 +72,94 @@
     </v-layout>
 
     <v-container fluid>
-      <v-flex column xs6>
-        <v-flex row wrap mt-4>
-          <h5 class="headline"><b>Generate template</b></h5>
+      <v-layout row wrap>
+
+        <!-- LEFT SIDE -->
+        <v-flex column xs6>
+          <v-flex row wrap mt-4>
+            <h5 class="headline"><b>Generate template</b></h5>
+          </v-flex>
+
+          <v-flex row wrap mt-4>
+            <project-selector ref="projS" />
+          </v-flex>
+
+          <v-flex row wrap mt-3>
+            <template-selector ref="tmplS" />
+          </v-flex>
+
+          <v-flex row wrap text-xs-right mt-1>
+            <v-btn outline color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)">Generate</v-btn>
+          </v-flex>
+          <v-flex row wrap>
+            <el-collapse v-model="selectedTab">
+              <el-collapse-item title="Projects" name="projects">
+                <v-tabs v-if="chosenProjects.length > 0">
+                  <v-tab
+                    v-for="(item,i) in chosenProjects"
+                    :key="i"
+                  >
+                    <span class="primary--text">{{item._id}}</span>
+                  </v-tab>
+
+                  <v-tabs-items>
+                    <v-tab-item
+                      v-for="(item,i) in chosenProjects"
+                      :key="i"
+                    >
+                      <v-layout row wrap mt-2>
+                        <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
+                          <v-flex row wrap text-xs-center>
+                            <b>{{field.name}}</b>
+                          </v-flex>
+
+                          <v-flex row wrap text-xs-center>
+                            {{item[field.value] }}
+                          </v-flex>
+                        </v-flex>
+                      </v-layout>
+                    </v-tab-item>
+                  </v-tabs-items>
+                </v-tabs>
+                <v-flex row wrap v-else text-xs-center>No project chosen.</v-flex>
+              </el-collapse-item>
+
+              <el-collapse-item title="Templates" name="templates">
+                <v-tabs  v-if="chosenTemplates.length > 0">
+                  <v-tab
+                    v-for="(item,i) in chosenTemplates"
+                    :key="i"
+                  >
+                    {{item._id}}
+                  </v-tab>
+
+                  <v-tabs-items>
+                    <v-tab-item
+                      v-for="(item,i) in chosenTemplates"
+                      :key="i"
+                    >
+                      <v-layout column wrap mt-2>
+                      <v-flex row wrap text-xs-center>
+                        {{item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'}}
+                      </v-flex>
+                      </v-layout>
+                    </v-tab-item>
+                  </v-tabs-items>
+                </v-tabs>
+                <v-flex row wrap v-else text-xs-center>No template chosen.</v-flex>
+              </el-collapse-item>
+            </el-collapse>
+          </v-flex>
+
         </v-flex>
 
-        <v-flex row wrap mt-4>
-          <project-selector ref="projS" />
+        <!-- TEMPLATE PREVIEW -->
+        <v-flex column xs6 pl-5>
+          <v-img v-if="templatePreview" style="border: 1px solid black" :contain="true" :src="templatePreview"></v-img>
         </v-flex>
-
-        <v-flex row wrap mt-3>
-          <template-selector ref="tmplS" />
-        </v-flex>
-
-        <v-flex row wrap text-xs-right mt-1>
-          <v-btn outline color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)">Generate</v-btn>
-        </v-flex>
-        <v-flex row wrap>
-          <el-collapse v-model="selectedTab">
-            <el-collapse-item title="Projects" name="projects">
-              <v-carousel
-                v-if="chosenProjects.length > 0"
-                hide-controls
-                :cycle="false"
-                height="300"
-                style="box-shadow: none;"
-              >
-                <v-carousel-item
-                  v-for="(item,i) in chosenProjects"
-                  :key="i"
-                >
-                  <v-layout row wrap>
-                    <v-flex column xs4 v-for="field in Object.keys(item)" :key="field" style="border: 1px solid black;">
-                      <div>
-                        {{field}}
-                      </div>
-                      <div>
-                        {{item[field]}}
-                      </div>
-                    </v-flex>
-                  </v-layout>
-                </v-carousel-item>
-              </v-carousel>
-            </el-collapse-item>
-
-            <el-collapse-item title="Templates" name="templates">
-              <v-carousel
-                v-if="chosenTemplates.length > 0"
-                hide-controls
-                :cycle="false"
-                height="300"
-                style="box-shadow: none;"
-              >
-                <v-carousel-item
-                  v-for="(item,i) in chosenTemplates"
-                  :key="i"
-                >
-                  <v-layout row wrap>
-                    <v-flex column xs4 v-for="field in Object.keys(item)" :key="field" style="border: 1px solid black;">
-                      <div>
-                        {{field}}
-                      </div>
-                      <div>
-                        {{item[field]}}
-                      </div>
-                    </v-flex>
-                  </v-layout>
-                </v-carousel-item>
-              </v-carousel>
-            </el-collapse-item>
-          </el-collapse>
-        </v-flex>
-
-      </v-flex>
+      </v-layout>
+      
     </v-container>
-
-  
-    
-    
   </v-layout>
 
 </template>
@@ -193,19 +203,21 @@
 
   export default {
     name: 'TemplateGenerator',
+    components: {ProjectSelector, TemplateSelector},
     data: () => ({
       devMode: false,
       projectAddValid: false,
       projectToAdd: '',
       optionsMenu: false,
-      selectedTab: []
+      selectedTab: [],
+      templatePreview: null
     }),
     created: async function () {
       this.openAfterGenerate = this.$store.state.templates.openAfterGenerate
       this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
     },
     computed: {
-      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading']),
+      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading', 'visibleProjectsDetail']),
       accordionData: {
         get: function() {
           return [
@@ -216,14 +228,24 @@
       }
     },
     methods: {
-      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'fetchNetTasksInfo', 'clearLocalStorage',
-        'stopProjectsReplication', 'startProjectsReplication', 'addAllBillings']),
+      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'getTemplatePreview']),
       addProject() {
         if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)
         }
       }
     },
-    components: {ProjectSelector, TemplateSelector}
+    watch: {
+      async chosenTemplates() {
+        if (this.chosenTemplates.length === 0) {
+          this.templatePreview = null
+          return
+        }
+
+        const resTmpl = await this.getTemplatePreview()
+        this.templatePreview = resTmpl
+      }
+    }
+    
   }
 </script>
