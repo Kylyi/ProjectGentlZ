@@ -34,12 +34,14 @@
                 alignment="left"
                 :allow-sorting="false"
                 :allow-resizing="true"
+                :allow-editing="false"
               />
               <dx-column
                 data-field="info"
                 caption="Description"
                 alignment="left"
                 :allow-sorting="false"
+                :allow-editing="false"
               />
               <dx-column
                 data-field="exists"
@@ -58,13 +60,12 @@
                 caption="Planned action for mitigation"
                 alignment="left"
                 :allow-sorting="false"
-                :allow-editing="false"
               />
               <dx-column
                 data-field="owner"
                 caption="Owner"
                 alignment="center"
-                :allow-sorting="true"
+                :allow-sorting="false"
               >
               </dx-column>
               <dx-column
@@ -83,26 +84,10 @@
                 format="thousands"
               />
 
-              <!-- <v-textarea
-                slot="textAreaTemplate"
-                slot-scope="templateData"
-                :value="riskRegister.risks[i][templateData.rowIndex][templateData.column.dataField]"
-                @blur="commitChanges($event, i, templateData)"
-                no-resize
-                hide-details
-                rows="2"
-                row-height="14"
-                outline
-                style="font-size: 12px; margin: 0;"
-              ></v-textarea> -->
-
-              <!-- <div slot="booleanTemplate" slot-scope="templateData">
-                <v-checkbox
-                  v-model="riskRegister.risks[i][templateData.rowIndex][templateData.column.dataField]"
-                  color="red"
-                  hide-details
-                 ></v-checkbox>
-
+              <!-- <div
+                slot="lookupTemplate"
+                slot-scope="templateData">
+                <multiselect :value="templateData.data.owner" :options="uniquePms" placeholder="Select network" :searchable="true"><span slot="noResult">No PMs found.</span></multiselect>
               </div> -->
 
             </dx-data-grid>
@@ -175,13 +160,13 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['defaultRiskRegister'])
+    ...mapGetters(['defaultRiskRegister', 'uniquePms'])
   },
   methods: {
     ...mapActions(['fetchDefaultRiskRegister']),
     cellClick(e, i) {
       console.log(e)
-      if (e.column.dataType === 'string') {
+      if (e.column.dataType === 'string' && e.rowType === 'data' && e.column.allowEditing) {
         this.selectedCategory = i
         this.selectedRowIndex = e.rowIndex
         this.selectedField = e.column.dataField

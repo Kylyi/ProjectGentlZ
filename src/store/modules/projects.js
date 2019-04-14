@@ -162,6 +162,21 @@ const getters = {
         }
       }, [])
   },
+  allProjectsUniqueProjects: (state) => {
+    const projsBasic = state.allProjectsBasic
+    if (projsBasic.length === 0) return []
+    
+    return projsBasic.reduce((agg, e) => {
+      const f = agg.map(a => a['Project Definition'] === e['Project Definition']).indexOf(true)
+      if (f !== -1) {
+        agg[f]['netsKeys'].push(e._id)
+        return agg
+      } else {
+        e['netsKeys'] = [e._id]
+        return [...agg, e]
+      }
+    }, [])
+  },
   // riskRegisterTraces: state => {
   //   if (state.chosenProjects.length === 0) return { data: [], layout: {}, config: { responsive: true } }
 

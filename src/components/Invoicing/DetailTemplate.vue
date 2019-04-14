@@ -265,11 +265,11 @@
       transition="slide-y-transition"
     >
       <v-list style="padding: 0;" id="checkSignsList">
-        <v-list-tile v-for="comment in reversedSignComments" :key="comment.comment">
+        <v-list-tile v-for="(comment, i) in reversedSignComments" :key="comment.comment">
           <v-list-tile-action>
             <tr style="vertical-align: middle;">
               <td style="width: 350px; word-break: break-word;"><span style="color: gray;">{{comment.owner}} - {{comment.time}}: </span>{{comment.comment}}</td>
-              <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment)" color="error">close</v-icon></td>
+              <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment, i)" color="error">close</v-icon></td>
             </tr>
           </v-list-tile-action>
         </v-list-tile>
@@ -366,6 +366,7 @@
   export default {
     async created() {
       this.revisionsAvailable = await this.fetchProjectRevisions(this.templateData.key)
+      this.signOptions = this.userInfo.roles.includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
     },
     data: function () {
       return {
@@ -383,7 +384,7 @@
         selectedSign: 'info',
         signComment: '',
         hiddenFieldsCount: 0,
-        signOptions: ['warning', 'info', 'arrow_upward', 'arrow_downward']
+        signOptions: []
       }
     },
     props: {
@@ -444,18 +445,17 @@
         this.currentField = field
         this.signComment = ''
 
-        this.$nextTick(() => {
-          this.showMenu = true
-        })
+        this.showMenu = true
       },
       changeSign () {
         const sign = this.selectedSign
+        const time = new Date()
+
         if (this.$props.templateData.data.sign.hasOwnProperty(this.currentField)) {
           // let iconExists = this.$props.templateData.data.sign[this.currentField].find(e => e.startsWith(sign))
           
           let iconExists = Object.keys(this.$props.templateData.data.sign[this.currentField]).includes(sign)
           if (iconExists) {
-            const time = new Date()
             this.$props.templateData.data.sign[this.currentField][sign].push({
               comment: this.signComment,
               owner: username.sync(),
@@ -469,7 +469,8 @@
             this.$props.templateData.data.sign[this.currentField] = Object.assign({}, this.$props.templateData.data.sign[[this.currentField]], {
               [sign]: [{
                 comment: this.signComment,
-                owner: username.sync()
+                owner: username.sync(),
+                time: time.toUTCString()
               }]
             })
             // this.$props.templateData.data.sign[this.currentField].push(sign+' - ' + this.signComment)
@@ -480,7 +481,8 @@
             [sign]: [
               {
                 comment: this.signComment,
-                owner: username.sync()
+                owner: username.sync(),
+                time: time.toUTCString()
               }
             ]
           }})
@@ -489,9 +491,7 @@
           // this.$props.templateData.data.sign = Object.assign({}, this.$props.templateData.data.sign, {[this.currentField]: [sign+' - ' + this.signComment]})
         }
 
-        this.$nextTick(() => {
-          this.showMenu = false
-        })
+        this.showMenu = false
       },
       signInfo (e, values, key, field) {
         e.preventDefault()
@@ -499,39 +499,24 @@
         this.currentPosition['left'] = e.clientX
         this.currentPosition['top'] = e.clientY
         this.currentField = field
-        // let signComments = values
 
         this.currentSign = key
-        this.signComments = values
+        this.signComments = JSON.parse(JSON.stringify(values))
 
-        this.$nextTick(() => {
-          this.showSignInfo = true
-        })
+        this.showSignInfo = true
       },
-      removeSignComment (comment) {
+      removeSignComment (comment, idx) {
         if ((comment.owner !== username.sync()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) {
           return 
         }
 
         let remainingSignComments = this.$props.templateData.data.sign[this.currentField][this.currentSign]
-        remainingSignComments = remainingSignComments.filter(e => e !== comment)
-
-        if (remainingSignComments.length > 0) {
-          this.$props.templateData.data.sign[this.currentField][this.currentSign] = remainingSignComments
+        
+        if (remainingSignComments.length !== 1) {
+          this.$props.templateData.data.sign[this.currentField][this.currentSign].splice(remainingSignComments.length - 1 - idx, 1)
         } else {
-          delete this.$props.templateData.data.sign[this.currentField][this.currentSign]
-
+          this.$delete(this.$props.templateData.data.sign[this.currentField], [this.currentSign])
         }
-
-        // const iconExists = this.$props.templateData.data.sign[this.currentField].find(e => e.startsWith(this.currentSign))
-        // const ix = this.$props.templateData.data.sign[this.currentField].indexOf(iconExists)
-
-        // if (this.signComments.length === 1) {
-        //   this.$props.templateData.data.sign[this.currentField].splice(ix, 1)
-        // } else {
-        //   const x = this.$props.templateData.data.sign[this.currentField][ix].replace(' -'+comment, '')
-        //   this.$props.templateData.data.sign[this.currentField][ix] = x
-        // }
       },
       getColor(icon) {
         if (icon === 'arrow_upward') {

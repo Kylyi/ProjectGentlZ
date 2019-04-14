@@ -93,7 +93,8 @@
           </v-flex>
           <v-flex row wrap>
             <el-collapse v-model="selectedTab">
-              <el-collapse-item title="Projects" name="projects">
+              <el-collapse-item name="projects">
+                <span slot="title" style="padding-left:5px;"> Projects </span>
                 <v-tabs v-if="chosenProjects.length > 0">
                   <v-tab
                     v-for="(item,i) in chosenProjects"
@@ -124,7 +125,8 @@
                 <v-flex row wrap v-else text-xs-center>No project chosen.</v-flex>
               </el-collapse-item>
 
-              <el-collapse-item title="Templates" name="templates">
+              <el-collapse-item name="templates">
+                <span slot="title" style="padding-left:5px;"> Templates </span>
                 <v-tabs  v-if="chosenTemplates.length > 0">
                   <v-tab
                     v-for="(item,i) in chosenTemplates"

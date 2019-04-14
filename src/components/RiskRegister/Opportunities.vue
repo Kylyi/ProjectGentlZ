@@ -34,12 +34,14 @@
                 alignment="left"
                 :allow-sorting="false"
                 :allow-resizing="true"
+                :allow-editing="false"
               />
               <dx-column
                 data-field="info"
                 caption="Description"
                 alignment="left"
                 :allow-sorting="false"
+                :allow-editing="false"
               />
               <dx-column
                 data-field="exists"
@@ -58,13 +60,12 @@
                 caption="Planned action for mitigation"
                 alignment="left"
                 :allow-sorting="false"
-                :allow-editing="false"
               />
               <dx-column
                 data-field="owner"
                 caption="Owner"
                 alignment="center"
-                :allow-sorting="true"
+                :allow-sorting="false"
               >
               </dx-column>
               <dx-column
@@ -180,8 +181,7 @@ export default {
   methods: {
     ...mapActions(['fetchDefaultRiskRegister']),
     cellClick(e, i) {
-      console.log(e)
-      if (e.column.dataType === 'string') {
+      if (e.column.dataType === 'string' && e.rowType === 'data' && e.column.allowEditing) {
         this.selectedCategory = i
         this.selectedRowIndex = e.rowIndex
         this.selectedField = e.column.dataField

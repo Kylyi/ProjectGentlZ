@@ -68,8 +68,8 @@
 
                 <div slot="delegateTemplate" slot-scope="templateData">
                   <v-icon 
-                    :color="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ? 'error' : ''" 
-                    v-html="'supervised_user_circle'" 
+                    color="info" 
+                    v-html="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ?'fas fa-chess-pawn' : ''" 
                     :title="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ? String(templateData.data.temporaryAssign.personName) : ''"
                   />
                 </div>

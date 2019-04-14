@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app id="app">
     <template v-if="loggedIn">
       <!-- Navigation drawer LEFT -->
       <v-navigation-drawer
@@ -100,15 +100,30 @@
           </v-list-group>
 
           <!-- Risk Register -->
-          <v-list-tile router to="/riskRegister">
-            <v-list-tile-action>
-              <v-icon>business</v-icon>
-            </v-list-tile-action>
-            <v-list-tile-content>
-              <v-list-tile-title>Risk register</v-list-tile-title>
-            </v-list-tile-content>
-          </v-list-tile>
+          <v-list-group prepend-icon="business">
 
+            <v-list-tile slot="activator">
+              <v-list-tile-title>Risk register</v-list-tile-title>
+            </v-list-tile>
+            
+            <v-list-tile 
+              router
+              :to="item.to"
+              :key="i"
+              v-for="(item, i) in riskRegister"
+              exact>
+
+            <v-list-tile-action>
+              <v-icon v-html="item.icon"></v-icon>
+            </v-list-tile-action>
+
+            <v-list-tile-content>
+              <v-list-tile-title v-text="item.title"></v-list-tile-title>
+            </v-list-tile-content>
+
+            </v-list-tile>
+
+          </v-list-group>
 
           <!-- Bottom -->
           <v-list-tile router to="/settings" class="bottom" style="bottom:48px;">
@@ -315,6 +330,10 @@
     z-index: 50;
     color: #fff;
   }
+
+  #app {
+    background-color: #F5F5F5;
+  }
 </style>
 
 
@@ -368,6 +387,10 @@
       ],
       projects: [
         { icon: 'supervised_user_circle', title: 'Delegate projects', to: '/delegateProjects'}
+      ],
+      riskRegister: [
+        { icon: 'edit', title: 'Manage risk register', to: '/riskRegister'},
+        { icon: 'grid_on', title: 'Aggregate view', to: '/riskRegisterAggregate'},
       ]
     }),
     computed: {

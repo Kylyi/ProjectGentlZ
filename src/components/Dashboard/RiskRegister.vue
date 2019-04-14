@@ -13,9 +13,8 @@
           argument-field="mainCategory"
           value-field="priceImpact"
           type="stackedbar"
-          hover-mode="allArgumentPoints"
+          hover-mode="nearestPoint"
         />
-        </dx-title>
         <dx-legend
           vertical-alignment="bottom"
           horizontal-alignment="center"

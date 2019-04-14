@@ -148,7 +148,7 @@
           argument-field="mainCategory"
           value-field="priceImpact"
           type="stackedbar"
-          hover-mode="allArgumentPoints"
+          hover-mode="nearestPoint"
         />
         <dx-title text="Overview">
         </dx-title>
@@ -270,7 +270,7 @@ export default {
       this.bilance = bilance
 
 
-      return risksAndOpp
+      return bilance.chartData
     }
   }
 }

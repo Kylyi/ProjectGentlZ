@@ -115,7 +115,7 @@ export default {
         if (netWithRiskRegister.riskRegister.hasOwnProperty('risks')) {
           this.riskRegister = JSON.parse(JSON.stringify(netWithRiskRegister.riskRegister))
         } else {
-          if (this.defaultRiskRegister.length > 0) {
+          if (this.defaultRiskRegister.hasOwnProperty(('risks'))) {
             this.riskRegister = this.defaultRiskRegister
           } else {
             await this.fetchDefaultRiskRegister()
