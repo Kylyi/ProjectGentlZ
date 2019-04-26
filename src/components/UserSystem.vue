@@ -17,6 +17,7 @@
           <v-flex row wrap>
             <v-btn @click="dialogNewPerson = true" color="primary" style="margin: 0;">New person</v-btn>
             <v-btn @click="dialogNewGroup = true" color="accent" style="margin: 0;">New group</v-btn>
+            <v-btn icon @click="saveHierSettings"><v-icon>save</v-icon></v-btn>
           </v-flex>
           <v-flex row wrap mt-3>
             <sl-vue-tree v-model="nodes" style="width: 300px;">
@@ -109,6 +110,7 @@
 import SlVueTree from 'sl-vue-tree'
 import 'sl-vue-tree/dist/sl-vue-tree.js'
 import 'sl-vue-tree/dist/sl-vue-tree-dark.css'
+import { mapActions } from 'vuex';
 
 export default {
   name: 'UserSystem',
@@ -133,10 +135,14 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['overwriteHierarchySettings']),
     addGroup() {
       this.nodes.push({title: this.newGroupName, isLeaf: false})
       this.$refs['newGroupForm'].reset()
       this.dialogNewGroup = false
+    },
+    async saveHierSettings() {
+      this.overwriteHierarchySettings(this.nodes)
     }
   }
 }
