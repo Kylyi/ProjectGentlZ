@@ -8,6 +8,11 @@
 
       </v-flex>
     </v-layout>
+
+    <v-layout v-show="showDev" row wrap v-shortkey="['ctrl', 'alt', 'o']" @shortkey="showDev = !showDev">
+      <v-flex row wrap><v-btn @click="getDevTools">GET ALL PROJECTS</v-btn></v-flex>
+    </v-layout>
+
     <v-container fluid>
       <v-layout row wrap>
         <v-flex column wrap xs8>
@@ -42,16 +47,25 @@ import ProjectsGrid from './Dashboard/ProjectsGrid'
 import RiskRegister from './Dashboard/RiskRegister'
 import Tasks from './Dashboard/Tasks'
 import { mapGetters, mapActions } from "vuex";
+import { ipcRenderer } from 'electron'
 
 export default {
   name: 'Dashboard',
+  data: () => {
+    return {
+      showDev: false
+    }
+  },
   components: {
     ProjectsGrid,
     RiskRegister,
     Tasks
   },
   methods: {
-    ...mapActions(['addActiveProjects'])
+    ...mapActions(['addActiveProjects']),
+    getDevTools() {
+      ipcRenderer.send('showDevTools')
+    }
   },
   computed: mapGetters(['chosenProjects', 'taskInfo'])
 }

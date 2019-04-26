@@ -88,10 +88,11 @@
             <template-selector ref="tmplS" />
           </v-flex>
 
-          <v-flex row wrap text-xs-right mt-1>
+          <v-flex row wrap text-xs-right mt-2>
             <v-btn outline color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)">Generate</v-btn>
           </v-flex>
-          <v-flex row wrap>
+
+          <v-flex row wrap mt-3>
             <el-collapse v-model="selectedTab">
               <el-collapse-item name="projects">
                 <span slot="title" style="padding-left:5px;"> Projects </span>
@@ -141,8 +142,7 @@
                       :key="i"
                     >
                       <v-layout column wrap mt-2>
-                      <v-flex row wrap text-xs-center>
-                        {{item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'}}
+                      <v-flex row wrap v-html="item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'">
                       </v-flex>
                       </v-layout>
                     </v-tab-item>

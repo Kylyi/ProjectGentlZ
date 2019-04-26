@@ -3,7 +3,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/settings')
+const remoteSettings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/settings')
 const settings = new PouchDB('src/db/settings')
 settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
@@ -17,12 +17,13 @@ const state = {
 }
 
 const getters = {
-  invoicingSettings: state => state.invoicing
+  invoicingSettings: state => state.invoicingSettings
 }
 
 const actions = {
   async fetchInvoicingSettings({ commit }) {
     const invSettings = await settings.get('invoicing')
+    console.log(invSettings)
     commit('setInvoicingSettings', invSettings)
   },
   async overwriteInvoicingSettings() {

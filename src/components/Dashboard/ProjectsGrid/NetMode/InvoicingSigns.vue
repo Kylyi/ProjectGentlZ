@@ -1,12 +1,13 @@
 <template>
     <div>
       <span v-for="sign in Object.keys(invoicingSigns).sort()" :key="sign">
-        <v-icon small v-html="sign" :color="getColor(sign)" />
+        <v-icon small v-html="sign" @click.stop="setSignInfo($event, sign)" :color="getColor(sign)" />
       </span>
     </div>
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 export default {
   name: 'NetModeInvoicingSigns',
   props: {
@@ -39,17 +40,23 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['setCurrentPosition', 'signInfo']),
     getColor(icon) {
-        if (icon === 'arrow_upward') {
-          return 'success'
-        } else if (icon === 'arrow_downward') {
-          return 'warning'
-        } else if (icon === 'warning') {
-          return 'error'
-        } else {
-          return 'info'
-        }
+      if (icon === 'arrow_upward') {
+        return 'success'
+      } else if (icon === 'arrow_downward') {
+        return 'warning'
+      } else if (icon === 'warning') {
+        return 'error'
+      } else {
+        return 'info'
       }
+    },
+    setSignInfo(e, sign) {
+      this.setCurrentPosition(e)
+      this.signInfo(this.invoicingSigns[sign])
+      this.$root.$emit('show-sign-info', true)
+    }
   }
 }
 </script>

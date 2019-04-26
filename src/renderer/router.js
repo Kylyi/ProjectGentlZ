@@ -41,6 +41,11 @@ export default new Router({
       component: require('../components/RiskRegisterAggregate.vue').default
     },
     {
+      path: '/userSystem',
+      name: 'userSystem',
+      component: require('../components/UserSystem.vue').default
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: require('../components/Settings.vue').default

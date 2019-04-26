@@ -1,221 +1,119 @@
 <template>
-  <v-layout row wrap style="margin:10px;">
-
-    <v-flex column xs12 wrap>
-      <v-flex row wrap xs1><p class="subheading primary--text" style="margin-bottom: 0;">Detailed info</p></v-flex>
-      <v-flex row wrapx>You can modify detailed info in settings.</v-flex>
-    </v-flex>
+  <v-layout id="detailTemplate" column wrap style="margin: 10px;">
+    <v-layout row wrap>
+      <p class="subheading primary--text" style="margin-bottom: 0;">Detailed info</p>
+    </v-layout>
 
     <v-divider></v-divider>
     
-    <v-layout row wrap>
-      <!-- LEFT SIDE -->
-      <v-flex column xs6 mt-2 style="border-right: 1px solid darkgray;" id="netDetail">
+    <v-layout row wrap pt-2>
+      <v-flex column grow>
+        <v-layout row wrap>
+          <v-flex column xs5>
+            <v-layout row wrap v-for="v in invoicingDetail" :key="v.value">
+              <!-- ICONS -->
+              <v-flex column xs6 md4 lg3 xl2>
+                <v-layout row wrap justify-center align-center fill-height>
+                  <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
+                    :color="getColor(key)" v-html="key">
+                  </v-icon>
+                </v-layout>
+              </v-flex>
 
-        <v-layout align-end row>
-          <v-flex wrap column offset-xs3 xs4><b>Current version</b></v-flex>
-          <v-flex wrap column xs3 id="revPick">
+              <!-- FIELDS -->
+              <v-flex column xs6 md8 lg3 xs3 @contextmenu="contextM($event, v.value)" style="padding-right: 4px;">
+                <v-layout row wrap justify-end align-center fill-height>
+                  {{v.name}}
+                </v-layout>
+              </v-flex>
 
-            <v-autocomplete
-              v-model="selectedRevision"
-              :items="revisionsAvailable"
-              placeholder="Select older revision of this document"
-              no-data-text="There are no other revisions than the current one."
-              item-text="rev"
-              @change="getRevData"
-            ></v-autocomplete>
+              <!-- VALUES -->
+              <v-flex column xs10 md10 lg5 xl6>
+                <!-- DATE TYPE -->
+                <template v-if="v.dataType === 'date'">
+                  <el-date-picker
+                    size="mini"
+                    v-model="templateData.data[v.value]"
+                    type="date"
+                    :disabled="!v.editable"
+                    placeholder="Pick a day"
+                    format="dd.MM.yyyy"
+                    :firstDayOfWeek="1"
+                    style="width: 100%;"
+                    >
+                  </el-date-picker>
+                </template>
+
+                <!-- NUMBER TYPE -->
+                <template v-else-if="v.dataType === 'number'">
+                  <div :class="`el-input el-input--mini ${!v.editable ? 'is-disabled' : ''}`">
+                    <vue-numeric
+                    v-model="templateData.data[v.value]"
+                    style="width: 100%; height: 28px; text-align: center;"
+                    class="el-input__inner"
+                    thousand-separator=" "
+                    decimal-separator=","
+                    :precision="0"
+                    :disabled="!v.editable"
+                  ></vue-numeric>
+                  </div>
+                </template>
+
+                <!-- INVOICE DATE -->
+                <template v-else-if="v.dataType == 'special'">
+                  <el-date-picker
+                    size="mini"
+                    v-model="templateData.data[v.value][invoicingLastUpdate]"
+                    type="date"
+                    :disabled="!v.editable"
+                    placeholder="Pick a day"
+                    format="dd.MM.yyyy"
+                    :firstDayOfWeek="1"
+                    style="width: 100%;"
+                  >
+                  </el-date-picker>
+                </template>
+
+        
+                <template v-else>
+                  <el-input
+                    :type="v.dataType"
+                    size="mini"
+                    prefix-icon="el-icon-edit"
+                    :disabled="!v.editable"
+                    v-model="templateData.data[v.value]"
+                    style="width: 100%;"  
+                  >
+                  </el-input>
+                </template>
+              </v-flex>
+
+              <!-- FIXING -->
+              <v-flex column xs2 md2 lg1 xl1>
+                <v-layout row wrap justify-center align-center fill-height>
+                  <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
+                </v-layout>
+              </v-flex>
+            </v-layout>
+            
+          </v-flex>
+
+          <v-flex column xs7>
+            <table :style="`display: block; max-height: ${invoicingDetail.length * 28}px; overflow: auto;`">
+              <tbody>
+                <tr v-for="(comment, index) in ppesComments" :key="index">
+                  <td>{{comment}}</td>
+                </tr>
+              </tbody>
+            </table>
           </v-flex>
         </v-layout>
-
-        <v-layout row wrap v-for="v in detailInfo" :key="v.value">
-          <!-- FIELD NAMES -->
-          <!-- INV DATE -->
-          <v-flex column xs3 style="display: grid;" v-if="v.value === 'Invoice Date'">
-            <v-layout row align-center @contextmenu="contextM($event, `Invoice Date[${invoicingLastUpdate}]`)">
-              <v-flex column shrink>
-                  <v-icon small v-for="(values,key) in templateData.data['sign'][`Invoice Date[${invoicingLastUpdate}]`]" :key="key" @click="signInfo($event, values, key, `Invoice Date[${invoicingLastUpdate}]`)"
-                  :color="getColor(key)" v-html="key"></v-icon>
-              </v-flex>
-              <v-flex column grow text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
-            </v-layout>
-          </v-flex>
-
-          <!-- NOT INV DATE -->
-          <v-flex column xs3 style="display: grid;" v-else>
-            <v-layout row align-center @contextmenu="contextM($event, v.value)">
-              <v-flex column shrink>
-                  <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
-                  :color="getColor(key)" v-html="key"></v-icon>
-              </v-flex>
-              <v-flex column grow text-xs-right style="padding-right: 8px;">{{v.name}}:</v-flex>
-            </v-layout>
-          </v-flex>
-
-          <!-- CURRENT VERSION VALUES -->
-          <v-flex column xs4 v-if="!Array.isArray(templateData.data[v.value])">
-
-            <!-- DATE FIELDS -->
-            <v-layout v-if="v.dataType === 'date'">
-              <v-flex style="width:100%;">
-                <el-date-picker
-                  size="mini"
-                  v-model="templateData.data[v.value]"
-                  type="date"
-                  :readonly="!v.editable"
-                  placeholder="Pick a day"
-                  format="dd.MM.yyyy"
-                  :firstDayOfWeek="1">
-                </el-date-picker>
-              </v-flex>
-              <v-flex>
-                <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
-              </v-flex>
-            </v-layout>
-
-            <!-- SPECIAL FIELDS (INVOICE DATE) -->
-            <v-layout v-else-if="v.dataType === 'special'">
-              <v-flex style="width:100%;">
-                <el-date-picker
-                  size="mini"
-                  v-model="templateData.data[v.value][invoicingLastUpdate]"
-                  type="date"
-                  :readonly="!v.editable"
-                  placeholder="Pick a day"
-                  format="dd.MM.yyyy"
-                  :firstDayOfWeek="1">
-                </el-date-picker>
-              </v-flex>
-              <v-flex>
-                <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
-              </v-flex>
-            </v-layout>
-
-            <!-- NUMBER FIELDS -->
-            <v-layout v-else-if="v.dataType === 'number'">
-              <v-flex style="width:100%;">
-                <el-input-number
-                  :type="v.dataType"
-                  size="mini"
-                  prefix-icon="el-icon-edit"
-                  :readonly="!v.editable"
-                  v-model="templateData.data[v.value]"
-                  :precision="0"
-                  :controls="false"
-                  style="width: 100%"
-                >
-                </el-input-number>
-              </v-flex>
-              <v-flex>
-                <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
-              </v-flex>
-            </v-layout>
-
-            <!-- TEXT FIELDS -->
-            <v-layout v-else>
-              <v-flex style="width:100%;">
-                <el-input
-                  :type="v.dataType"
-                  size="mini"
-                  prefix-icon="el-icon-edit"
-                  :step="v.dataType = 'number' ? '.01' : ''"
-                  :readonly="!v.editable"
-                  v-model="templateData.data[v.value]">
-                </el-input>
-              </v-flex>
-              <v-flex>
-                <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
-              </v-flex>
-            </v-layout>
-          </v-flex>
-
-          <!-- REVISION VALUES -->
-          <v-flex column xs4 v-if="oldDoc">
-
-            <!-- DATE FIELDS -->
-            <v-layout v-if="v.dataType === 'date'">
-              <v-flex style="width:100%;">
-                <el-date-picker
-                  size="mini"
-                  v-model="oldDoc[v.value]"
-                  type="date"
-                  :readonly="!v.editable"
-                  placeholder="Pick a day"
-                  format="dd.MM.yyyy">
-                </el-date-picker>
-              </v-flex>
-            </v-layout>
-
-            <!-- SPECIAL FIELDS (INVOICE DATE) -->
-            <v-layout v-else-if="v.dataType === 'special'">
-              <v-flex style="width:100%;">
-                <el-date-picker
-                  size="mini"
-                  v-model="oldDoc[v.value][invoicingCompareDate]"
-                  type="date"
-                  :readonly="!v.editable"
-                  placeholder="Pick a day"
-                  format="dd.MM.yyyy">
-                </el-date-picker>
-              </v-flex>
-            </v-layout>
-
-            <!-- NUMBER FIELDS -->
-            <v-layout v-else-if="v.dataType === 'number'">
-              <v-flex style="width:100%;">
-                <el-input-number
-                  :type="v.dataType"
-                  size="mini"
-                  prefix-icon="el-icon-edit"
-                  :readonly="!v.editable"
-                  v-model="templateData.data[v.value]"
-                  :precision="0"
-                  :controls="false"
-                  style="width: 100%"
-                >
-                </el-input-number>
-              </v-flex>
-            </v-layout>
-
-            <!-- NON-DATE FIELDS -->
-            <v-layout v-else>
-              <v-flex style="width:100%;">
-                <el-input
-                  :type="v.dataType"
-                  size="mini"
-                  prefix-icon="el-icon-edit"
-                  :readonly="!v.editable"
-                  v-model="oldDoc[v.value]">
-                </el-input>
-              </v-flex>
-            </v-layout>
-
-          </v-flex>
-        </v-layout>        
       </v-flex>
 
-
       <!-- RIGHT SIDE -->
-      <v-flex column xs6 mt-2>
+      <v-flex column shrink pl-3>
         <v-layout row wrap><v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></v-layout>
         <v-layout row wrap pl-2 pr-2>
-
-          <v-expansion-panel>
-            <v-expansion-panel-content :disabled="hiddenFieldsCount === 0">
-              <div slot="header">Hidden fields with attention</div>
-              <v-icon slot="actions" :color="hiddenFieldsCount > 0 ? 'error' : 'success'" v-html="hiddenFieldsCount > 0 ? 'warning' : 'check'"/>
-
-              <v-card>
-                <v-card-text>
-                  <tr>
-                    <template v-for="v in hiddenColumns">
-                      <td :key="v.value" style="padding-right:4px;">{{v.name}}</td>
-                    </template>
-                  </tr>
-                </v-card-text>
-              </v-card> 
-
-            </v-expansion-panel-content>
-          </v-expansion-panel>
 
         </v-layout>
       </v-flex>
@@ -268,8 +166,16 @@
         <v-list-tile v-for="(comment, i) in reversedSignComments" :key="comment.comment">
           <v-list-tile-action>
             <tr style="vertical-align: middle;">
-              <td style="width: 350px; word-break: break-word;"><span style="color: gray;">{{comment.owner}} - {{comment.time}}: </span>{{comment.comment}}</td>
-              <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment, i)" color="error">close</v-icon></td>
+              <td style="width: 400px; word-break: break-word; border-bottom: 1px dashed gray;"><span style="color: black;">{{comment.owner}} - {{comment.time}}</span></td>
+              <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment, i)" color="error">delete</v-icon></td>
+            </tr>
+            <tr>
+              <td style="width: 400px; word-break: break-word;">
+                {{comment.comment}}
+              </td>
+              <td width="24px;">
+
+              </td>
             </tr>
           </v-list-tile-action>
         </v-list-tile>
@@ -284,6 +190,10 @@
     font-size: 12px;
     font-weight: bolder;
     padding: 0
+  }
+
+  #detailTemplate .el-input > input {
+    color: black;
   }
 
   #revPick > div {
@@ -358,23 +268,20 @@
 
 <script>
   import {readFile} from '../../main/scripts/misc'
-  const path = require('path')
-  const isDev = require('electron-is-dev')
-  import { mapGetters, mapActions } from 'vuex';
+  import { mapGetters, mapActions } from 'vuex'
   import username from 'username'
+  import { DxNumberBox } from 'devextreme-vue';
 
   export default {
     async created() {
-      this.revisionsAvailable = await this.fetchProjectRevisions(this.templateData.key)
+      // this.revisionsAvailable = await this.fetchProjectRevisions(this.templateData.key)
       this.signOptions = this.userInfo.roles.includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
+    },
+    components: {
+      DxNumberBox
     },
     data: function () {
       return {
-        detailInfo: isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'invoicingDetails.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8')),
-        allColumns: isDev ? JSON.parse(readFile(path.join(path.dirname(__dirname), '..', 'defaultSettings', 'invoicingColumns.json'), 'utf-8')) : JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8')),
-        revisionsAvailable: [],
-        selectedRevision: null,
-        oldDoc: null,
         currentPosition: {left: 0, top: 0},
         currentField: null,
         showMenu: false,
@@ -383,45 +290,22 @@
         currentSign: '',
         selectedSign: 'info',
         signComment: '',
-        hiddenFieldsCount: 0,
         signOptions: []
       }
     },
-    props: {
-      templateData: {
-        type: Object,
-        default: () => {}
-      }
-    },
+    props: ['templateData'],
     computed: {
-      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate', 'userInfo']),
-      hiddenColumns: {
-        get: function () {
-          this.allColumns.push({dataType: 'date', editable: false, name: 'Invoice date', value: `Invoice Date`, visible: true})
-          const hiddenC = this.allColumns.filter(e => {
-            const isInDetail = this.detailInfo.filter(x => e.value === x.value)
-
-            return isInDetail.length < 1
-          })
-
-          const hiddenCols = hiddenC.filter(e => {
-            return (this.$props.templateData.data.sign.hasOwnProperty(e.value) && Object.keys(this.$props.templateData.data.sign[e.value]).length > 0)
-          })
-
-          this.hiddenFieldsCount = hiddenCols.length
-          return hiddenCols
-        }
-      },
+      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate', 'userInfo', 'invoicingDetail']),
       reversedSignComments() {
         const reversed = this.signComments.reverse()
         return reversed
+      },
+      ppesComments() {
+        return this.templateData.data['Network Note'].split('|')
       }
     },
     methods: {
       ...mapActions(['fetchProjectRevisions', 'getRevisionInfo', 'changeProjectData']),
-      async getRevData (e) {
-        this.oldDoc = await this.getRevisionInfo({netNum:this.templateData.key, revId: e})
-      },
       async changeData(e) {
         const fixedFields = this.$props.templateData.data.fixedFields
 
@@ -439,6 +323,9 @@
       },
       contextM (e, field) {
         e.preventDefault()
+        if (field !== 'Network Num') {
+          return
+        }
         this.showMenu = false
         this.currentPosition['left'] = e.clientX
         this.currentPosition['top'] = e.clientY

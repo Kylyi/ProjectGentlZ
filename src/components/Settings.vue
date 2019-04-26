@@ -1,40 +1,101 @@
 <template>
-  <v-container fluid>
-    <v-layout row wrap>
-      <v-flex class="xs12 row wrap" mb-4>
-        <h3 class="display-2"><span class="tit">Settings</span></h3>
-      </v-flex>
+  <v-layout column wrap>
 
+
+    <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
+      <v-flex column shrink>
+        <h3 class="display-2 white--text">Settings</h3>
+      </v-flex>
+      <v-flex column grow>
+
+      </v-flex>
+    </v-layout>
+
+    <v-container fluid>
       <v-layout row wrap>
-        <v-expansion-panel>
+        <v-expansion-panel v-model="expansionOpen">
           <!-- USER SETTINGS -->
           <v-expansion-panel-content>
-            <v-flex slot="header"><b>User settings</b></v-flex>
-            <v-card>
-              <v-card-text style="padding-top: 0">
-                <v-layout row wrap>
-                  <v-flex column wrap xs12>
-                    These are settings concerning your personal account on Gentl.
+            <span slot="header"><b>User settings</b></span>
+            <v-layout row wrap v-if="expansionOpen === 0" style="padding: 0px 24px 10px 24px; text-align:justify;">
+
+              <!-- DATA-MAPPING -->
+              <v-flex column shrink>
+                <v-flex row wrap>
+                  <v-layout row wrap>
+                    <v-layout column grow justify-center>
+                      <b class="subheading primary--text">Data-mapping settings</b>
+                    </v-layout>
+                    <v-layout column shrink>
+                      <v-btn @click="changeUser(sapUsername, sapUsernumber)" flat icon style="margin: 0;"><v-icon>save</v-icon></v-btn>
+                    </v-layout>
+                  </v-layout>
+                </v-flex>
+                <v-flex row wrap mt-2>
+                  <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="Jméno Příjmení"></v-text-field>
+                </v-flex>
+                <v-flex row wrap mt-2>
+                  <v-text-field v-model="sapUsernumber" style="width: 200px;" hide-details label="SAP personal number" placeholder="0XXXXXXXX"></v-text-field>
+                </v-flex>
+              </v-flex>
+
+              <!-- CONTACT INFO -->
+              <v-flex column shrink pl-5>
+                <v-flex row wrap>
+                  <v-layout row wrap>
+                    <v-layout column grow justify-center>
+                      <b class="subheading primary--text">Contact</b>
+                    </v-layout>
+                    <v-layout column shrink>
+                      <v-btn @click="changeContactInfo(userEmail, userPhone)" flat icon style="margin: 0;"><v-icon>save</v-icon></v-btn>
+                    </v-layout>
+                  </v-layout>
+                </v-flex>
+                <v-form v-model="contactInfoForm" @submit.prevent="changeContactInfo(userEmail, userPhone)" ref="contactInfoForm">
+                  <v-flex row wrap mt-2>
+                    <v-text-field hide-details suffix="@cz.abb.com" label="Email address" v-model="userEmail" validate-on-blur :rules="[v => (v && v.length > 0) || 'Empty']"></v-text-field>
                   </v-flex>
-                  <v-flex column>
-                    <v-flex row wrap mt-4>
-                      <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="Jméno Příjmení"></v-text-field>
-                    </v-flex>
-                    <v-flex row wrap mt-4>
-                      <v-text-field v-model="sapUsernumber" style="width: 200px;" hide-details label="SAP personal number" placeholder="0XXXXXXXX"></v-text-field>
-                    </v-flex>
+                  <v-flex row wrap mt-2>
+                    <v-text-field hide-details prefix="+420" mask="###-###-###" label="Phone" v-model="userPhone" validate-on-blur :rules="[v => (v && v.length === 9) || 'Bad format']"></v-text-field>
                   </v-flex>
-                </v-layout>
-              </v-card-text>
-              <v-card-actions><v-btn @click="changeUser(sapUsername, sapUsernumber)" flat icon><v-icon>save</v-icon></v-btn> </v-card-actions>
-            </v-card>
+                </v-form>
+              </v-flex>
+              <v-flex column grow>
+
+              </v-flex>
+
+              <!-- PASSWORD CHANGE -->
+              <v-flex column shrink pl-5>
+                <v-flex row wrap>
+                  <v-layout row wrap>
+                    <v-layout column grow justify-center>
+                      <b class="subheading primary--text">Change password</b>
+                    </v-layout>
+                    <v-layout column shrink>
+                      <v-btn @click="changePwd" flat icon style="margin: 0;"><v-icon>save</v-icon></v-btn>
+                    </v-layout>
+                  </v-layout>
+                </v-flex>
+                <v-form v-model="changePasswordForm" @submit.prevent="changePwd" ref="changePasswordForm">
+                  <v-flex row wrap mt-2>
+                    <v-text-field v-model="oldPassword" type="password" hide-details style="width: 300px;" validate-on-blur :rules="[checkPwd]" required label="Old password"></v-text-field>
+                  </v-flex>
+                  <v-flex row wrap mt-2>
+                    <v-text-field v-model="newPassword" type="password" hide-details style="width: 300px;" validate-on-blur :rules="[pwdLengthRule]" required label="New password"></v-text-field>
+                  </v-flex>
+                  <v-flex row wrap mt-2>
+                    <v-text-field v-model="newPasswordAgain" type="password" hide-details style="width: 300px;" validate-on-blur :rules="[pwdSameRule]" required label="New password again"></v-text-field>
+                  </v-flex>
+                </v-form>
+              </v-flex>
+            </v-layout>
           </v-expansion-panel-content>
 
           <!-- Dashboard -->
           <v-expansion-panel-content>
             <span slot="header"><b>Dashboard & Template Generator</b></span>
 
-            <v-layout row wrap>
+            <v-layout row wrap v-if="expansionOpen === 1">
               <v-layout row wrap>
                 <v-flex column style="max-width: 650px; padding: 10px 24px; text-align:justify">
                   <v-flex row wrap mb-4>
@@ -75,7 +136,7 @@
           <v-expansion-panel-content>
             <span slot="header"><b>Invoicing</b></span>
 
-            <v-layout row wrap>
+            <v-layout row wrap v-if="expansionOpen === 2">
               <v-layout row wrap>
                 <v-flex column style="max-width: 650px; padding: 10px 24px; text-align:justify">
                   <v-flex row wrap mb-4>
@@ -128,20 +189,13 @@
                 </v-flex>
               </v-layout>
             </v-layout>
-
-
-
-
-
-
-
           </v-expansion-panel-content>
 
         </v-expansion-panel>
       </v-layout>
+    </v-container>
 
-    </v-layout>
-  </v-container>
+  </v-layout>
 </template>
 
 <style>
@@ -198,6 +252,9 @@ table.draggableTable .v-input__control {
     created: async function () {
       this.sapUsername = this.$store.getters.userInfo.sapUsername || null
       this.sapUsernumber = this.$store.getters.userInfo.sapUsernumber || null
+      this.userEmail = this.$store.getters.userInfo.email || null
+      this.userPhone = this.$store.getters.userInfo.phone || null
+
       this.projectsDetail = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
 
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
@@ -218,7 +275,7 @@ table.draggableTable .v-input__control {
       this.invoicingDetail =  x
     },
     computed: {
-      ...mapGetters(['obDailyPath1301', 'obDailyPath1601']),
+      ...mapGetters(['obDailyPath1301', 'obDailyPath1601', 'validPassword']),
       dragOptions() {
         return {
           animation: 200,
@@ -228,15 +285,27 @@ table.draggableTable .v-input__control {
         };
       }
     },
-    data: () => ({
-      invoicingDetail: [],
-      drag: false,
-      sapUsername: null,
-      sapUsernumber: null,
-      projectsDetail: []
-    }),
+    data: function () {
+      return {
+        invoicingDetail: [],
+        userEmail: '',
+        userPhone: '',
+        drag: false,
+        sapUsername: null,
+        sapUsernumber: null,
+        projectsDetail: [],
+        expansionOpen: null,
+        oldPassword: null,
+        newPassword: '',
+        newPasswordAgain: '',
+        pwdLengthRule: v => (v && v.length >= 5) || 'Not long enough.',
+        pwdSameRule: v => v === this.newPassword || 'Not the same password.',
+        changePasswordForm: false,
+        contactInfoForm: false
+      }
+    },
     methods: {
-      ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation', 'changeInvoicingDetail']),
+      ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation', 'changeInvoicingDetail', 'checkPassword', 'changePassword', 'notify', 'changeUserContactInfo']),
       triggerEdit(fileName) {
         this.editProjectsDetail({fileName, projectsDetailObj: this.projectsDetail})
       },
@@ -261,6 +330,36 @@ table.draggableTable .v-input__control {
       },
       changeUser(sapUsername, sapUsernumber) {
         this.changeUserSapName({sapUsername, sapUsernumber})
+      },
+      checkPwd(v) {
+        this.checkPassword(v)
+        return this.validPassword || 'Netusim'
+      },
+      changePwd() {
+        if (this.changePasswordForm) {
+          this.changePassword(this.newPassword)
+          this.$refs.changePasswordForm.reset()
+        } else {
+          this.notify({
+            text: 'Passwords don\'t match',
+            color: 'error',
+            state: true,
+            timeout: 3000
+          })
+        }
+      },
+      changeContactInfo(userEmail, userPhone) {
+        if (this.contactInfoForm) {
+          this.changeUserContactInfo({userEmail, userPhone})
+          this.$refs.contactInfoForm.reset()
+        } else {
+          this.notify({
+            text: 'There are some missing values',
+            color: 'error',
+            state: true,
+            timeout: 3000
+          })
+        }
       }
     },
     components: {draggable}

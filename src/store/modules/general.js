@@ -12,7 +12,10 @@ const state = {
   offline: true,
   snackbar: { text: null, color: null, state: null, timeout: 3000 },
   notifications: [],
-  dbConnectivity: false
+  dbConnectivity: false,
+  revision: '2',
+  currentPosition: {left: 0, top: 0},
+  customDialogBody: null
 }
 
 const getters = {
@@ -32,7 +35,10 @@ const getters = {
       {type: 'success', notifs: []}
     ])
   },
-  dbConnectivity: state => state.dbConnectivity
+  dbConnectivity: state => state.dbConnectivity,
+  revision: state => state.revision,
+  currentPosition: state => state.currentPosition,
+  customDialogBody: state => state.customDialogBody
 }
 
 const actions = {
@@ -76,6 +82,12 @@ const actions = {
   async clearLocalStorage() {
     localStorage.clear()
   },
+  async setCurrentPosition({ commit }, e) {
+    commit('setCurrentPosition', { x: e.clientX, y: e.clientY })
+  },
+  async setCustomDialogBody({ commit }, body) {
+    commit('setCustomDialogBody', body)
+  }
 }
 
 const mutations = {
@@ -85,7 +97,12 @@ const mutations = {
   removeNotification: (state, notifName) => {
     state.notifications = state.notifications.filter(e => e.name !== notifName)
   },
-  setDatabaseConnectivity: (state, dbConnectivity) => state.dbConnectivity = dbConnectivity
+  setDatabaseConnectivity: (state, dbConnectivity) => state.dbConnectivity = dbConnectivity,
+  setCurrentPosition: (state, { x, y }) => {
+    state.currentPosition['left'] = x
+    state.currentPosition['top'] = y
+  },
+  setCustomDialogBody: (state, body) => state.customDialogBody = body
 }
 
 export default {

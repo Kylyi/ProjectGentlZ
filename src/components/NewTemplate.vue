@@ -2,7 +2,7 @@
   <v-layout column wrap>
     <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
       <v-flex column shrink>
-        <h3 class="display-2 white--text">Import template</h3>
+        <h3 class="display-2 white--text">Manage templates</h3>
       </v-flex>
       <v-flex column grow>
 
@@ -13,32 +13,86 @@
       <v-layout row wrap>
         <!-- // Left side -->
         <v-flex column xs5>
-          
-          <!-- // Input for template name -->
-          <v-flex row xs7>
-            <v-form v-model="valid" ref="addTemplateForm" v-on:submit.prevent>
-                <v-text-field
-                  v-model="templateName"
-                  :rules="tmplNameRules"
-                  label="Template name"
-                  required
-                ></v-text-field>
+          <v-flex row wrap>
+            <v-layout row wrap>
+              <v-flex column xs4>
+                <v-btn @click="position='new'" outline
+                  :style="`width: 100%; margin: 0; background-color: ${position === 'new' ? 'black!important' : ''}; color: ${position === 'new' ? 'white!important' : ''};`"
+                >
+                  New template
+                </v-btn>
+              </v-flex>
+              <v-flex column xs4>
+                <v-btn @click="position='edit'" outline
+                  :style="`width: 100%; margin: 0; background-color: ${position === 'edit' ? 'black!important' : ''}; color: ${position === 'edit' ? 'white!important' : ''};`"
+                >
+                  Edit template
+                </v-btn>
+              </v-flex>
+            </v-layout>
+          </v-flex>
 
-                <v-text-field
-                  v-model="files.doc.fileName"
-                  :rules="fileNameRules"
-                  required
-                  style="display:none"
-                ></v-text-field>
+          <v-flex v-if="position==='edit'" row wrap mt-3>
+            <multiselect @input="setTemplateData" track-by="_id" label="_id" v-model="chosenTemplate" :options="allTemplatesBasic" placeholder="Select template"><span slot="noResult">No template found.</span></multiselect>
+          </v-flex>
 
-                <v-text-field
-                  v-model="files.preview.fileName"
-                  :rules="fileNameRules"
-                  required
-                  style="display:none"
-                ></v-text-field>
+          <!-- Input for template name -->
+          <v-flex row mt-3>
+            <v-layout column wrap>
+              <v-flex row wrap>
+                <v-form v-model="valid" ref="addTemplateForm" v-on:submit.prevent>
+                  <v-text-field
+                    v-model="templateName"
+                    :rules="tmplNameRules"
+                    label="Template name"
+                    required
+                    :disabled="position==='edit'"
+                  ></v-text-field>
 
-              </v-form>
+                  <v-text-field
+                    v-model="files.doc.fileName"
+                    :rules="fileNameRules"
+                    required
+                    style="display:none"
+                  ></v-text-field>
+
+                  <v-text-field
+                    v-model="files.preview.fileName"
+                    :rules="fileNameRules"
+                    required
+                    style="display:none"
+                  ></v-text-field>
+                </v-form>
+              </v-flex>
+
+              <!-- TEMPLATE DESCRIPTION -->
+              <v-flex row wrap mb-3 mt-2>
+                <label for="templateDescriptionEditor"><b>Template description</b></label>
+                <dx-html-editor
+                  id="templateDescriptionEditor"
+                  v-model="templateDescription"
+                  style="width: 100%; min-height: 200px;"
+                >
+                  <dx-toolbar>
+                    <dx-item format-name="bold"/>
+                    <dx-item format-name="italic"/>
+                    <dx-item format-name="strike"/>
+                    <dx-item format-name="underline"/>
+                    <dx-item format-name="separator"/>
+                    <dx-item format-name="alignLeft"/>
+                    <dx-item format-name="alignCenter"/>
+                    <dx-item format-name="alignRight"/>
+                    <dx-item format-name="alignJustify"/>
+                    <dx-item format-name="separator"/>
+                    <dx-item format-name="orderedList"/>
+                    <dx-item format-name="bulletList"/>
+                    <dx-item format-name="separator"/>
+                    <dx-item format-name="color"/>
+                    <dx-item format-name="background"/>
+                  </dx-toolbar>
+                </dx-html-editor>
+              </v-flex>
+            </v-layout> 
           </v-flex>
 
           <!-- DROPZONE DOC -->
@@ -105,7 +159,19 @@
 
           <!-- BUTTON -->
           <v-flex row mt-3>
-            <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="submit" depressed color="primary"> Insert template </v-btn>
+            <template v-if="position==='new'">
+              <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="submit" depressed color="primary"> Insert template </v-btn>
+            </template>
+            <template v-else>
+              <v-layout row wrap>
+                <v-flex column xs6>
+                  <v-btn style="margin:0" depressed color="accent" :disabled="!chosenTemplate" @click="deleteTemplate"> Remove template </v-btn>
+                </v-flex>
+                <v-flex column xs6 text-xs-right>
+                  <v-btn style="margin:0" depressed color="primary" :disabled="!valid" @click="submit"> Edit template </v-btn>
+                </v-flex>
+              </v-layout>
+            </template>
           </v-flex>
 
           <!-- HOWTO -->
@@ -117,10 +183,10 @@
               <p>Basic guidelines and rules to add new templates:
                 <ul>
                   <li>Template generator supports <b>.docx</b> and <b>.xlsx</b> formats.</li>
-                  <li>Previews of templates support <b>.PNG</b> and <b>JPG</b> formats.</li>
-                  <li>Template name doesn't have to be the same as the file name.</li>
+                  <li>Previews of templates support <b>.PNG</b> and <b>.JPG</b> formats.</li>
+                  <li>Template name doesn't have to be the same as the file name but it's preferred.</li>
                   <li>If you want to properly use the power of template generator, you can add fields that will automatically
-                    fill when generated. These fields must be in following format:
+                    fill when template gets generated. These fields must be in following format:
                     <ul>
                       <li><b>{field_name}</b> for MS Word files</li>
                       <li><b>${field_name}</b> for MS Excel files</li>
@@ -128,7 +194,7 @@
                     <br>
                   </li>
                   <li>
-                    Currently, templates have these fields to autofill: <br>
+                    Currently, templates support these fields to autofill: <br>
                       <b>[Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules], [Project Name], [Customer Name], [Customer Country], [Project Revenues], [Project OB], [Project Panels] </b>
                   </li>
                 </ul>
@@ -164,10 +230,18 @@ import vueDropzone from "vue2-dropzone"
 const {app, dialog} = require('electron').remote
 const fs = require('fs')
 const path = require('path')
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
+import {
+  DxHtmlEditor,
+  DxToolbar,
+  DxItem
+} from 'devextreme-vue/html-editor';
 
 export default {
   data: () => ({
+    position: 'new',
+    templateDescription: '',
+    chosenTemplate: null,
     valid: false,
     templateName: '',
     files: {
@@ -189,12 +263,15 @@ export default {
       v => /^[^.]*$/.test(v) || 'Template name mustn\'t contain dots'
     ],
     fileNameRules: [
-      v => !!v || 'Template name is required'
+      v => !!v || 'File name is required'
     ],
     templateExample: require('../renderer/assets/templateExample.png')
   }),
+  computed: {
+    ...mapGetters(['allTemplatesBasic'])
+  },
   methods: {
-    ...mapActions(['addTemplate', 'notify']),
+    ...mapActions(['addTemplate', 'notify', 'removeTemplate']),
     clear () {
       this.$refs.addTemplateForm.reset()
     },
@@ -202,6 +279,7 @@ export default {
       if (this.$refs.addTemplateForm.validate()) {
         this.addTemplate({
           templateName: this.templateName,
+          templateDescription: this.templateDescription,
           doc: {
             filePath: this.files.doc.filePath,
             fileName: this.files.doc.fileName,
@@ -263,8 +341,27 @@ export default {
           }
         })
     },
-    
+    setTemplateData(e) {
+      this.templateDescription = e ? e.templateDescription : ''
+      this.templateName = e ? e._id : ''
+      this.files.doc.fileName = e ? e.template_name : null
+      this.files.preview.fileName = e ? e.template_preview_name : null
+    },
+    async deleteTemplate(e) {
+      await this.removeTemplate(this.chosenTemplate._id)
+      this.chosenTemplate = null
+
+      this.templateDescription = ''
+      this.templateName = ''
+      this.files.doc.fileName = null
+      this.files.preview.fileName = null
+    }
   },
-  components: { vueDropzone }
+  components: {
+    vueDropzone,
+    DxHtmlEditor,
+    DxToolbar,
+    DxItem
+  }
 }
 </script>

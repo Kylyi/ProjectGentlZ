@@ -126,6 +126,15 @@
           </v-list-group>
 
           <!-- Bottom -->
+          <v-list-tile router to="/userSystem" class="bottom" style="bottom:96px;">
+            <v-list-tile-action>
+              <v-icon>account_circle</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>Manage users</v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+
           <v-list-tile router to="/settings" class="bottom" style="bottom:48px;">
             <v-list-tile-action>
               <v-icon>settings</v-icon>
@@ -155,6 +164,7 @@
         <v-icon @click="drawer = !drawer" style="-webkit-app-region: no-drag; margin-left:20px;">menu</v-icon>
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
         <v-spacer></v-spacer>
+        <span style="padding-right: 10px;">Last data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
         <v-icon
           v-if="!userInfo.sapUsername"
           color="error"
@@ -231,8 +241,49 @@
         </v-slide-y-transition>
       </v-content>
 
-      <notifications group="new-tmpl"/>
-      <notifications group="new-proj"/>
+      <!-- INVOICING SIGNS -->
+      <v-menu
+        v-model="showSignInfo"
+        :position-x="currentPosition.left"
+        :position-y="currentPosition.top"
+        absolute
+        offset-y
+        transition="slide-y-transition"
+        >
+        <v-layout row wrap>
+          <v-flex column grow>
+            <v-list style="padding: 0;" id="checkSignsList">
+              <v-list-tile v-for="comment in signComments" :key="comment.comment">
+                <v-list-tile-action>
+                  <tr style="vertical-align: middle;">
+                    <td style="width: 400px; word-break: break-word; border-bottom: 1px dashed gray;"><span style="color: black;">{{comment.owner}} - {{comment.time}}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="width: 400px; word-break: break-word;">
+                      {{comment.comment}}
+                    </td>
+                  </tr>
+                </v-list-tile-action>
+              </v-list-tile>
+            </v-list>
+          </v-flex>
+          <v-flex column shrink style="background-color: white;">
+            <v-icon @click="showSignInfo = false" color="error">close</v-icon>
+          </v-flex>
+        </v-layout>
+      </v-menu>
+
+      <!-- CUSTOM DIALOG -->
+      <v-dialog
+        v-model="customDialog"
+        scrollable fullscreen 
+        persistent :overlay="false"
+        max-width="500px"
+        transition="dialog-transition"
+        v-html="customDialogBody"
+      >
+      </v-dialog>
+
     </template>
     <template v-else>
       <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
@@ -338,17 +389,25 @@
 
 
 <script>
-  const {ipcRenderer, remote, shell} = require('electron')
+  const {remote} = require('electron')
   import { mapGetters, mapActions } from "vuex";
-  
 
   export default {
     name: 'app',
     created: function () {
+      this.$root.$on('show-sign-info', (e) => setTimeout(() => {
+        this.showSignInfo = e
+      }), 100)
+
       this.checkConnectivity(navigator.onLine)
       window.addEventListener('online',  this.changeConnectivity);
       window.addEventListener('offline', this.changeConnectivity);
 
+      const localRevision = localStorage.getItem('revision')
+      if (localRevision !== this.revision) {
+        localStorage.clear()
+        localStorage.setItem('revision', this.revision)
+      } 
 
       // FETCH PROJECTS
       this.fetchAllProjectsBasic();
@@ -376,6 +435,8 @@
         pass: '',
         pass2: ''
       },
+      showSignInfo: false,
+      customDialog: false,
       logo: require('./assets/Logo.png'),
       invoicing: [
         { icon: 'grid_on', title: 'Interface', to: '/invoicing' },
@@ -383,18 +444,19 @@
       ],
       templates: [
         { icon: 'trip_origin', title: 'Template generator', to: '/templateGenerator'},
-        { icon: 'add', title: 'New template', to: '/newTemplate' },
+        { icon: 'edit', title: 'Manage templates', to: '/newTemplate' },
       ],
       projects: [
         { icon: 'supervised_user_circle', title: 'Delegate projects', to: '/delegateProjects'}
       ],
       riskRegister: [
-        { icon: 'edit', title: 'Manage risk register', to: '/riskRegister'},
         { icon: 'grid_on', title: 'Aggregate view', to: '/riskRegisterAggregate'},
+        { icon: 'edit', title: 'Manage risk register', to: '/riskRegister'},
       ]
     }),
     computed: {
-      ...mapGetters(['offline', 'loggedIn', 'snackbar', 'openAfterGenerate', 'userInfo', 'notifications', 'dbConnectivity', 'password']),
+      ...mapGetters(['offline', 'loggedIn', 'snackbar', 'openAfterGenerate', 'userInfo', 'notifications', 'dbConnectivity', 'password', 'invoicingSettings', 'revision',
+      'signComments', 'currentPosition', 'customDialogBody']),
       createAccountRules: function () {
         const pass1 = this.createAccountForm.pass
         return {
@@ -416,7 +478,7 @@
     methods: {
       ...mapActions([ 'loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification',
       'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings',
-      'fetchInvoicingDetail']),
+      'fetchInvoicingDetail', 'setShowSignInfo']),
       callLogin() {
         this.loginWithPassword(this.userPassword)
       },
@@ -446,6 +508,17 @@
       commitAction (notifName, e, action, actionArgs) {
         this.removeNotification(notifName)
         if (e) this.$store.dispatch(action, actionArgs)
+      },
+      getColor(icon) {
+        if (icon === 'arrow_upward') {
+          return 'success'
+        } else if (icon === 'arrow_downward') {
+          return 'warning'
+        } else if (icon === 'warning') {
+          return 'error'
+        } else {
+          return 'info'
+        }
       }
     }
   }

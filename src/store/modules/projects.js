@@ -8,14 +8,13 @@ import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/lo
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
+PouchDB.plugin(require('pouch-resolve-conflicts'))
 
 
 // LOCAL DB
-const projects = new PouchDB('src/db/projects', { revs_limit: 3 })
+const projects = new PouchDB('src/db/projectsdb', { revs_limit: 3 })
 // MY DB
-const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects', { revs_limit: 2 })
-// ABB DB
-// const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projects')
+const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projectsdb', { revs_limit: 2 })
 
 let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
   .on('change', (c) => {
@@ -52,11 +51,13 @@ const getters = {
   chosenProjects: state => state.chosenProjects,
   pmProjectsProjectMode: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    const projsBasic = state.allProjectsBasic.filter(e => 
+    let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
+    projsBasic = projsBasic.filter(e => 
       e['Project Manager'] === getters.userInfo.sapUsername || 
       state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
       (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
       )
+
     if (projsBasic.length === 0) return []
     return projsBasic.reduce((agg, e) => {
       const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
@@ -146,7 +147,7 @@ const getters = {
   },
   pmProjectsUniqueProjects: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    const projsBasic = state.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
+    const projsBasic = getters.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
     || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
     || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername)))
     if (projsBasic.length === 0) return []
@@ -162,8 +163,8 @@ const getters = {
         }
       }, [])
   },
-  allProjectsUniqueProjects: (state) => {
-    const projsBasic = state.allProjectsBasic
+  allProjectsUniqueProjects: (getters) => {
+    const projsBasic = getters.allProjectsBasic
     if (projsBasic.length === 0) return []
     
     return projsBasic.reduce((agg, e) => {
@@ -432,7 +433,7 @@ const actions = {
 
     //   commit('setTaskInfo', {netNum, personalNum})
     // }
-    await commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
+    commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
   },
   async changeProjectData({ dispatch }, projData) {
     try {
@@ -579,6 +580,50 @@ const actions = {
   },
   async selectPM({ commit }, pmName) {
     commit('setSelectedPM', pmName)
+  },
+  async addProjects({ commit }, projs) {
+    const projUpserts = data.map(async (p) => {
+      await projects.upsert(String(p['Network Num']), doc => {
+        p['Net Revenues'] = Number(p['Project Panels']) > 0 ? (Number(p['Project Revenues']) * Number(p['Number of Panels']) / Number(p['Project Panels'])) : 1
+
+        if (doc.hasOwnProperty('fixedFields')) {
+          const placeholderFixedFields = doc['fixedFields'].concat(fixedFields)
+          p['fixedFields'] = [...new Set(placeholderFixedFields)]
+
+          p['fixedFields'].forEach(u => {
+            if (doc.hasOwnProperty(u)) {
+              p[u] = doc[u]
+            } else {
+              p[u] = {}
+            }
+          })    
+        } else {
+          p['fixedFields'] = fixedFields
+          p['riskRegister'] = {}
+          p['sign'] = {}
+          p['temporaryAssign'] = {}
+        }
+
+        const today = new Date().toISOString().substr(0,10)
+        if (doc.hasOwnProperty('Invoice Date')) {
+          p['Invoice Date'] = Object.assign({}, doc['Invoice Date'], {[today]: p['Invoice Date']})
+        } else {
+          p['Invoice Date'] = {[today]: p['Invoice Date']}
+        }
+
+        return p
+      })
+
+      Promise.all(projUpserts)
+      .then(() => {
+        projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+          .on('change', (c) => {
+            if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
+          })
+      })
+      .catch((err) => console.log(err))
+
+    })
   }
 }
 

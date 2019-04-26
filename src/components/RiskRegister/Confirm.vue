@@ -209,6 +209,7 @@ export default {
       const filteredRisks = Object.keys(this.riskRegister.risks).reduce((agg, riskCategory) => {
         const y = this.riskRegister.risks[riskCategory].reduce((agg2, risk) => {
           risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          risk.priceImpact = Number(risk.priceImpact)
           risk.mainCategory = 'risk'
           allRisks.concat(risk)
 
@@ -229,6 +230,7 @@ export default {
       const filteredOpps = Object.keys(this.riskRegister.opportunities).reduce((agg, riskCategory) => {
         const y = this.riskRegister.opportunities[riskCategory].reduce((agg2, risk) => {
           risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          risk.priceImpact = Number(risk.priceImpact)
           risk.mainCategory = 'opportunity'
           allOpps.concat(risk)
 
@@ -249,10 +251,10 @@ export default {
 
       let bilance = risksAndOpp.reduce((agg, e) => {
         if (e.mainCategory === 'risk') {
-          agg.bilanceRisks = agg.bilanceRisks + e.priceImpact
+          agg.bilanceRisks = agg.bilanceRisks + Number(e.priceImpact)
           agg.bilanceWeightedRisks = agg.bilanceWeightedRisks + e.weightedPriceImpact
         } else {
-          agg.bilanceOpps = agg.bilanceOpps + e.priceImpact
+          agg.bilanceOpps = agg.bilanceOpps + Number(e.priceImpact)
           agg.bilanceWeightedOpps = agg.bilanceWeightedOpps + e.weightedPriceImpact
         }
         

@@ -8,7 +8,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
+const remoteTemplates = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/templates')
 const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
 
 templates.sync(remoteTemplates, { live: true, retry: true, batch_size: 50 })
@@ -134,27 +134,62 @@ const actions = {
   async addTemplate({ dispatch }, tmpl = null) {
     try {
       if (!tmpl) throw 'Template not found'
-
-      const att = fs.readFileSync(tmpl.doc.filePath)
-      const att2 = fs.readFileSync(tmpl.preview.filePath)
-
-      const insertedTmpl = await templates.upsert(tmpl.templateName, (doc) => {
-        doc.template_type = tmpl.doc.fileType
-        doc.template_name = tmpl.doc.fileName
-        doc.template_preview_name = tmpl.preview.fileName
-        return doc
+      
+      const attPaths = [tmpl.doc.filePath, tmpl.preview.filePath].filter(e => e !== null)
+      const insertedTmpl = await templates.upsert(tmpl.templateName, (newDoc) => {
+        newDoc.template_type = tmpl.doc.fileType || newDoc.template_type
+        newDoc.template_name = tmpl.doc.fileName
+        newDoc.template_preview_name = tmpl.preview.fileName
+        newDoc.templateDescription = tmpl.templateDescription
+        return newDoc
       })
-      const insertedAtt = await templates.putAttachment(tmpl.templateName, tmpl.doc.fileName, insertedTmpl.rev, att, tmpl.doc.fileType)
-      await templates.putAttachment(tmpl.templateName, tmpl.preview.fileName, insertedAtt.rev, att2, tmpl.doc.fileType)
+      
+      let rev = insertedTmpl.rev
+      async function insertAtts() {
+        for (const path of attPaths) {
+          var att = fs.readFileSync(path)
+          const len = path.split('\\').length
+          const attName =  path.split('\\')[len-1]
+          const insertedAtt = await templates.putAttachment(tmpl.templateName, attName, rev, att, path.split('.')[1])
+          rev = insertedAtt.rev
+        }
+      }
+
+      await insertAtts()
+      // const att = fs.readFileSync(tmpl.doc.filePath)
+      // const att2 = fs.readFileSync(tmpl.preview.filePath)
+      // const insertedAtt = await templates.putAttachment(tmpl.templateName, tmpl.doc.fileName, insertedTmpl.rev, att, tmpl.doc.fileType)
+      // await templates.putAttachment(tmpl.templateName, tmpl.preview.fileName, insertedAtt.rev, att2, tmpl.doc.fileType)
 
       dispatch('fetchAllTemplates', true)
       dispatch('notify', {
-        text: 'Successfuly imported.',
+        text: 'Saved.',
         color: 'success',
         state: true,
         timeout: 2500
       })
     } catch (err) {
+      dispatch('notify', {
+        text: err,
+        color: 'error',
+        state: true
+      })
+    }
+  },
+  async removeTemplate({ dispatch }, templateId) {
+    try {
+      await templates.upsert(templateId, (newDoc) => {
+        newDoc._deleted = true
+        return newDoc
+      })
+      dispatch('fetchAllTemplates', true)
+      dispatch('notify', {
+        text: 'Saved.',
+        color: 'success',
+        state: true,
+        timeout: 2500
+      })
+    } catch (error) {
       dispatch('notify', {
         text: err,
         color: 'error',

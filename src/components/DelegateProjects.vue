@@ -14,81 +14,13 @@
       </v-flex>
     </v-layout>
 
-    <v-layout row wrap>
-      <v-container fluid>
-        <v-layout row wrap>
-          <!-- LEFT SIDE -->
-          <v-flex column xs7 style="max-height: 80vh;">
-              <dx-data-grid
-                ref="allProjectsTable"
-                :data-source="allProjectsProjectsMode"
-                show-borders
-                key-expr='project_id'
-                column-auto-width
-                :allow-column-reordering="true"
-                :allow-column-resizing="true"
-                :row-alternation-enabled="true"
-                :show-row-lines="true"
-                :show-column-lines="true"
-                :word-wrap-enabled="true"
-                style="height: 100%;"
-              >
-                <dx-scrolling mode="virtual"/>
-                <dx-selection
-                  select-all-mode="allPages"
-                  show-check-boxes-mode="always"
-                  mode="multiple"
-                />
-
-                <dx-column
-                  data-field="project_id"
-                  caption="Project #"
-                />
-
-                <dx-column
-                  data-field="project_name"
-                  caption="Project name"
-                />
-
-                <dx-column
-                  data-field="project_pm"
-                  caption="Project PM"
-                />
-
-                <dx-column
-                  data-field="project_revenue"
-                  caption="Revenues"
-                />
-
-                <dx-column
-                  caption="Delegated"
-                  cell-template="delegateTemplate"
-                  alignment="center"
-                />
-
-                <div slot="delegateTemplate" slot-scope="templateData">
-                  <v-icon 
-                    color="info" 
-                    v-html="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ?'fas fa-chess-pawn' : ''" 
-                    :title="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ? String(templateData.data.temporaryAssign.personName) : ''"
-                  />
-                </div>
-              </dx-data-grid>
-          </v-flex>
-
-          <!-- MIDDLE -->
-          <v-flex column xs1>
-            <v-layout align-center justify-center column fill-height>
-              <v-btn @click="delegateProjectsLTR" icon><v-icon>chevron_right</v-icon></v-btn>
-              <v-btn icon @click="delegateProjectsRTL"><v-icon>chevron_left</v-icon></v-btn>
-            </v-layout>
-          </v-flex>
-
-          <!-- RIGHT SIDE -->
-          <v-flex column xs4 style="max-height: 70vh;">
+    <v-container fluid>
+      <v-layout row wrap>
+        <!-- LEFT SIDE -->
+        <v-flex column xs7 style="max-height: 80vh">
             <dx-data-grid
-              ref="pmProjectsTable"
-              :data-source="selectedPmProjects"
+              ref="allProjectsTable"
+              :data-source="allProjectsProjectsMode"
               show-borders
               key-expr='project_id'
               column-auto-width
@@ -101,6 +33,10 @@
               style="height: 100%;"
             >
               <dx-scrolling mode="virtual"/>
+              <dx-header-filter
+                :visible="true"
+                :allow-search="true"
+              />
               <dx-selection
                 select-all-mode="allPages"
                 show-check-boxes-mode="always"
@@ -118,23 +54,93 @@
               />
 
               <dx-column
-                  caption="Delegated"
-                  cell-template="delegateTemplate2"
-                  alignment="center"
-                />
+                data-field="project_pm"
+                caption="Project PM"
+              />
 
-              <div slot="delegateTemplate2" slot-scope="templateData">
+              <dx-column
+                data-field="project_revenue"
+                caption="Revenues"
+              />
+
+              <dx-column
+                caption="Delegated"
+                cell-template="delegateTemplate"
+                alignment="center"
+              />
+
+              <div slot="delegateTemplate" slot-scope="templateData">
                 <v-icon 
-                  :color="getColor(templateData.data)" 
-                  :title="getTitle(templateData.data)"
-                  v-html="'supervised_user_circle'" 
+                  color="info" 
+                  v-html="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ?'fas fa-chess-pawn' : ''" 
+                  :title="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ? String(templateData.data.temporaryAssign.personName) : ''"
                 />
               </div>
             </dx-data-grid>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </v-layout>
+        </v-flex>
+
+        <!-- MIDDLE -->
+        <v-flex column shrink>
+          <v-layout align-center justify-center column fill-height>
+            <v-btn @click="delegateProjectsLTR" icon><v-icon>chevron_right</v-icon></v-btn>
+            <v-btn icon @click="delegateProjectsRTL"><v-icon>chevron_left</v-icon></v-btn>
+          </v-layout>
+        </v-flex>
+
+        <!-- RIGHT SIDE -->
+        <v-flex column grow style="max-height: 70vh; width: min-content;">
+          <dx-data-grid
+            ref="pmProjectsTable"
+            :data-source="selectedPmProjects"
+            show-borders
+            key-expr='project_id'
+            column-auto-width
+            :allow-column-reordering="true"
+            :allow-column-resizing="true"
+            :row-alternation-enabled="true"
+            :show-row-lines="true"
+            :show-column-lines="true"
+            :word-wrap-enabled="true"
+            style="height: 100%;"
+          >
+            <dx-scrolling mode="virtual"/>
+            <dx-header-filter
+              :visible="true"
+              :allow-search="true"
+            />
+            <dx-selection
+              select-all-mode="allPages"
+              show-check-boxes-mode="always"
+              mode="multiple"
+            />
+
+            <dx-column
+              data-field="project_id"
+              caption="Project #"
+            />
+
+            <dx-column
+              data-field="project_name"
+              caption="Project name"
+            />
+
+            <dx-column
+                caption="Delegated"
+                cell-template="delegateTemplate2"
+                alignment="center"
+              />
+
+            <div slot="delegateTemplate2" slot-scope="templateData">
+              <v-icon 
+                :color="getColor(templateData.data)" 
+                :title="getTitle(templateData.data)"
+                v-html="'supervised_user_circle'" 
+              />
+            </div>
+          </dx-data-grid>
+        </v-flex>
+      </v-layout>
+    </v-container>
     
 
     

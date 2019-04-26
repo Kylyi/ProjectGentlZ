@@ -4,7 +4,7 @@
       <!-- Title -->
       <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
         <v-flex column shrink>
-          <h3 class="display-2 white--text">Risk register</h3>
+          <h3 class="display-2 white--text">Manage risk register</h3>
         </v-flex>
         <v-flex column grow>
 
@@ -134,7 +134,7 @@ export default {
       this.getRiskRegister()
     },
     projNetNo (proj) {
-      return proj ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : ''
+      return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : ''
     },
     async saveRiskRegister() {
       const editedRiskRegister = Object.assign(this.riskRegister, { bilance: this.$refs.confirmation.bilance })

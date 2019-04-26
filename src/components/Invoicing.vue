@@ -1,5 +1,5 @@
 <template>
-  <v-layout column xs wrap>
+  <v-layout column xs wrap id="invoicingTable">
     <v-layout row wrap align-center style="padding: 18.5px 24px; background-color: #424242;" >
       <!-- Title -->
       <v-flex column shrink>
@@ -90,8 +90,8 @@
 
               <v-list-tile>
                 <v-list-tile-content>
-                  <v-list-tile-title>Select date range</v-list-tile-title>
                     <v-list-tile-action-text>
+                      <v-list-tile-title>Select date range</v-list-tile-title>
                       <el-date-picker
                         :value="invoicingDateRange"
                         type="daterange"
@@ -102,6 +102,15 @@
                         :firstDayOfWeek="1"
                         @input="changeInvoicingDateRange"
                       />
+                    </v-list-tile-action-text>
+                </v-list-tile-content>
+              </v-list-tile>
+
+              <v-list-tile>
+                <v-list-tile-content>
+                    <v-list-tile-action-text>
+                      <v-list-tile-title>Restore view</v-list-tile-title>
+                      <v-btn outline color="primary" @click="restoreView">Restore to default view</v-btn>
                     </v-list-tile-action-text>
                 </v-list-tile-content>
               </v-list-tile>
@@ -166,18 +175,13 @@
             :show-column-lines="true"
             @context-menu-preparing="setContextMenu"
             :word-wrap-enabled="true"
-            style="height: 100%;"
+            style="height: 100%; width:100%;"
           >
-
+            <dx-load-panel :enabled="false" text="Kill me please"></dx-load-panel>
             <dx-header-filter
               :visible="true"
               :allow-search="true"
             />
-
-            <!-- <dx-editing
-              :allow-updating="true"
-              mode="cell"
-            /> -->
 
             <dx-filter-row :visible="true"/>
             <dx-filter-panel :visible="true"/>
@@ -190,7 +194,7 @@
             <dx-column-chooser :enabled="true"/>
 
             <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" expandMode="rowClick" :allow-collapsing="true"/>
-            <dx-scrolling mode="virtual" show-scrollbar="always" />
+            <dx-scrolling mode="virtual" show-scrollbar="never" />
 
             <dx-selection
               select-all-mode="page"
@@ -223,9 +227,9 @@
               :visible="col.visible"
               :data-type="col.dataType"
               :alignment="col.hasOwnProperty('alignment') ? col.alignment : undefined"
-              cell-template="cellTemplate"
-              :format="col.dataType === 'number' ? '#,##0.##' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
-              header-cell-template="headerTemplate"
+              :cell-template="col.value === 'Network Num' ? 'cellTemplate' : col.value === 'SSO' ? 'ssoTemplate' : undefined"
+              :format="col.dataType === 'number' ? '#,##0' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
+              :width="col.width? col.width : ''"
               />
 
             <dx-column
@@ -234,9 +238,8 @@
               data-type="date"
               format="dd.MM.yy"
               alignment="center"
-              cell-template="cellTemplate"
               :showWhenGrouped="true"
-              header-cell-template="headerTemplate"
+              width="120px"
             />
             
             <dx-column
@@ -246,14 +249,22 @@
               format="dd.MM.yy"
               alignment="center"
               :showWhenGrouped="true"
-              header-cell-template="headerTemplate"
+              width="120px"
             />
-
 
             <dx-column
               :visible="false"
               :show-in-column-chooser="false"
               :group-index="0"
+              caption="Plant"
+              name="grouPlant"
+              :auto-expand-group="true"
+            />
+
+            <dx-column
+              :visible="false"
+              :show-in-column-chooser="false"
+              :group-index="1"
               :calculate-group-value="groupByYear"
               caption="Year"
               format="year"
@@ -265,19 +276,18 @@
             <dx-column
               :visible="false"
               :show-in-column-chooser="false"
-              :group-index="1"
+              :group-index="2"
               :calculate-group-value="groupByMonth"
               caption="Month"
               :format="x"
               data-type="number"
               name="groupMonth"
-              :auto-expand-group="true"
             />
 
             <dx-column
               :visible="false"
               :show-in-column-chooser="false"
-              :group-index="invoicingWeekGrouping ? 2 : null"
+              :group-index="invoicingWeekGrouping ? 3 : null"
               :calculate-group-value="groupByWeek"
               caption="Week"
               data-type="number"
@@ -288,7 +298,7 @@
               <dx-group-item
                 column="Revenues"
                 summary-type="sum"
-                display-format="{0} CZK"
+                display-format="{0}"
                 :align-by-column="true"
                 value-format="#,##0"
               />
@@ -297,28 +307,28 @@
                 :align-by-column="true"
                 column="Project OB"
                 summary-type="sum"
-                display-format="{0} CZK"
+                display-format="{0}"
                 value-format="#,##0"
               />
               <dx-group-item
                 :show-in-group-footer="false"
                 column="_id"
                 summary-type="count"
-                display-format="SDs: {0}"
+                display-format="{0}"
               />
               <dx-group-item
                 :show-in-group-footer="false"
                 :align-by-column="true"
                 column="Number of Panels"
                 summary-type="sum"
-                display-format="{0} panels."
+                display-format="{0}"
               />
               <dx-group-item
                 :show-in-group-footer="false"
                 :align-by-column="true"
                 column="Number of Modules"
                 summary-type="sum"
-                display-format="{0} modules."
+                display-format="{0} modules"
               />
             </dx-summary>
 
@@ -335,6 +345,12 @@
                 :template-data="data"
                 :signs="data.data.sign"
               />
+            </div>
+
+            <div
+              slot="ssoTemplate"
+              slot-scope="data">
+              <sso-template :templateData="data" />
             </div>
 
             <div
@@ -366,6 +382,29 @@
 </template>
 
 <style>
+  #invoicingTable .dx-datagrid-rowsview td {
+    color: black;
+  }
+
+  #invoicingTable .dx-command-expand {
+    width: 10px;
+    min-width: 10px;
+    max-width: 10px;
+  }
+
+  #invoicingTable .dx-scrollable-container {
+    overflow: auto;
+  }
+
+  #invoicingTable .dx-group-cell{
+    border-right: 1px solid #ddd;
+  }
+
+  #invoicingTable td.dx-group-cell ~ td[role=gridcell] {
+    border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+  }
+
   .dx-datagrid-rowsview .dx-row > .dx-master-detail-cell {
     padding: 0;
   }
@@ -420,6 +459,7 @@
   import DetailTemplate from './Invoicing/DetailTemplate.vue'
   import CellTemplate from './Invoicing/CellTemplate.vue'
   import HeaderTemplate from './Invoicing/HeaderTemplate.vue'
+  import SsoTemplate from './Invoicing/SsoTemplate.vue'
   import { mapGetters, mapActions } from 'vuex';
   import { ipcRenderer } from 'electron';
   const moment = require('moment')
@@ -515,13 +555,20 @@
           return res.length > 0
         })
         this.signFilterActive[sign] = true
-      }
+      },
+      restoreView() {
+        let currentState = this.$refs['invoicingGrid'].instance.state()
+        currentState.columns = this.columns
+        this.$refs['invoicingGrid'].instance.state(currentState)
+        this.changeWeekGrouping(false)
+      },
     },
     components: {
       FormattedCell,
       CellTemplate,
       HeaderTemplate,
-      DetailTemplate
+      DetailTemplate,
+      SsoTemplate
     }
   };
 </script>

@@ -14,7 +14,6 @@
               show-borders
               key-expr='name'
               column-auto-width
-              :allow-column-resizing="true"
               :row-alternation-enabled="true"
               :show-row-lines="true"
               :show-column-lines="true"
@@ -35,6 +34,7 @@
                 :allow-sorting="false"
                 :allow-resizing="true"
                 :allow-editing="false"
+                :min-width="250"
               />
               <dx-column
                 data-field="info"
@@ -42,30 +42,35 @@
                 alignment="left"
                 :allow-sorting="false"
                 :allow-editing="false"
+                :min-width="350"
               />
               <dx-column
                 data-field="exists"
                 caption="Exists"
                 alignment="center"
                 :allow-sorting="false"
+                :width="50"
               />
               <dx-column
                 data-field="description"
                 caption="Additional info"
                 alignment="left"
                 :allow-sorting="false"
+                :min-width="200"
               />
               <dx-column
                 data-field="plannedAction"
                 caption="Planned action for mitigation"
                 alignment="left"
                 :allow-sorting="false"
+                :min-width="250"
               />
               <dx-column
                 data-field="owner"
                 caption="Owner"
                 alignment="center"
                 :allow-sorting="false"
+                :min-width="150"
               >
               </dx-column>
               <dx-column
@@ -75,13 +80,15 @@
                 data-type="number"
                 format="percent"
                 :allow-sorting="false"
+                :width="100"
               />
               <dx-column
                 data-field="priceImpact"
-                caption="Price impact [kCZK]"
+                caption="Price impact [CZK]"
                 alignment="center"
                 data-type="number"
                 format="thousands"
+                :min-width="100"
               />
 
               <!-- <v-textarea

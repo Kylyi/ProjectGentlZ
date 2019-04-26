@@ -12,14 +12,18 @@
       :show-row-lines="true"
       :show-column-lines="true"
       :word-wrap-enabled="true"
-      :selection="{ mode: 'single' }"
-      @selection-changed="onSelectionChanged"
+      @row-click="onSelectionChanged"
+      @cell-prepared="getConditionalFormatting"
     >
-      <dx-scrolling mode="virtual"/>
+      <!-- <dx-scrolling mode="virtual"/> -->
+      <dx-paging :enabled="true" :page-size="50"/>
+      <dx-selection mode="single"></dx-selection>
       <dx-master-detail
         :enabled="true"
         template="detailTemplate"
       />
+
+      <dx-search-panel :visible="true"/>
       
       <dx-column
         data-field="project_id"
@@ -64,15 +68,15 @@
         {{templateData.data.project_panels}} / {{templateData.data.project_modules}}
       </div>
 
-      <div slot="bilanceTemplate" slot-scope="templateData">
+      <v-flex row wrap fill-height slot="bilanceTemplate" slot-scope="templateData">
         <span v-if="templateData.data.riskRegisterBilance" class="success--text"> {{(templateData.data.riskRegisterBilance.bilanceOpps/1000).toFixed(0)}}K</span>
            / 
         <span v-if="templateData.data.riskRegisterBilance" class="error--text">{{(templateData.data.riskRegisterBilance.bilanceRisks/1000).toFixed(0)}}K</span>
-      </div>
+      </v-flex>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click="generateTemplate(templateData.data)" color="grey darken-4" title="Generate template">trip_origin</v-icon>
-          <v-icon @click="manageRiskRegister(templateData.data)" color="teal lighten-1" title="Manage risk register">business</v-icon>
+          <v-icon @click.stop="generateTemplate(templateData.data)" color="grey darken-4" title="Generate template">trip_origin</v-icon>
+          <v-icon @click.stop="manageRiskRegister(templateData.data)" color="teal lighten-1" title="Manage risk register">business</v-icon>
       </div>
 
       <div slot="detailTemplate" slot-scope="templateData">
@@ -148,7 +152,28 @@ export default {
       this.$router.push('/riskRegister')
     },
     async onSelectionChanged (data) {
-      await this.chooseProjects(data.selectedRowsData[0].nets[0])
+      await this.chooseProjects(data.data.nets[0])
+    },
+    async getConditionalFormatting(row) {
+      if (row.column.caption === 'Opps / Risks' && row.rowType === 'data') {
+        if (!row.data.riskRegisterBilance) return
+
+        const bilance = row.data.riskRegisterBilance.bilanceOpps - row.data.riskRegisterBilance.bilanceRisks
+        const percent = bilance/(row.data.project_revenue || 1)
+        let color
+
+        if (percent > 0.1) {
+          color = '#C5E1A5'
+        } else if (percent > -0.1 && percent < 0.1) {
+          color = '#FFF59D'
+        } else {
+          color = '#EF9A9A'
+        }
+
+
+        row.cellElement.style.backgroundColor = color
+      }
+
     }
   }
 }
@@ -161,6 +186,11 @@ export default {
 
   #projectsMode .dx-datagrid-headers {
     font-size: medium;
+  }
+
+  #projectsMode .dx-command-expand {
+    vertical-align: middle;
+    padding-bottom: 3px;
   }
 </style>
 

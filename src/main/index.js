@@ -24,6 +24,8 @@ function createMainWindow() {
     frame: false,
     minHeight: 700,
     minWidth: 1280,
+    width: 1280,
+    height: 700,
     show: false,
     webPreferences: {
       plugins: true
@@ -115,4 +117,8 @@ ipcMain.on('userInfo', (e, userInfo) => {
 
 ipcMain.on('invoicingArrReady', (e) => {
   e.sender.send('invoicingArrReadyFromMain')
+})
+
+ipcMain.on('showDevTools', e => {
+  mainWindow.webContents.openDevTools()
 })

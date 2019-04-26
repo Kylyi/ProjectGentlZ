@@ -8,12 +8,14 @@ const state = {
   obDailyPath1601: localStorage.getItem('obDailyPath1601'),
   lastUpdate: null,
   datesModified: [],
-  dateRange: JSON.parse(localStorage.getItem('invoicingDateRange')) || [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)],
+  // dateRange: JSON.parse(localStorage.getItem('invoicingDateRange')) || [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)],
+  dateRange: [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(3, 'months').toISOString().substr(0, 10)],
   weekGrouping: JSON.parse(localStorage.getItem('invoicingWeekGrouping')) || false,
   groupingDate: null,
   compareDate: null,
   filteredInvoicing: [],
-  invoicingDetail: []
+  invoicingDetail: [],
+  signComments: []
 }
 
 const getters = {
@@ -29,7 +31,8 @@ const getters = {
   invoicingLastUpdate: state => state.lastUpdate,
   invoicingCompareDate: state => state.compareDate,
   invoicingFilteredByDateRange: state => state.filteredInvoicing,
-  invoicingDetail: state => state.invoicingDetail
+  invoicingDetail: state => state.invoicingDetail,
+  signComments: state => state.signComments.reverse()
 }
 
 const actions = {
@@ -85,7 +88,10 @@ const actions = {
   },
   async fetchInvoicingDetail({ commit }) {
     const invDetail = readDefaultSettingFile('invoicingDetails')
-    commit('setInvoicingDetail', invDetail)
+    commit('setInvoicingDetail', JSON.parse(invDetail))
+  },
+  async signInfo({ commit }, signInfo) {
+    commit('setSignInfo', signInfo)
   }
 }
 
@@ -117,6 +123,10 @@ const mutations = {
     ipcRenderer.send('invoicingArrReady')
     state.filteredInvoicing = filteredProjects
   },
+  setSignInfo: (state, comments) => {
+    state.signComments = comments
+    state.showSignInfo = true
+  }
 }
 
 export default {

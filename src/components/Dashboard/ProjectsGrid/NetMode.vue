@@ -13,13 +13,15 @@
       :show-column-lines="true"
       :word-wrap-enabled="true"
       :selection="{ mode: 'single' }"
-      @selection-changed="onSelectionChanged"
+      @row-click="onSelectionChanged"
     >
-      <dx-scrolling mode="virtual"/>
+      <dx-paging :enabled="true" :page-size="50"></dx-paging>
       <dx-master-detail
         :enabled="true"
         template="detailTemplate"
       />
+
+      <dx-search-panel :visible="true"/>
 
       <dx-column
         data-field="_id"
@@ -65,8 +67,8 @@
       </div>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click="generateTemplate(templateData.data)" title="Generate template" color="grey darken-4">trip_origin</v-icon>
-          <v-icon @click="manageRiskRegister(templateData.data)" title="Manage risk register" color="teal lighten-1">business</v-icon>
+          <v-icon @click.stop="generateTemplate(templateData.data)" title="Generate template" color="grey darken-4">trip_origin</v-icon>
+          <v-icon @click.stop="manageRiskRegister(templateData.data)" title="Manage risk register" color="teal lighten-1">business</v-icon>
       </div>
 
       <div slot="detailTemplate" slot-scope="templateData">
@@ -122,8 +124,8 @@ export default {
       this.$router.push('/riskRegister')
     },
     async onSelectionChanged (data) {
-      this.fetchNetTasksInfo(data.selectedRowsData[0]._id)
-      await this.chooseProjects(data.selectedRowsData[0])
+      // this.fetchNetTasksInfo(data.selectedRowsData[0]._id)
+      await this.chooseProjects(data.data)
     }
   }
 }
@@ -136,5 +138,10 @@ export default {
 
   #netMode .dx-datagrid-headers {
     font-size: medium;
+  }
+
+  #netMode .dx-command-expand {
+    vertical-align: middle;
+    padding-bottom: 3px;
   }
 </style>

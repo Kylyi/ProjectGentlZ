@@ -7,7 +7,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
+const remoteUsers = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/users')
 const userDb = new PouchDB('src/db/user')
 
 async function getUserInfo() {
@@ -38,13 +38,16 @@ userDb.sync(remoteUsers, {
 const state = {
   loggedIn: false,
   userInfo: {},
-  password: null
+  password: null,
+  validPassword: false,
+  resettedPassword: ''
 }
 
 const getters = {
   loggedIn: state => state.loggedIn,
   userInfo: state => state.userInfo,
-  password: state => state.password
+  password: state => state.password,
+  validPassword: state => state.validPassword
 }
 
 const actions = {
@@ -99,7 +102,7 @@ const actions = {
   },
   async changeUserSapName({ dispatch }, {sapUsername, sapUsernumber}) {
     try {
-      if (!sapUsername || sapUsername === '' || !sapUsernumber || sapUsernumber === '') throw 'SAP username not defined.'
+      if (!sapUsername || sapUsername === '' || !sapUsernumber || sapUsernumber === '') throw 'SAP username or SAP ID not defined.'
       const user = username.sync()
       await userDb.upsert(user, doc => {
         doc.sapUsername = sapUsername
@@ -108,6 +111,68 @@ const actions = {
       })
       localStorage.setItem('sapUsername', sapUsername)
       // dispatch('fetchAllProjectsBasic', true)
+      dispatch('notify', {
+        text: 'User modified',
+        state: true,
+        color: 'success'
+      })
+    } catch (err) {
+      dispatch('notify', {
+        text: err,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  checkPassword({ commit, state }, password) {
+    const validPassword = bcrypt.compareSync(password || '', state.password)
+    commit('validPassword', validPassword)
+  },
+  async changePassword({ dispatch }, password) {
+    try {
+      await userDb.upsert(username.sync(), newDoc => {
+        newDoc.password = bcrypt.hashSync(password, 10)
+        return newDoc
+      })
+      keytar.setPassword('Gentl', username.sync(), password)
+
+      dispatch('notify', {
+        text: 'Password changed.',
+        state: true,
+        color: 'success'
+      })
+    } catch (err) {
+      dispatch('notify', {
+        text: err,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  async resetPassword({ dispatch, commit } ) {
+    const newPassword = Math.random().toString(36).slice(-8)
+
+    try {
+      await userDb.upsert(username.sync(), newDoc => {
+        newDoc.password = bcrypt.hashSync(newPassword, 10)
+        return newDoc
+      })
+
+    } catch (error) {
+      dispatch('notify', {
+        text: err,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  async changeUserContactInfo({ dispatch }, { userEmail, userPhone }) {
+    try {
+      await userDb.upsert(username.sync(), doc => {
+        doc.email = userEmail
+        doc.phone = userPhone
+        return doc
+      })
       dispatch('notify', {
         text: 'User modified',
         state: true,
@@ -129,7 +194,8 @@ const mutations = {
     setTimeout(() => ipcRenderer.send('appIsReady', true))
   },
   setUserInfo: (state, userInfo) => state.userInfo = userInfo,
-  setUserPassword: (state, password) => state.password = password
+  setUserPassword: (state, password) => state.password = password,
+  validPassword: (state, valid) => state.validPassword = valid
 }
 
 export default {

@@ -69,13 +69,15 @@ import {
   DxPaging,
   DxPopup,
   DxPosition,
-  DxTotalItem
+  DxTotalItem,
+  DxLoadPanel
 } from 'devextreme-vue/data-grid'
 import {
   DxTextArea,
   DxCheckBox,
   DxSelectBox,
-  DxLookup
+  DxLookup,
+  DxNumberBox
 } from 'devextreme-vue';
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.compact.css';
@@ -114,6 +116,8 @@ Vue.component('dx-lookup', DxLookup)
 Vue.component('dx-popup', DxPopup)
 Vue.component('dx-position', DxPosition)
 Vue.component('dx-total-item', DxTotalItem)
+Vue.component('dx-load-panel', DxLoadPanel)
+Vue.component('dx-number-box', DxNumberBox)
 
 // Mutliselect
 import Multiselect from 'vue-multiselect'
@@ -127,6 +131,11 @@ Vue.use(Notifications)
 // Shortkey
 import shortkey from 'vue-shortkey'
 Vue.use(shortkey)
+
+// Vue numeric
+import VueNumeric from 'vue-numeric'
+ 
+Vue.use(VueNumeric)
 
 // Tooltips
 // import VTooltip from 'v-tooltip'
