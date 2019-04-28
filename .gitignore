@@ -5,4 +5,5 @@ thumbs.db
 src/db
 .vscode
 dev-app-update.yml
+app-update.yml
 

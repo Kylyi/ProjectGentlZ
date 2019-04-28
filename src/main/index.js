@@ -16,6 +16,7 @@ configInvoicingDetails()
 configProjectsDetail()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
+autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow
@@ -129,11 +130,11 @@ ipcMain.on('check-for-updates', (e) => {
   e.sender.send('gentl-update', 'Checking for updates...')
 
   autoUpdater.on('update-available', info => {
-    e.sender.send('gentl-update', info)
+    e.sender.send('gentl-update', 'Available', info)
   })
 
   autoUpdater.on('update-not-available', info => {
-    e.sender.send('gentl-update', info)
+    e.sender.send('gentl-update', 'Not available', info)
   })
 
 })
