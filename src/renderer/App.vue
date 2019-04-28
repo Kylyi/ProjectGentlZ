@@ -404,9 +404,9 @@
         this.showSignInfo = e
       }), 100)
 
-      ipcRenderer.on('gentl-update', (info) => {
+      ipcRenderer.on('gentl-update', (e, info) => {
         console.log(info)
-        this.updateAvailable = info
+        // this.updateAvailable = info
       })
 
       this.checkConnectivity(navigator.onLine)

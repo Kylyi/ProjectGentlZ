@@ -124,16 +124,16 @@ ipcMain.on('showDevTools', e => {
   mainWindow.webContents.openDevTools()
 })
 
-ipcMain.on('check-for-updates', () => {
+ipcMain.on('check-for-updates', (e) => {
   autoUpdater.checkForUpdates()
-  ipcMain.send('gentl-update', 'Checking for updates...')
+  e.sender.send('gentl-update', 'Checking for updates...')
 
   autoUpdater.on('update-available', info => {
-    ipcMain.send('gentl-update', info)
+    e.sender.send('gentl-update', info)
   })
 
   autoUpdater.on('update-not-available', info => {
-    ipcMain.send('gentl-update', info)
+    e.sender.send('gentl-update', info)
   })
 
 })
