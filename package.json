@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
-    "dist": "yarn compile && electron-builder",
+    "dist": "yarn compile && electron-builder -p always",
     "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
   },
   "build": {
@@ -36,6 +36,11 @@
         ]
       }
     ]
+  },
+  "publish": {
+    "provider": "github",
+    "token": "d592933242dcaa6eb87a18b83df490ea9b03298f",
+    "private": true
   },
   "dependencies": {
     "bcrypt": "^3.0.4",

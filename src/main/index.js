@@ -3,6 +3,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
+import { autoUpdater } from 'electron-updater'
 import {
   configDatabaseSettings,
   configInvoicingColumns,
@@ -82,6 +83,7 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow()
+  autoUpdater.checkForUpdates()
   // loginWindow = createMainWindow()
 })
 
@@ -122,3 +124,7 @@ ipcMain.on('invoicingArrReady', (e) => {
 ipcMain.on('showDevTools', e => {
   mainWindow.webContents.openDevTools()
 })
+
+autoUpdater.on('update-available', info => {
+  ipcMain.send('gentl-update-available', info)
+}) 

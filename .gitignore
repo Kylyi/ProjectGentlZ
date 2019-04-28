@@ -4,4 +4,5 @@ node_modules/
 thumbs.db
 src/db
 .vscode
+electron-builder.yml
 

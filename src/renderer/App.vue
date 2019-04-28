@@ -393,11 +393,16 @@
 
 
 <script>
-  const {remote} = require('electron')
+  const { remote, ipcRenderer} = require('electron')
   import { mapGetters, mapActions } from "vuex";
 
   export default {
     name: 'app',
+    beforeCreate() {
+      ipcRenderer.on('gentl-update-available', (info) => {
+        console.log(info)
+      })
+    },
     created: function () {
       this.$root.$on('show-sign-info', (e) => setTimeout(() => {
         this.showSignInfo = e
