@@ -83,7 +83,6 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow()
-  autoUpdater.checkForUpdates()
   // loginWindow = createMainWindow()
 })
 
@@ -125,10 +124,16 @@ ipcMain.on('showDevTools', e => {
   mainWindow.webContents.openDevTools()
 })
 
-autoUpdater.on('update-available', info => {
-  ipcMain.send('gentl-update-available', info)
-})
+ipcMain.on('check-for-updates', () => {
+  autoUpdater.checkForUpdates()
+  ipcMain.send('gentl-update', 'Checking for updates...')
 
-autoUpdater.on('update-not-available', info => {
-  ipcMain.send('gentl-update-available', info)
+  autoUpdater.on('update-available', info => {
+    ipcMain.send('gentl-update', info)
+  })
+
+  autoUpdater.on('update-not-available', info => {
+    ipcMain.send('gentl-update', info)
+  })
+
 })

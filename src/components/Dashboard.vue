@@ -10,7 +10,11 @@
     </v-layout>
 
     <v-layout v-show="showDev" row wrap v-shortkey="['ctrl', 'alt', 'o']" @shortkey="showDev = !showDev">
-      <v-flex row wrap><v-btn @click="getDevTools">GET ALL PROJECTS</v-btn></v-flex>
+      <v-flex row wrap>
+        <v-btn @click="getDevTools">Show dev tools</v-btn>
+        <v-btn @click="checkForUpdates">Check for updates</v-btn>
+      </v-flex>
+
     </v-layout>
 
     <v-container fluid>
@@ -65,6 +69,9 @@ export default {
     ...mapActions(['addActiveProjects']),
     getDevTools() {
       ipcRenderer.send('showDevTools')
+    },
+    checkForUpdates() {
+      ipcRenderer.send('check-for-updates')
     }
   },
   computed: mapGetters(['chosenProjects', 'taskInfo'])

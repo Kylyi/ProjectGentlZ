@@ -404,7 +404,7 @@
         this.showSignInfo = e
       }), 100)
 
-      ipcRenderer.on('gentl-update-available', (info) => {
+      ipcRenderer.on('gentl-update', (info) => {
         console.log(info)
         this.updateAvailable = info
       })
