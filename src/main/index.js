@@ -126,5 +126,6 @@ ipcMain.on('showDevTools', e => {
 })
 
 autoUpdater.on('update-available', info => {
+  console.log(info)
   ipcMain.send('gentl-update-available', info)
 }) 

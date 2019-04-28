@@ -163,6 +163,7 @@
       <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
         <v-icon @click="drawer = !drawer" style="-webkit-app-region: no-drag; margin-left:20px;">menu</v-icon>
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
+        <span style="padding-left: 10px;">{{ updateAvailable ? 'Update is available' : '' }}</span>
         <v-spacer></v-spacer>
         <span style="padding-right: 10px;">Last data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
         <v-icon
@@ -398,15 +399,15 @@
 
   export default {
     name: 'app',
-    beforeCreate() {
-      ipcRenderer.on('gentl-update-available', (info) => {
-        console.log(info)
-      })
-    },
     created: function () {
       this.$root.$on('show-sign-info', (e) => setTimeout(() => {
         this.showSignInfo = e
       }), 100)
+
+      ipcRenderer.on('gentl-update-available', (info) => {
+        console.log(info)
+        this.updateAvailable = info
+      })
 
       this.checkConnectivity(navigator.onLine)
       window.addEventListener('online',  this.changeConnectivity);
@@ -444,6 +445,7 @@
         pass: '',
         pass2: ''
       },
+      updateAvailable: false,
       showSignInfo: false,
       customDialog: false,
       logo: require('./assets/Logo.png'),
