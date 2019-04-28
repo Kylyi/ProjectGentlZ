@@ -405,7 +405,7 @@
       }), 100)
 
       ipcRenderer.on('gentl-update', (e, updatable, info) => {
-        console.log(updatable)
+        console.log(updatable, info)
         // this.updateAvailable = info
       })
 

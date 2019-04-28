@@ -1,7 +1,7 @@
 {
   "name": "gentl",
   "description": "Administrative tool.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "author": "Jakub Kylian",
   "homepage": "https://none.cz",
@@ -39,8 +39,7 @@
   },
   "publish": {
     "provider": "github",
-    "token": "d592933242dcaa6eb87a18b83df490ea9b03298f",
-    "private": true
+    "token": "d592933242dcaa6eb87a18b83df490ea9b03298f"
   },
   "dependencies": {
     "bcrypt": "^3.0.4",
@@ -50,6 +49,7 @@
     "devextreme": "^18.2",
     "devextreme-vue": "^18.2",
     "docxtemplater": "^3.9.7",
+    "electron-log": "^3.0.5",
     "electron-online": "^1.0.0",
     "electron-updater": "^4.0.6",
     "element-ui": "^2.5.4",
