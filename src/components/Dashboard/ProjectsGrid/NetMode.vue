@@ -79,7 +79,7 @@
 
           <v-tabs-items>
             <v-tab-item>
-              <v-layout row wrap mt-2 mb-2>
+              <v-layout row wrap style="padding: 8px 8px 40px 8px;">
                 <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
                   <v-flex row wrap text-xs-center>
                     <b>{{field.name}}</b>

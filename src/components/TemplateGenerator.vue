@@ -1,13 +1,13 @@
 <template>
   <v-layout column xs12 wrap>
-    <v-layout row wrap align-center style="padding: 18.5px 24px; background-color: #424242;" >
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
-      <v-flex column shrink>
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Template generator</h3>
       </v-flex>
 
       <!-- MENU -->
-      <v-flex column grow text-xs-right>
+      <v-flex column grow text-xs-right style="padding: 0px 24px;">
         <v-menu
           v-model="optionsMenu"
           :close-on-content-click="false"
@@ -109,17 +109,19 @@
                       v-for="(item,i) in chosenProjects"
                       :key="i"
                     >
-                      <v-layout row wrap mt-2>
-                        <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
-                          <v-flex row wrap text-xs-center>
-                            <b>{{field.name}}</b>
-                          </v-flex>
+                      <v-container fluid>
+                        <v-layout row wrap mt-2>
+                          <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
+                            <v-flex row wrap text-xs-center>
+                              <b>{{field.name}}</b>
+                            </v-flex>
 
-                          <v-flex row wrap text-xs-center>
-                            {{item[field.value] }}
+                            <v-flex row wrap text-xs-center>
+                              {{item[field.value] }}
+                            </v-flex>
                           </v-flex>
-                        </v-flex>
-                      </v-layout>
+                        </v-layout>
+                      </v-container>
                     </v-tab-item>
                   </v-tabs-items>
                 </v-tabs>
@@ -133,7 +135,7 @@
                     v-for="(item,i) in chosenTemplates"
                     :key="i"
                   >
-                    {{item._id}}
+                    <span class="primary--text">{{item._id}}</span>
                   </v-tab>
 
                   <v-tabs-items>
@@ -141,10 +143,12 @@
                       v-for="(item,i) in chosenTemplates"
                       :key="i"
                     >
-                      <v-layout column wrap mt-2>
-                      <v-flex row wrap v-html="item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'">
-                      </v-flex>
-                      </v-layout>
+                      <v-container fluid>
+                        <v-layout column wrap mt-2>
+                          <v-flex row wrap v-html="item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'">
+                          </v-flex>
+                        </v-layout>
+                      </v-container>
                     </v-tab-item>
                   </v-tabs-items>
                 </v-tabs>

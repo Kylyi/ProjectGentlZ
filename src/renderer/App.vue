@@ -131,7 +131,7 @@
               <v-icon>account_circle</v-icon>
             </v-list-tile-action>
             <v-list-tile-content>
-              <v-list-tile-title>Manage users</v-list-tile-title>
+              <v-list-tile-title>Organization</v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
 
@@ -384,6 +384,10 @@
 
   #app {
     background-color: #F5F5F5;
+  }
+
+  #app .v-list {
+    padding: 0;
   }
 </style>
 

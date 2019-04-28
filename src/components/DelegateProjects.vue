@@ -1,13 +1,13 @@
 <template>
   <v-layout column wrap fluid>
-    <v-layout row wrap align-center style="padding: 4px 24px; background-color: #424242;" >
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
-      <v-flex column shrink xs7>
+      <v-flex column xs7 style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Delegate projects</h3>
       </v-flex>
 
       <!-- MENU -->
-      <v-flex column grow offset-xs1 xs4>
+      <v-flex column grow offset-xs1 xs4 style="height: 50px; padding: 10px 24px;">
         <multiselect :value="selectedPM" :options="uniquePms" placeholder="Select person" :searchable="true" @input="selectPM">
           <span slot="noResult">No networks found.</span>
         </multiselect>

@@ -1,9 +1,8 @@
 <template>
   <v-layout column wrap>
-
-
-    <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
-      <v-flex column shrink>
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
+      <!-- Title -->
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Settings</h3>
       </v-flex>
       <v-flex column grow>

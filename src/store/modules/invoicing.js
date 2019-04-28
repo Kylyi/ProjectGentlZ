@@ -3,6 +3,12 @@ import store from '../index'
 import { ipcRenderer } from 'electron'
 import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/localFilesManipulation'
 
+Array.prototype.unique = function() {
+  return this.filter(function (value, index, self) { 
+    return self.indexOf(value) === index;
+  });
+}
+
 const state = {
   obDailyPath1301: localStorage.getItem('obDailyPath1301'),
   obDailyPath1601: localStorage.getItem('obDailyPath1601'),
@@ -47,7 +53,10 @@ const actions = {
 
     localStorage.setItem('invoicingDateRange', JSON.stringify([fromDate, toDate]))
     commit('setDateRange', [fromDate, toDate])
-    commit('setFilteredInvoicing', rootState.invoicing.lastUpdate)
+    commit('setFilteredInvoicing', {
+      lastUpdate: rootState.invoicing.lastUpdate,
+      pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).unique()
+    })
   },
   async changeWeekGrouping({ commit }, val) {
     localStorage.setItem('invoicingWeekGrouping', JSON.stringify(val))
@@ -58,7 +67,10 @@ const actions = {
       const invSettings = rootState.settings.invoicingSettings
       commit('setLastUpdate', invSettings.lastUpdate)
       commit('setDatesModified', invSettings.datesModified)
-      commit('setFilteredInvoicing', invSettings.lastUpdate)
+      commit('setFilteredInvoicing', {
+        lastUpdate: invSettings.lastUpdate,
+        pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).unique()
+      })
       commit('setGroupingDate', invSettings.lastUpdate)
     } catch (error) {
       dispatch('notify', {
@@ -106,7 +118,7 @@ const mutations = {
   setLastUpdate: (state, lastUpdate) => state.lastUpdate = lastUpdate,
   setCompareDate: (state, date) => state.compareDate = date,
   setInvoicingDetail: (state, detail) => state.invoicingDetail = detail,
-  setFilteredInvoicing: (state, lastUpdate) => {
+  setFilteredInvoicing: (state, {lastUpdate, pms}) => {
     const allProjects = store.getters.allProjectsBasic
     if (allProjects.length === 0 ) {
       store.dispatch('notify', {
@@ -117,7 +129,9 @@ const mutations = {
       })
     }
     const filteredProjects =  allProjects.filter(e => {
-      return e['Invoice Date'][lastUpdate] >= state.dateRange[0] && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+      return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
+      && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+      && pms.includes(e['Project Manager'])
     })
 
     ipcRenderer.send('invoicingArrReady')

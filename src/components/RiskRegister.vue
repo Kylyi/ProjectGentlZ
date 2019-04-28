@@ -1,9 +1,9 @@
 <template>
   <v-layout id="riskRegister" fluid>
     <v-layout column wrap>
+      <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
-      <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
-        <v-flex column shrink>
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
           <h3 class="display-2 white--text">Manage risk register</h3>
         </v-flex>
         <v-flex column grow>
@@ -18,9 +18,6 @@
             <multiselect @input="projChange" :value="chosenProjects" :options="pmProjectsUniqueProjects" placeholder="Select project"
               :custom-label="projNetNo" track-by="Project Definition"><span slot="noResult">No projects found.</span></multiselect>
           </v-flex>
-
-
-
 
           <v-flex row wrap mt-3 v-if="chosenProjects.length > 0">
             <v-card>
@@ -134,7 +131,7 @@ export default {
       this.getRiskRegister()
     },
     projNetNo (proj) {
-      return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : ''
+      return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : `${proj['Project Definition']}`
     },
     async saveRiskRegister() {
       const editedRiskRegister = Object.assign(this.riskRegister, { bilance: this.$refs.confirmation.bilance })

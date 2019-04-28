@@ -15,9 +15,9 @@ import { mapGetters, mapActions } from "vuex";
 
 export default {
   created: async function () {
-    // if (this.$store.state.projects.chosenProjects.length > 0 && this.$store.state.templates.generatorSelectionMode === 'net') {
-    //   this.chooseProjects([])
-    // }
+    if (this.generatorSelectionMode === 'project' && !this.chosenProjects.hasOwnProperty('netsKeys')) {
+       this.chooseProjects([])
+    }
   },
   props: {
     forceMode: {

@@ -1,13 +1,13 @@
 <template>
   <v-layout column xs wrap id="invoicingTable">
-    <v-layout row wrap align-center style="padding: 18.5px 24px; background-color: #424242;" >
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
-      <v-flex column shrink>
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Invoicing</h3>
       </v-flex>
 
       <!-- MENU -->
-      <v-flex column grow text-xs-right>
+      <v-flex column grow text-xs-right style="padding: 0px 24px;">
         <v-menu
           v-model="optionsMenu"
           :close-on-content-click="false"
@@ -49,14 +49,16 @@
                 <v-list-tile-content>
                     <v-list-tile-action-text>
                       <v-list-tile-title>Week grouping</v-list-tile-title>
-                      <v-flex row wrap><v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping">
-                        <v-btn flat :value="true">
-                          Shown
-                        </v-btn>
-                        <v-btn flat :value="false">
-                          Hidden
-                        </v-btn>
-                      </v-btn-toggle></v-flex>
+                      <v-flex row wrap>
+                        <v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping" mandatory>
+                          <v-btn flat :value="true">
+                            Shown
+                          </v-btn>
+                          <v-btn flat :value="false">
+                            Hidden
+                          </v-btn>
+                        </v-btn-toggle>
+                      </v-flex>
 
                     </v-list-tile-action-text>
 
@@ -76,9 +78,9 @@
                         <v-btn flat value="DD">
                           By day
                         </v-btn>
-                        <v-btn flat value="none">
+                        <!-- <v-btn flat value="none">
                           Reset
-                        </v-btn>
+                        </v-btn> -->
                       </v-btn-toggle></v-flex>
 
                     </v-list-tile-action-text>
@@ -158,7 +160,7 @@
         </v-flex>
       </v-layout>
 
-      <v-layout row wrap>
+      <v-layout row wrap v-if="billings">
         
         <!-- GRID -->
         <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="max-height: 80vh;">
@@ -177,7 +179,7 @@
             :word-wrap-enabled="true"
             style="height: 100%; width:100%;"
           >
-            <dx-load-panel :enabled="false" text="Kill me please"></dx-load-panel>
+            <!-- <dx-load-panel :enabled="false" text="Kill me please"></dx-load-panel> -->
             <dx-header-filter
               :visible="true"
               :allow-search="true"
@@ -253,11 +255,12 @@
             />
 
             <dx-column
+              data-field="Plant"
               :visible="false"
               :show-in-column-chooser="false"
               :group-index="0"
               caption="Plant"
-              name="grouPlant"
+              name="groupPlant"
               :auto-expand-group="true"
             />
 
@@ -474,7 +477,7 @@
       })
     },
     data: () => ({
-      billings: [],
+      billings: null,
       columns: JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8')),
       optionsMenu: false,
       billingsFiltered: false,
@@ -503,10 +506,8 @@
         return moment(date).format('DD.MM.YYYY')
       },
       async getMissingBy(format) {
-        let projects = this.allProjectsBasic
-        console.log(projects)
-        if (format === "none") return this.billings = projects
-        return this.billings = projects.filter(doc => {
+        if (!format) return this.billingsFiltered = false
+        return this.billingsFiltered = this.billings.filter(doc => {
           return moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format)
         })
       },

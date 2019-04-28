@@ -40,14 +40,18 @@ const state = {
   userInfo: {},
   password: null,
   validPassword: false,
-  resettedPassword: ''
+  resettedPassword: '',
+  allUsers: [],
+  selectedUserInfo: null
 }
 
 const getters = {
   loggedIn: state => state.loggedIn,
   userInfo: state => state.userInfo,
   password: state => state.password,
-  validPassword: state => state.validPassword
+  validPassword: state => state.validPassword,
+  allUsers: state => state.allUsers,
+  selectedUserInfo: state => state.selectedUserInfo
 }
 
 const actions = {
@@ -185,6 +189,74 @@ const actions = {
         color: 'error'
       })
     }
+  },
+  async fetchAllUsers({ commit, rootState, dispatch }) {
+    try {
+      if (rootState.general.offline) throw 'You must be online to use this functionality.'
+      let users = await remoteUsers.allDocs({ include_docs: true })
+      users = users.rows.map(e => {
+        const {password, ...userInfo} = e.doc
+        return userInfo
+      })
+      commit('setAllUsers', users)
+      
+    } catch (err) {
+      dispatch('notify', {
+        text: err,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  async fetchUserInfo({ commit, rootState, dispatch }, userId) {
+    try {
+      const user = await remoteUsers.get(userId)
+      const {password, ...userInfo} = user
+
+      commit('setSelectedUserInfo', userInfo)
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  async changeUsersSubordinates({}, usersToUpdate) {
+    Array.prototype.unique = function() {
+      return this.filter(function (value, index, self) { 
+        return self.indexOf(value) === index;
+      });
+    }
+    try {
+      for (const user of usersToUpdate) {
+        remoteUsers.upsert(user._id, doc => {
+          doc.subordinates = user.subordinates
+          return doc
+        })
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  },
+  async partialOverwriteUser({ dispatch }, {userId, data}) {
+    try {
+      remoteUsers.upsert(userId, doc => {
+        Object.assign(doc, data)
+        return doc
+      })
+      dispatch('notify', {
+        text: 'User modified',
+        state: true,
+        color: 'success'
+      })
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
   }
 }
 
@@ -195,7 +267,9 @@ const mutations = {
   },
   setUserInfo: (state, userInfo) => state.userInfo = userInfo,
   setUserPassword: (state, password) => state.password = password,
-  validPassword: (state, valid) => state.validPassword = valid
+  validPassword: (state, valid) => state.validPassword = valid,
+  setAllUsers: (state, users) => state.allUsers = users,
+  setSelectedUserInfo: (state, userInfo) => state.selectedUserInfo = userInfo
 }
 
 export default {

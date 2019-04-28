@@ -1,7 +1,7 @@
 <template>
   <v-layout column xs12 wrap>
-    <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
-      <v-flex column shrink>
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Dashboard</h3>
       </v-flex>
       <v-flex column grow>

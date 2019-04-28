@@ -1,8 +1,9 @@
 <template>
   <v-layout column wrap id="riskRegisterAggregate">
-    <v-layout row wrap style="padding: 28px 24px; background-color: #424242;">
-      <v-flex column shrink>
-        <h3 class="display-2 white--text">Risk register - Aggregate view</h3>
+    <v-layout row wrap style="background-color: #424242; height: 70px;">
+      <!-- Title -->
+      <v-flex column shrink style="height: 50px; padding: 10px 24px;">
+        <h3 class="display-2 white--text">Risk register - Aggregated view</h3>
       </v-flex>
       <v-flex column grow>
         

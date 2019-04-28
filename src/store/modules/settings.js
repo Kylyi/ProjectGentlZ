@@ -13,18 +13,31 @@ settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   })
 
 const state = {
-  invoicingSettings: null
+  invoicingSettings: null,
+  heirarchySettings: null
 }
 
 const getters = {
-  invoicingSettings: state => state.invoicingSettings
+  invoicingSettings: state => state.invoicingSettings,
+  heirarchySettings: state => state.heirarchySettings
 }
 
 const actions = {
   async fetchInvoicingSettings({ commit }) {
-    const invSettings = await settings.get('invoicing')
-    console.log(invSettings)
-    commit('setInvoicingSettings', invSettings)
+    try {
+      const invSettings = await settings.get('invoicing')
+      commit('setInvoicingSettings', invSettings)
+    } catch (error) {
+      commit('setInvoicingSettings', {})
+    }
+  },
+  async fetchHierarchySettings({ commit }) {
+    try {
+      const hierSettings = await settings.get('hierarchy')
+      commit('setHierarchySettings', hierSettings.hier)
+    } catch (error) {
+      commit('setHierarchySettings', [])
+    }
   },
   async overwriteInvoicingSettings() {
     return settings.upsert('invoicing', doc => {
@@ -38,17 +51,30 @@ const actions = {
       return doc
     })
   },
-  async overwriteHierarchySettings({ commit }, hiearSettings) {
-    console.log(hiearSettings)
-    await settings.upsert('hieararchy', doc => {
-      doc.hier = hiearSettings
-      return doc
-    })
+  async overwriteHierarchySettings({ dispatch }, hierSettings) {
+    try {
+      await settings.upsert('hierarchy', doc => {
+        doc.hier = hierSettings
+        return doc
+      })
+      dispatch('notify', {
+        text: 'Saved.',
+        state: true,
+        color: 'success'
+      })
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
   }
 }
 
 const mutations = {
-  setInvoicingSettings: (state, invSettings) => state.invoicingSettings = invSettings
+  setInvoicingSettings: (state, invSettings) => state.invoicingSettings = invSettings,
+  setHierarchySettings: (state, hierSettings) => state.heirarchySettings = hierSettings
 }
 
 export default {
