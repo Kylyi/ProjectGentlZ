@@ -1,7 +1,7 @@
 {
   "name": "gentl",
   "description": "Administrative tool.",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "license": "MIT",
   "author": "Jakub Kylian",
   "homepage": "https://none.cz",
@@ -16,7 +16,8 @@
     "win": {
       "target": "nsis",
       "icon": "logo.ico",
-      "publisherName": "Jakub Kylian"
+      "publisherName": "Jakub Kylian",
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": "deb",
@@ -30,16 +31,12 @@
       {
         "from": "./src/defaultSettings/",
         "to": "defaultSettings",
-        "filter": [
+        "filter": [ 
           "**/*",
           "!**/databaseSettings.json"
         ]
       }
     ]
-  },
-  "publish": {
-    "provider": "github",
-    "token": "d592933242dcaa6eb87a18b83df490ea9b03298f"
   },
   "dependencies": {
     "bcrypt": "^3.0.4",

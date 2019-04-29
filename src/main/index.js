@@ -18,7 +18,7 @@ configInvoicingDetails()
 configProjectsDetail()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-// autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
+autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow
@@ -45,7 +45,6 @@ function createMainWindow() {
   if (isDevelopment) {
     window.webContents.openDevTools()
     window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`)
-    autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
   }
   else {
     window.loadURL(formatUrl({
@@ -132,17 +131,22 @@ ipcMain.on('check-for-updates', (e) => {
   try {
     autoUpdater.checkForUpdates()
     e.sender.send('gentl-update', 'Checking for updates...')
-    e.sender.send('gentl-update', appUpdater.geFeedURL())
 
     autoUpdater.on('update-available', info => {
       e.sender.send('gentl-update', 'Available', info)
     })
 
     autoUpdater.on('update-not-available', info => {
+      console.log('not available')
       e.sender.send('gentl-update', 'Not available', info)
+    })
+
+    autoUpdater.on('error', info => {
+      e.sender.send('gentl-update', 'ERRROR', info)
     })
   } catch (error) {
     e.sender.send('gentl-update', error)
   }
 
 })
+
