@@ -72,10 +72,10 @@
                     <v-list-tile-action-text>
                       <v-list-tile-title>Get missing</v-list-tile-title>
                       <v-flex row wrap><v-btn-toggle @change="getMissingBy">
-                        <v-btn flat value="MM">
+                        <v-btn flat value="YYYY-MM">
                           By month
                         </v-btn>
-                        <v-btn flat value="DD">
+                        <v-btn flat value="YYYY-MM-DD">
                           By day
                         </v-btn>
                         <!-- <v-btn flat value="none">
@@ -508,7 +508,7 @@
       async getMissingBy(format) {
         if (!format) return this.billingsFiltered = false
         return this.billingsFiltered = this.billings.filter(doc => {
-          return moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format)
+          return (moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format))
         })
       },
       setContextMenu (e) {

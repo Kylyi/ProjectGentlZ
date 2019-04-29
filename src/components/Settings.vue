@@ -282,6 +282,9 @@ table.draggableTable .v-input__control {
           disabled: false,
           ghostClass: "ghost"
         };
+      },
+      pwdSameRule() {
+        return (this.newPasswordAgain === this.newPassword) || 'Not the same password.'
       }
     },
     data: function () {
@@ -298,7 +301,6 @@ table.draggableTable .v-input__control {
         newPassword: '',
         newPasswordAgain: '',
         pwdLengthRule: v => (v && v.length >= 5) || 'Not long enough.',
-        pwdSameRule: v => v === this.newPassword || 'Not the same password.',
         changePasswordForm: false,
         contactInfoForm: false
       }

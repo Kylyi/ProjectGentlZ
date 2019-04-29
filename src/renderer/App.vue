@@ -396,6 +396,7 @@
 <script>
   const { remote, ipcRenderer} = require('electron')
   import { mapGetters, mapActions } from "vuex";
+  const isDev = require('electron-is-dev')
 
   export default {
     name: 'app',
@@ -404,7 +405,7 @@
         this.showSignInfo = e
       }), 100)
       
-      ipcRenderer.send('check-for-updates')
+      if (!isDev) ipcRenderer.send('check-for-updates')
       ipcRenderer.on('gentl-update', (e, autoUpdateEvent, info) => {
         if (autoUpdateEvent === 'checking') {
           this.updateState = '<i aria-hidden="true" class="v-icon fas fa-spinner fa-spin theme--dark" title="Checking for updates..."></i>'
