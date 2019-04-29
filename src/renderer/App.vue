@@ -411,7 +411,7 @@
         } else if(autoUpdateEvent === 'available') {
            this.updateState = 'Update available'
         } else if (autoUpdateEvent === 'unavailable') {
-          this.updateState = '<v-icon>check</v-icon>'
+          this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;">check</i>'
         } else if (autoUpdateEvent === 'error') {
           console.error(info)
         } else if (autoUpdateEvent === 'progress') {
