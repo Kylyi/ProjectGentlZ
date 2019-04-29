@@ -163,7 +163,7 @@
       <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
         <v-icon @click="drawer = !drawer" style="-webkit-app-region: no-drag; margin-left:20px;">menu</v-icon>
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
-        <span style="padding-left: 10px;" v-html="updateState ? updateState : ''"></span>
+        <span style="padding-left: 14px; -webkit-app-region: no-drag;" v-html="updateState ? updateState : ''"></span>
         <v-spacer></v-spacer>
         <span style="padding-right: 10px;">Last data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
         <v-icon
@@ -413,7 +413,7 @@
         } else if (autoUpdateEvent === 'unavailable') {
           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;" title="Gentl is up to date.">check</i>'
         } else if (autoUpdateEvent === 'error') {
-          console.error(info)
+          this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:red;" title="Cannot check new updates.">error</i>'
         } else if (autoUpdateEvent === 'progress') {
           console.log(progress)
         } else if ('downloaded') {
