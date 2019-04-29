@@ -17,11 +17,7 @@
       "target": "nsis",
       "icon": "logo.ico",
       "publisherName": "Jakub Kylian",
-      "verifyUpdateCodeSignature": false,
-      "publish": {
-        "provider": "github",
-        "token": "662eff9a8d5874a82dced5528b7e597efc1007b3"
-      }
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": "deb",
