@@ -128,7 +128,7 @@
           <!-- Bottom -->
           <v-list-tile router to="/userSystem" class="bottom" style="bottom:96px;">
             <v-list-tile-action>
-              <v-icon>account_circle</v-icon>
+              <v-icon>fas fa-users</v-icon>
             </v-list-tile-action>
             <v-list-tile-content>
               <v-list-tile-title>Organization</v-list-tile-title>
