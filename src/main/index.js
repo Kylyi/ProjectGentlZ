@@ -151,6 +151,7 @@ ipcMain.on('check-for-updates', (e) => {
 
   autoUpdater.once('update-downloaded', info => {
     e.sender.send('gentl-update', 'downloaded', info)
+    autoUpdater.quitAndInstall()
   })
 
 })

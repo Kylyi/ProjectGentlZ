@@ -407,11 +407,11 @@
       // ipcRenderer.send('check-for-updates')
       ipcRenderer.on('gentl-update', (e, autoUpdateEvent, info) => {
         if (autoUpdateEvent === 'checking') {
-          this.updateState = 'Checking for updates...'
+          this.updateState = '<i aria-hidden="true" class="v-icon fas fa-spinner fa-spin theme--dark" title="Checking for updates..."></i>'
         } else if(autoUpdateEvent === 'available') {
-           this.updateState = 'Update available'
+           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;" title="Gentl will be automatically updated once update is downloaded.">warning</i>'
         } else if (autoUpdateEvent === 'unavailable') {
-          this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;">check</i>'
+          this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;" title="Gentl is up to date.">check</i>'
         } else if (autoUpdateEvent === 'error') {
           console.error(info)
         } else if (autoUpdateEvent === 'progress') {
