@@ -163,7 +163,7 @@
       <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
         <v-icon @click="drawer = !drawer" style="-webkit-app-region: no-drag; margin-left:20px;">menu</v-icon>
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
-        <span style="padding-left: 10px;">{{ updateAvailable ? 'Update is available' : '' }}</span>
+        <span style="padding-left: 10px;" v-html="updateState ? updateState : ''"></span>
         <v-spacer></v-spacer>
         <span style="padding-right: 10px;">Last data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
         <v-icon
@@ -403,9 +403,23 @@
       this.$root.$on('show-sign-info', (e) => setTimeout(() => {
         this.showSignInfo = e
       }), 100)
+      
+      // ipcRenderer.send('check-for-updates')
+      ipcRenderer.on('gentl-update', (e, autoUpdateEvent, info) => {
+        if (autoUpdateEvent === 'checking') {
+          this.updateState = 'Checking for updates...'
+        } else if(autoUpdateEvent === 'available') {
+           this.updateState = 'Update available'
+        } else if (autoUpdateEvent === 'unavailable') {
+          this.updateState = '<v-icon>check</v-icon>'
+        } else if (autoUpdateEvent === 'error') {
+          console.error(info)
+        } else if (autoUpdateEvent === 'progress') {
+          console.log(progress)
+        } else if ('downloaded') {
+          this.updateState = 'Update downloaded'
+        }
 
-      ipcRenderer.on('gentl-update', (e, updatable, info) => {
-        console.log(updatable, info)
         // this.updateAvailable = info
       })
 
@@ -445,7 +459,7 @@
         pass: '',
         pass2: ''
       },
-      updateAvailable: false,
+      updateState: false,
       showSignInfo: false,
       customDialog: false,
       logo: require('./assets/Logo.png'),

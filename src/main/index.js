@@ -127,25 +127,31 @@ ipcMain.on('showDevTools', e => {
 })
 
 ipcMain.on('check-for-updates', (e) => {
-  try {
-    autoUpdater.checkForUpdatesAndNotify()
-    e.sender.send('gentl-update', 'Checking for updates...')
+  autoUpdater.checkForUpdatesAndNotify()
+  
+  autoUpdater.once('checking-for-update', () => {
+    e.sender.send('gentl-update', 'checking')
+  })
 
-    autoUpdater.on('update-available', info => {
-      e.sender.send('gentl-update', 'Available', info)
-    })
+  autoUpdater.once('update-available', info => {
+    e.sender.send('gentl-update', 'available', info)
+  })
 
-    autoUpdater.on('update-not-available', info => {
-      console.log('not available')
-      e.sender.send('gentl-update', 'Not available', info)
-    })
+  autoUpdater.once('update-not-available', info => {
+    e.sender.send('gentl-update', 'unavailable', info)
+  })
 
-    autoUpdater.on('error', info => {
-      e.sender.send('gentl-update', 'ERRROR', info)
-    })
-  } catch (error) {
-    e.sender.send('gentl-update', error)
-  }
+  autoUpdater.once('error', info => {
+    e.sender.send('gentl-update', 'error', info)
+  })
+
+  autoUpdater.once('download-progress', info => {
+    e.sender.send('gentl-update', 'progress', info)
+  })
+
+  autoUpdater.once('update-downloaded', info => {
+    e.sender.send('gentl-update', 'downloaded', info)
+  })
 
 })
 
