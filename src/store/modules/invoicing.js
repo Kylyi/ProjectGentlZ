@@ -55,7 +55,7 @@ const actions = {
     commit('setDateRange', [fromDate, toDate])
     commit('setFilteredInvoicing', {
       lastUpdate: rootState.invoicing.lastUpdate,
-      pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).unique()
+      pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).concat([rootState.user.userInfo.sapUsername]).unique()
     })
   },
   async changeWeekGrouping({ commit }, val) {
@@ -69,7 +69,7 @@ const actions = {
       commit('setDatesModified', invSettings.datesModified)
       commit('setFilteredInvoicing', {
         lastUpdate: invSettings.lastUpdate,
-        pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).unique()
+        pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).concat([rootState.user.userInfo.sapUsername]).unique()
       })
       commit('setGroupingDate', invSettings.lastUpdate)
     } catch (error) {
@@ -128,10 +128,11 @@ const mutations = {
         timeout: 5000 
       })
     }
+
     const filteredProjects =  allProjects.filter(e => {
       return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
       && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
-      && pms.includes(e['Project Manager'])
+      && (pms.includes(e['Project Manager']) )
     })
 
     ipcRenderer.send('invoicingArrReady')

@@ -253,7 +253,7 @@ export default {
     this.nodes = this.heirarchySettings
   },
   beforeDestroy() {
-    console.log(this.$store)
+    
   },
   data: function() {
     return {

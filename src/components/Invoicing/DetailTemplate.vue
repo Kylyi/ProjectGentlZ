@@ -345,7 +345,7 @@
           if (iconExists) {
             this.$props.templateData.data.sign[this.currentField][sign].push({
               comment: this.signComment,
-              owner: username.sync(),
+              owner: username.sync().toLowerCase(),
               time: time.toUTCString()
             })
             // const ix = this.$props.templateData.data.sign[this.currentField].indexOf(iconExists)
@@ -356,7 +356,7 @@
             this.$props.templateData.data.sign[this.currentField] = Object.assign({}, this.$props.templateData.data.sign[[this.currentField]], {
               [sign]: [{
                 comment: this.signComment,
-                owner: username.sync(),
+                owner: username.sync().toLowerCase(),
                 time: time.toUTCString()
               }]
             })
@@ -368,7 +368,7 @@
             [sign]: [
               {
                 comment: this.signComment,
-                owner: username.sync(),
+                owner: username.sync().toLowerCase(),
                 time: time.toUTCString()
               }
             ]
@@ -393,7 +393,7 @@
         this.showSignInfo = true
       },
       removeSignComment (comment, idx) {
-        if ((comment.owner !== username.sync()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) {
+        if ((comment.owner !== username.sync().toLowerCase()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) {
           return 
         }
 

@@ -8,7 +8,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
+const remoteTemplates = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/templates')
 const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
 
 templates.sync(remoteTemplates, { live: true, retry: true, batch_size: 50 })

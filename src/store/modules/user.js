@@ -7,11 +7,11 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
+const remoteUsers = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/users')
 const userDb = new PouchDB('src/db/user')
 
 async function getUserInfo() {
-  const loggedUser = username.sync()
+  const loggedUser = username.sync().toLowerCase()
   let currentUser
   
   try {
@@ -28,7 +28,7 @@ userDb.sync(remoteUsers, {
   retry: true,
   "selector": {
     "_id": {
-       "$eq": username.sync()
+       "$eq": username.sync().toLowerCase()
     }
   }
 }).on('change', e => {
@@ -64,7 +64,7 @@ const actions = {
     commit('setUserInfo', userInfo)
     commit('setUserPassword', password)
 
-    const keychainPass = await keytar.getPassword('Gentl', username.sync())
+    const keychainPass = await keytar.getPassword('Gentl', username.sync().toLowerCase())
     if (!keychainPass) {
       commit('setLoggedIn', false)
       return
@@ -77,7 +77,7 @@ const actions = {
     const passMatch = bcrypt.compareSync(password, state.password)
 
     if (passMatch) {
-      keytar.setPassword('Gentl', username.sync(), password)
+      keytar.setPassword('Gentl', username.sync().toLowerCase(), password)
       commit('setLoggedIn', true)
     } else {
       dispatch('notify', {
@@ -89,8 +89,8 @@ const actions = {
   },
   async registerUser({commit}, password) {
     try {
-      await keytar.setPassword('Gentl', username.sync(), password)
-      const doc = await userDb.upsert(username.sync(), (doc) => {
+      await keytar.setPassword('Gentl', username.sync().toLowerCase(), password)
+      const doc = await userDb.upsert(username.sync().toLowerCase(), (doc) => {
         doc.password = bcrypt.hashSync(password, 10)
         doc.roles = []
         return doc
@@ -107,7 +107,7 @@ const actions = {
   async changeUserSapName({ dispatch }, {sapUsername, sapUsernumber}) {
     try {
       if (!sapUsername || sapUsername === '' || !sapUsernumber || sapUsernumber === '') throw 'SAP username or SAP ID not defined.'
-      const user = username.sync()
+      const user = username.sync().toLowerCase()
       await userDb.upsert(user, doc => {
         doc.sapUsername = sapUsername
         doc.sapUsernumber = sapUsernumber
@@ -134,11 +134,11 @@ const actions = {
   },
   async changePassword({ dispatch }, password) {
     try {
-      await userDb.upsert(username.sync(), newDoc => {
+      await userDb.upsert(username.sync().toLowerCase(), newDoc => {
         newDoc.password = bcrypt.hashSync(password, 10)
         return newDoc
       })
-      keytar.setPassword('Gentl', username.sync(), password)
+      keytar.setPassword('Gentl', username.sync().toLowerCase(), password)
 
       dispatch('notify', {
         text: 'Password changed.',
@@ -157,7 +157,7 @@ const actions = {
     const newPassword = Math.random().toString(36).slice(-8)
 
     try {
-      await userDb.upsert(username.sync(), newDoc => {
+      await userDb.upsert(username.sync().toLowerCase(), newDoc => {
         newDoc.password = bcrypt.hashSync(newPassword, 10)
         return newDoc
       })
@@ -172,7 +172,7 @@ const actions = {
   },
   async changeUserContactInfo({ dispatch }, { userEmail, userPhone }) {
     try {
-      await userDb.upsert(username.sync(), doc => {
+      await userDb.upsert(username.sync().toLowerCase(), doc => {
         doc.email = userEmail
         doc.phone = userPhone
         return doc
