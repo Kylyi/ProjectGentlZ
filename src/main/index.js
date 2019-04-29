@@ -3,9 +3,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
-import { autoUpdater } from 'electron-updater'
-autoUpdater.logger = require("electron-log")
-autoUpdater.logger.transports.file.level = "info"
+const { autoUpdater } = require("electron-updater")
 import {
   configDatabaseSettings,
   configInvoicingColumns,
@@ -18,7 +16,7 @@ configInvoicingDetails()
 configProjectsDetail()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
+autoUpdater.checkForUpdatesAndNotify()
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow
@@ -45,6 +43,7 @@ function createMainWindow() {
   if (isDevelopment) {
     window.webContents.openDevTools()
     window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`)
+    autoUpdater.updateConfigPath = path.join(__dirname, 'app-update.yml')
   }
   else {
     window.loadURL(formatUrl({
