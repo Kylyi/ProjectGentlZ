@@ -17,6 +17,13 @@ configProjectsDetail()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 // autoUpdater.checkForUpdatesAndNotify()
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'Kylyi',
+  repo: 'ProjectGentlX',
+  token: '662eff9a8d5874a82dced5528b7e597efc1007b3'
+})
+
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow

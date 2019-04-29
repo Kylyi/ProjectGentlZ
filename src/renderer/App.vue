@@ -409,10 +409,11 @@
         if (autoUpdateEvent === 'checking') {
           this.updateState = '<i aria-hidden="true" class="v-icon fas fa-spinner fa-spin theme--dark" title="Checking for updates..."></i>'
         } else if(autoUpdateEvent === 'available') {
-           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;" title="Gentl will be automatically updated once update is downloaded.">warning</i>'
+           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" title="Gentl will be automatically updated once update is downloaded.">warning</i>'
         } else if (autoUpdateEvent === 'unavailable') {
           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#66bb6a;" title="Gentl is up to date.">check</i>'
         } else if (autoUpdateEvent === 'error') {
+          console.log(info)
           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#ef5350;" title="Cannot check new updates.">error</i>'
         } else if (autoUpdateEvent === 'progress') {
           console.log(progress)
