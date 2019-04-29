@@ -129,7 +129,7 @@ ipcMain.on('showDevTools', e => {
 
 ipcMain.on('check-for-updates', (e) => {
   try {
-    autoUpdater.checkForUpdates()
+    autoUpdater.checkForUpdatesAndNotify()
     e.sender.send('gentl-update', 'Checking for updates...')
 
     autoUpdater.on('update-available', info => {
