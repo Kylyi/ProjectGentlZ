@@ -21,7 +21,8 @@ autoUpdater.setFeedURL({
   provider: 'github',
   owner: 'Kylyi',
   repo: 'ProjectGentlX',
-  token: '662eff9a8d5874a82dced5528b7e597efc1007b3'
+  token: '662eff9a8d5874a82dced5528b7e597efc1007b3',
+  private: true
 })
 
 
