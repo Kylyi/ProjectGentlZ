@@ -11,7 +11,7 @@
 
     <v-layout v-show="showDev" row wrap v-shortkey="['ctrl', 'alt', 'o']" @shortkey="showDev = !showDev">
       <v-flex row wrap>
-        <v-btn @click="getDevTools">Show dev tools</v-btn>
+        <v-btn @click="getDevTools">Dev tools</v-btn>
         <v-btn @click="checkForUpdates">Check for updates</v-btn>
       </v-flex>
 
