@@ -416,7 +416,7 @@
           console.log(info)
           this.updateState = '<i aria-hidden="true" class="v-icon material-icons theme--dark" style="color:#ef5350;" title="Cannot check new updates.">error</i>'
         } else if (autoUpdateEvent === 'progress') {
-          console.log(progress)
+          console.log(info)
         } else if ('downloaded') {
           this.updateState = 'Update downloaded'
         }
