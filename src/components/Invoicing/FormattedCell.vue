@@ -1,6 +1,13 @@
 <template>
-  <v-layout style="text-align:center;">
-    <v-flex row wrap v-bind:class="formatDate()">{{cellData.text}}</v-flex>
+  <v-layout row wrap>
+    <v-flex column grow>
+      {{templateData.text}}
+    </v-flex>
+    <v-flex column shrink>
+      <v-icon style="font-size: small;" :title="`This field ${templateData.data['Invoice Date Fixed'] ? 'is' : 'is NOT'} fixed in PPES.`">
+        {{ templateData.rowType === 'data' ? templateData.data['Invoice Date Fixed'] ? 'radio_button_checked' : 'radio_button_unchecked' : ''}}
+      </v-icon>
+    </v-flex>
   </v-layout>
 </template>
 
@@ -23,38 +30,8 @@
   const moment = require('moment')
 
   export default {
-    data: () => ({
-      // cellData: null
-    }),
-    props: {
-      cellData: {
-        type: Object,
-        default: () => {}
-      },
-      dates: {
-        type: Array,
-        default: () => {}
-      }
-    },
+    props: ['templateData'],
     methods: {
-      formatDate () {
-        if (this._props.cellData['rowType'] === 'data') {
-          const selector = this._props.cellData['data']
-          const currentDate = moment(selector['Invoice Date'][this._props.dates[0]])
-          const lastDate = moment(selector['Invoice Date'][this._props.dates[1]])
-          const diff = currentDate.diff(lastDate)
-
-          if (diff > 0) {
-            return 'delayed'
-          } else if (diff < 0) {
-            return 'hasted'
-          } else {
-            return 'normal'
-          }
-        }
-
-        return 'normal'
-      }
     }
   }
 </script>

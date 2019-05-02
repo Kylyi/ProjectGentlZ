@@ -2,6 +2,7 @@ import moment from 'moment'
 import store from '../index'
 import { ipcRenderer } from 'electron'
 import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/localFilesManipulation'
+import _ from 'underscore'
 
 Array.prototype.unique = function() {
   return this.filter(function (value, index, self) { 
@@ -132,7 +133,7 @@ const mutations = {
     const filteredProjects =  allProjects.filter(e => {
       return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
       && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
-      && (pms.includes(e['Project Manager']) )
+      && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))
     })
 
     ipcRenderer.send('invoicingArrReady')

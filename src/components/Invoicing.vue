@@ -51,10 +51,10 @@
                       <v-list-tile-title>Week grouping</v-list-tile-title>
                       <v-flex row wrap>
                         <v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping" mandatory>
-                          <v-btn flat :value="true">
+                          <v-btn flat color="primary" :value="true">
                             Shown
                           </v-btn>
-                          <v-btn flat :value="false">
+                          <v-btn flat color="primary" :value="false">
                             Hidden
                           </v-btn>
                         </v-btn-toggle>
@@ -72,10 +72,10 @@
                     <v-list-tile-action-text>
                       <v-list-tile-title>Get missing</v-list-tile-title>
                       <v-flex row wrap><v-btn-toggle @change="getMissingBy">
-                        <v-btn flat value="YYYY-MM">
+                        <v-btn flat color="primary" value="YYYY-MM">
                           By month
                         </v-btn>
-                        <v-btn flat value="YYYY-MM-DD">
+                        <v-btn flat color="primary" value="YYYY-MM-DD">
                           By day
                         </v-btn>
                         <!-- <v-btn flat value="none">
@@ -153,10 +153,26 @@
           
         </v-flex>
         <v-flex column shrink>
-          <v-btn icon @click="filterSignOnAll('warning')"><v-icon :color="signFilterActive.warning ? 'red' : 'inherit'">warning</v-icon></v-btn>
-          <v-btn icon @click="filterSignOnAll('info')"><v-icon :color="signFilterActive.info ? 'info' : 'inherit'">info</v-icon></v-btn>
-          <v-btn icon @click="filterSignOnAll('arrow_upward')"><v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'">arrow_upward</v-icon></v-btn>
-          <v-btn icon @click="filterSignOnAll('arrow_downward')"><v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'">arrow_downward</v-icon></v-btn>
+          <v-btn icon @click="filterSignOnAll('warning')">
+            <v-icon :color="signFilterActive.warning ? 'red' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              warning
+            </v-icon>
+          </v-btn>
+          <v-btn icon @click="filterSignOnAll('info')">
+            <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              info
+            </v-icon>
+          </v-btn>
+          <v-btn icon @click="filterSignOnAll('arrow_upward')">
+            <v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              arrow_upward
+            </v-icon>
+          </v-btn>
+          <v-btn icon @click="filterSignOnAll('arrow_downward')">
+            <v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              arrow_downward
+            </v-icon>
+          </v-btn>
         </v-flex>
       </v-layout>
 
@@ -178,6 +194,7 @@
             @context-menu-preparing="setContextMenu"
             :word-wrap-enabled="true"
             style="height: 100%; width:100%;"
+            :column-min-width="50"
           >
             <!-- <dx-load-panel :enabled="false" text="Kill me please"></dx-load-panel> -->
             <dx-header-filter
@@ -221,18 +238,18 @@
               :savingTimeout="2000"
             />
 
-            <dx-column 
+            <dx-column
               v-for="col in columns"
               :key="col.value"
               :data-field="col.value"
               :caption="col.name"
               :visible="col.visible"
               :data-type="col.dataType"
-              :alignment="col.hasOwnProperty('alignment') ? col.alignment : undefined"
-              :cell-template="col.value === 'Network Num' ? 'cellTemplate' : col.value === 'SSO' ? 'ssoTemplate' : undefined"
+              :alignment="col.alignment || undefined"
+              :cell-template="col.cellTemplate || undefined"
               :format="col.dataType === 'number' ? '#,##0' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
-              :width="col.width? col.width : ''"
-              />
+              :width="col.width || ''"
+            />
 
             <dx-column
               :data-field="`Invoice Date[${invoicingLastUpdate}]`"
@@ -242,6 +259,7 @@
               alignment="center"
               :showWhenGrouped="true"
               width="120px"
+              cell-template="formattedCell"
             />
             
             <dx-column
@@ -254,6 +272,7 @@
               width="120px"
             />
 
+            <!-- GROUPING -->
             <dx-column
               data-field="Plant"
               :visible="false"
@@ -338,7 +357,7 @@
             <div
               slot="formattedCell"
               slot-scope="data">
-              <formatted-cell :cell-data="data" :dates="[invoicingLastUpdate, invoicingCompareDate]"/>
+              <formatted-cell :template-data="data"/>
             </div>
 
             <div
@@ -353,7 +372,7 @@
             <div
               slot="ssoTemplate"
               slot-scope="data">
-              <sso-template :templateData="data" />
+              <sso-template :template-data="data" />
             </div>
 
             <div
@@ -423,13 +442,7 @@
   }
 
   #optionsMenu .v-btn--active {
-    border: 1px solid #1976d2 !important;
-    color: #1976d2;
-    border-radius: 10px !important;
-  }
-
-  #optionsMenu .v-btn {
-    border-radius: 10px !important;
+    border: 1px solid #ff5252 !important;
   }
 
   .v-list__tile__content {
@@ -563,6 +576,13 @@
         this.$refs['invoicingGrid'].instance.state(currentState)
         this.changeWeekGrouping(false)
       },
+      calcFatValue(rowData) {
+        if (rowData['FAT Fixed Date']) {
+          return rowData['FAT Fixed Date']
+        } else {
+          return 'no FAT'
+        }
+      }
     },
     components: {
       FormattedCell,

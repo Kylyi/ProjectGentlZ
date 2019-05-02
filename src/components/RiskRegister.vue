@@ -24,45 +24,47 @@
               <v-card-title style="padding: 0;">
                 <v-layout align-center row wrap>
                   <v-flex column xs4>
-                    <v-btn @click="step=1" outline
-                      :style="`width: 100%; margin: 0; background-color: ${step === 1 ? 'black!important' : ''}; color: ${step === 1 ? 'white!important' : ''};`"
+                    <v-layout row wrap justify-center align-center fill-height
+                      :style="`width: 100%; height: 32px; margin: 0; background-color: ${step === 1 ? 'black!important' : ''}; color: ${step === 1 ? 'white!important' : ''}; border: 1px dashed black;`"
                     >
                       RISKS
-                    </v-btn>
+                      <v-icon v-if="step > 1" style="padding-left: 16px;" color="success">check</v-icon>
+                    </v-layout>
                   </v-flex>
                   <v-flex column xs4>
-                    <v-btn @click="step=2" outline
-                      :style="`width: 100%; margin: 0; background-color: ${step === 2 ? 'black!important' : ''}; color: ${step === 2 ? 'white!important' : ''};`"
+                    <v-layout row wrap justify-center align-center fill-height
+                      :style="`width: 100%; height: 32px; margin: 0; background-color: ${step === 2 ? 'black!important' : ''}; color: ${step === 2 ? 'white!important' : ''}; border: 1px dashed black;`"
                     >
                       OPPORTUNITIES
-                    </v-btn>
+                      <v-icon v-if="step > 2" style="padding-left: 16px;" color="success">check</v-icon>
+                    </v-layout>
                   </v-flex>
                   <v-flex column xs4>
-                    <v-btn @click="step=3" outline
-                      :style="`width: 100%; margin: 0; background-color: ${step === 3 ? 'black!important' : ''}; color: ${step === 3 ? 'white!important' : ''};`"
+                    <v-layout row wrap justify-center align-center fill-height
+                      :style="`width: 100%; height: 32px; margin: 0; background-color: ${step === 3 ? 'black!important' : ''}; color: ${step === 3 ? 'white!important' : ''}; border: 1px dashed black;`"
                     >
                       FINAL CHECK
-                    </v-btn>
+                    </v-layout>
                   </v-flex>
                 </v-layout>
               </v-card-title>
               <v-card-text>
-                <template v-if="step===1">
+                <template v-if="step===1 && riskRegister">
                   <risks :risk-register="riskRegister" />
                 </template>
 
-                <template v-else-if="step===2">
+                <template v-else-if="step===2 && riskRegister">
                   <opportunities :risk-register="riskRegister" />
                 </template>
 
-                <template v-else>
+                <template v-else-if="step===3 && riskRegister">
                   <confirm ref="confirmation" :risk-register="riskRegister" :net="netWithRiskRegister" />
                 </template>
               </v-card-text>
               <v-card-actions>
                 <v-btn v-if="step !== 1" @click="step = step - 1" outline color="primary">Back</v-btn>
                 <v-spacer></v-spacer>
-                <v-btn v-if="step !== 3" @click="step = step + 1" outline color="primary">Next</v-btn>
+                <v-btn v-if="step !== 3" @click="validateCategories(Object.entries(riskRegister[step === 1 ? 'risks' : 'opportunities']), step + 1, true)" outline color="primary">Next</v-btn>
                 <v-btn v-if="step === 3" color="primary" @click="saveRiskRegister">Save</v-btn>
               </v-card-actions>
             </v-card>
@@ -89,6 +91,8 @@ export default {
   name: "RiskRegister",
   async created () {
     this.getRiskRegister()
+    // this.validateCategories(Object.entries(this.riskRegister.risks), 2)
+    // this.validateCategories(Object.entries(this.riskRegister.opportunities), 3)
   },
   computed: {
     ...mapGetters(['chosenProjects', 'defaultRiskRegister', 'pmProjectsUniqueProjects'])
@@ -97,12 +101,14 @@ export default {
   data: () => {
     return {
       step: 1,
-      riskRegister: [],
-      netWithRiskRegister: null
+      riskRegister: false,
+      netWithRiskRegister: null,
+      step2Allowed: false,
+      step3Allowed: false
     }
   },
   methods: {
-    ...mapActions(['fetchDefaultRiskRegister', 'chooseProjects', 'changeProjectRiskRegister']),
+    ...mapActions(['fetchDefaultRiskRegister', 'chooseProjects', 'changeProjectRiskRegister', 'notify']),
     async getRiskRegister() {
       if (this.chosenProjects.length > 0) {
         const allNets = this.$store.state.projects.allProjectsBasic.filter(e => e['Project Definition'] === this.chosenProjects[0]['Project Definition'])
@@ -111,7 +117,12 @@ export default {
 
         if (netWithRiskRegister.riskRegister.hasOwnProperty('risks')) {
           this.riskRegister = JSON.parse(JSON.stringify(netWithRiskRegister.riskRegister))
+          this.validateCategories(Object.entries(this.riskRegister.risks), 2)
+          this.validateCategories(Object.entries(this.riskRegister.opportunities), 3)
         } else {
+          this.step2Allowed = false
+          this.step3Allowed = false
+          this.step = 1
           if (this.defaultRiskRegister.hasOwnProperty(('risks'))) {
             this.riskRegister = this.defaultRiskRegister
           } else {
@@ -128,7 +139,10 @@ export default {
         await this.chooseProjects([])
       }
 
-      this.getRiskRegister()
+      this.riskRegister = false
+      this.$nextTick(() => {
+        this.getRiskRegister()
+      })
     },
     projNetNo (proj) {
       return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : `${proj['Project Definition']}`
@@ -137,6 +151,36 @@ export default {
       const editedRiskRegister = Object.assign(this.riskRegister, { bilance: this.$refs.confirmation.bilance })
       const netId = this.netWithRiskRegister['_id']
       this.changeProjectRiskRegister({ editedRiskRegister, netId })
+    },
+    validateCategories(cats = [], step, go) {
+      if (this.chosenProjects.length === 0) return
+
+      try {
+        cats.forEach(cat => {
+        for (let idx = 0; idx < cat[1].length; idx++) {
+          const risk = cat[1][idx]
+          if (risk.exists) {
+            if (risk.description === "" || risk.owner === "" || risk.plannedAction === "" || !risk.probability || !risk.priceImpact) {
+              throw 'Nope'
+              break
+            }   
+          } else {
+            // catsNotValid[category].push(false)
+          }
+        }
+      })
+      this['step'+step+'Allowed'] = true
+      if (go) {
+        this.step = step
+      }
+      } catch (error) {
+        if (go) this.notify({
+          text: 'Not filled properly. You can check which rows are throwing errors by hovering over error icons.',
+          state: true,
+          color: 'error',
+          timeout: 5000
+        })
+      }
     }
   }
 }

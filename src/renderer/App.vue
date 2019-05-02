@@ -477,8 +477,8 @@
         { icon: 'supervised_user_circle', title: 'Delegate projects', to: '/delegateProjects'}
       ],
       riskRegister: [
-        { icon: 'grid_on', title: 'Aggregate view', to: '/riskRegisterAggregate'},
         { icon: 'edit', title: 'Manage risk register', to: '/riskRegister'},
+        { icon: 'grid_on', title: 'Aggregated view', to: '/riskRegisterAggregate'}
       ]
     }),
     computed: {

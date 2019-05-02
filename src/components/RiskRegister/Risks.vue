@@ -3,110 +3,103 @@
     <template>
       <el-collapse v-model="selectedTab" style="width: 100%;">
         <el-collapse-item
-          v-for="(riskCategory, i) in riskRegister.risks"
-          :title="i" 
+          v-for="(riskCategory, i) in risks"
           :name="i"
           :key="i"
         >
-          <template v-if="selectedTab.includes(i)">
-            <dx-data-grid
-              :data-source="riskCategory"
-              show-borders
-              key-expr='name'
-              column-auto-width
-              :row-alternation-enabled="true"
-              :show-row-lines="true"
-              :show-column-lines="true"
-              :word-wrap-enabled="true"
-              style="max-height: 300px;"
-              @cell-click="cellClick($event, i)"
-              :repaintChangesOnly="true"
+          <template slot="title">
+           <span>{{i}}</span>
+           <!-- <span style="padding-left: 24px; position: absolute; right: 80px;">
+             <v-btn @click.stop="validateCategories([[i, riskCategory]])" outline small color="#1E88E5" style="margin: 0;">Validate</v-btn>
+            </span> -->
+           <span style="padding-left: 24px; position: absolute; right: 48px; display: table-row; vertical-align: middle;">
+             <v-icon
+              style="display:table-cell;" :color="forms[i].length > 0 ? 'error' : 'success'"
+              :title="forms[i].length === 0 ? '' : `Check rows ${forms[i].toString()}`" 
             >
-              <dx-editing
-                :allow-updating="true"
-                mode="cell"
-              />
-
-              <dx-column
-                data-field="name"
-                caption="Definition"
-                alignment="left"
-                :allow-sorting="false"
-                :allow-resizing="true"
-                :allow-editing="false"
-                :min-width="250"
-              />
-              <dx-column
-                data-field="info"
-                caption="Description"
-                alignment="left"
-                :allow-sorting="false"
-                :allow-editing="false"
-                :min-width="350"
-              />
-              <dx-column
-                data-field="exists"
-                caption="Exists"
-                alignment="center"
-                :allow-sorting="false"
-                :width="50"
-              />
-              <dx-column
-                data-field="description"
-                caption="Additional info"
-                alignment="left"
-                :allow-sorting="false"
-                :min-width="200"
-              />
-              <dx-column
-                data-field="plannedAction"
-                caption="Planned action for mitigation"
-                alignment="left"
-                :allow-sorting="false"
-                :min-width="250"
-              />
-              <dx-column
-                data-field="owner"
-                caption="Owner"
-                alignment="center"
-                :allow-sorting="false"
-                :min-width="150"
-              >
-              </dx-column>
-              <dx-column
-                data-field="probability"
-                caption="Probability [%]"
-                alignment="center"
-                data-type="number"
-                format="percent"
-                :allow-sorting="false"
-                :width="100"
-              />
-              <dx-column
-                data-field="priceImpact"
-                caption="Price impact [CZK]"
-                alignment="center"
-                data-type="number"
-                format="thousands"
-                :min-width="100"
-              />
-
-              <!-- <div
-                slot="lookupTemplate"
-                slot-scope="templateData">
-                <multiselect :value="templateData.data.owner" :options="uniquePms" placeholder="Select network" :searchable="true"><span slot="noResult">No PMs found.</span></multiselect>
-              </div> -->
-
-            </dx-data-grid>
+              {{ forms[i].length > 0 ? 'warning' : 'check'}}
+            </v-icon>
+           </span>
           </template>
+
+          <v-layout row wrap class="categoryWrapper" style="overflow: -webkit-paged-x;">
+            <template v-if="selectedTab.includes(i)">
+                <v-layout row>
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">Definition</v-flex>
+                  <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px;">Description</v-flex>
+                  <v-flex column text-xs-center style="min-width: 85px; max-width: 85px; padding: 0 4px;">Exists</v-flex>
+                  <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px;">Additional info</v-flex>
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">Planned action for mitigation</v-flex>
+                  <v-flex column style="min-width: 128px; max-width: 180px; min-width:180px; padding: 0 4px;">Owner</v-flex>
+                  <v-flex column text-xs-center style="min-width: 100px; max-width: 100px; padding: 0 4px;">Probability</v-flex>
+                  <v-flex column text-xs-center style="min-width: 130px; max-width: 130px; padding: 0 4px;">Price impact [CZK]</v-flex>
+                </v-layout>
+
+                <v-layout row v-for="(risk, idx) in riskCategory" :key="idx">
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">{{risk.name}}</v-flex>
+                  <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px;">{{risk.info}}</v-flex>
+                  <v-flex column style="min-width: 85px; max-width: 85px; padding: 0 4px;">
+                    <v-layout row wrap justify-center align-center fill-height>
+                      <v-btn-toggle v-model="risks[i][idx].exists" style="box-shadow: none;" @change="validateCategories([[i, riskCategory]])">
+                        <v-btn flat :value="false" :color="!risks[i][idx].exists ? 'success' : ''">No</v-btn>
+                        <v-btn flat :value="true" :color="risks[i][idx].exists ? 'error' : ''">Yes</v-btn>
+                      </v-btn-toggle>
+                    </v-layout>
+                  </v-flex>
+                  <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px;">
+                    <textarea v-model="risks[i][idx].description" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%; padding: 4px;"></textarea>
+                  </v-flex>
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">
+                    <textarea v-model="risks[i][idx].plannedAction" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
+                  </v-flex>
+                  <v-flex column style="min-width: 180px; max-width: 180px; padding: 0 4px;">
+                    <v-layout row wrap align-center justify-center fill-height>
+                      <!-- <multiselect v-model="risks[i][idx].owner" @input="validateCategories([[i, riskCategory]])"  :multiple="true" :options="people" style="font-size: 13px; max-width: 100%;" placeholder="" select-label="" deselect-label="" tag-placeholder="" :taggable="true" @tag="addPerson($event,i,idx )" /> -->
+                      <!-- <v-combobox
+                        :items="people"
+                        v-model="risks[i][idx].owner"
+                        style="font-size: 13px;"
+                        @change="validateCategories([[i, riskCategory]])"
+                      >
+                      </v-combobox> -->
+                      <textarea v-model="risks[i][idx].owner" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
+                    </v-layout>
+                  </v-flex>
+                  <v-flex column style="min-width: 100px; max-width: 100px; padding: 0 4px;">
+                    <vue-numeric
+                      v-model="risks[i][idx].probability"
+                      @blur="validateCategories([[i, riskCategory]])"
+                      thousand-separator=" "
+                      decimal-separator=","
+                      :precision="2"
+                      :min="0"
+                      :max="1"
+                      style="width: 100%; height: 100%;  padding: 4px; text-align: center;"
+                    >
+                    </vue-numeric>
+                  </v-flex>
+                  <v-flex column style="min-width: 130px; max-width: 130px; padding: 0 4px;">
+                    <vue-numeric
+                      v-model="risks[i][idx].priceImpact"
+                      @blur="validateCategories([[i, riskCategory]])"
+                      thousand-separator=" "
+                      decimal-separator=","
+                      :precision="0"
+                      style="width: 100%; height: 100%; padding: 4px; text-align: center;"
+                    >
+                    </vue-numeric>
+                  </v-flex>
+                </v-layout>
+            </template>
+          </v-layout>
         </el-collapse-item>
       </el-collapse>
 
 
-      <v-dialog
+      <!-- <v-dialog
         v-model="dialog"
         width="500"
-      >
+        >
         <v-card>
           <v-card-title
             class="headline grey lighten-2"
@@ -137,23 +130,24 @@
             </v-btn>
           </v-card-actions>
         </v-card>
-      </v-dialog>
+      </v-dialog> -->
     </template>
   </v-layout>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import {
-  DxTextArea
-} from 'devextreme-vue';
-import CheckTemplate from './Helpers/CheckTemplate'
 export default {
   name: 'Risks',
   props: ['riskRegister'],
-  components: {
-    CheckTemplate,
-    DxTextArea
+  created() {
+    this.risks = this.riskRegister.risks
+    this.people = this.uniquePms
+    
+    this.validateCategories(Object.entries(this.risks))
+  },
+  beforeDestroy() {
+    Object.assign(this.riskRegister.risks, this.risks)
   },
   data: () => {
     return {
@@ -163,54 +157,79 @@ export default {
       selectedRowIndex: null,
       selectedField: null,
       selectedFieldValue: null,
-      selectedFieldCaption: null
+      selectedFieldCaption: null,
+      forms: {},
+      risks: {},
+      people: []
     }
   },
   computed: {
-    ...mapGetters(['defaultRiskRegister', 'uniquePms'])
+    ...mapGetters(['uniquePms'])
   },
   methods: {
-    ...mapActions(['fetchDefaultRiskRegister']),
-    cellClick(e, i) {
-      if (e.column.dataType === 'string' && e.rowType === 'data' && e.column.allowEditing) {
-        this.selectedCategory = i
-        this.selectedRowIndex = e.rowIndex
-        this.selectedField = e.column.dataField
-        this.selectedFieldValue = e.value
-        this.selectedFieldCaption = e.column.caption
-        this.dialog = true
-      }
+    validateCategories(cats = []) {
+      let catsNotValid = {}
+
+      cats.forEach(cat => {
+        const category = cat[0]
+        Object.assign(catsNotValid, { [category]: [] })
+        for (let idx = 0; idx < cat[1].length; idx++) {
+          const risk = cat[1][idx]
+          if (risk.exists) {
+            if (risk.description === "" || risk.owner === "" || risk.plannedAction === "" || !risk.probability || !risk.priceImpact) {
+              catsNotValid[category].push(idx+1)
+            }   
+          } else {
+            // catsNotValid[category].push(false)
+          }
+          
+        }
+      })
+
+      Object.assign(this.forms, catsNotValid)
+      this.$forceUpdate()
     },
-    commitChanges(e) {
-      this.riskRegister.risks[this.selectedCategory][this.selectedRowIndex][this.selectedField] = e.target.value
+    addPerson(person, i, idx) {
+      this.people.push(person)
+      this.risks[i][idx].owner.push(person)
     }
   }
 }
 </script>
 
 <style>
-  #risks .dx-datagrid-content .dx-datagrid-table .dx-row > td, .dx-datagrid-content .dx-datagrid-table .dx-row > tr > td {
-    vertical-align: middle;
+  /* .categoryWrapper > div.layout.row:nth-child(even) {
+    border-top: 1px dashed darkgrey;
+    border-bottom: 1px dashed darkgrey;
+  } */
+  .categoryWrapper > div.layout.row:first-child {
+    font-weight: bold;
+    color: #ef5350;
+  }
+  /* .categoryWrapper > div.layout.row:last-child {
+    border-bottom: 1px dashed darkgrey;
+  } */
+
+  .categoryWrapper > div.layout.row > div.flex.column {
+    border-bottom: 1px dashed darkgray;
   }
 
-  #risks textarea {
-    margin: 0 12px 0 0;
-    padding: 2px 5px;
+  .categoryWrapper > div.layout.row:not(:first-child) > div.flex.column:nth-child(even) {
+    border-left: 1px dashed darkgrey;
+    border-right: 1px dashed darkgrey;
+  }
+  .categoryWrapper > div.layout.row:not(:first-child) > div.flex.column:first-child {
+    border-left: 1px dashed darkgrey;
   }
 
-  #risks .v-text-field__slot {
-    padding: 0
+  #risks .v-btn__content {
+    height: 28px;
+  }
+  #risks .multiselect--active .multiselect__input {
+    max-width: 100%!important;
   }
 
-  #risks .v-input__slot {
-    padding: 0;
-  }
-
-  #risks .v-input__control {
-    margin: auto;
-  }
-
-  #risks .v-input--selection-controls {
-    margin-top: 0;
-  }
+  #risks .el-collapse-item__wrap {
+   overflow: visible;
+  } 
 </style>

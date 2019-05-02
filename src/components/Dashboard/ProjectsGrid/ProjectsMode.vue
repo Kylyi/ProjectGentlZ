@@ -100,7 +100,7 @@
                   </v-flex>
 
                   <v-flex row wrap text-xs-center style="min-height: 21px;">
-                    {{net[field.value]}}
+                    {{ (field.dataType === 'date' && net[field.value]) ? net[field.value].substr(0,10) : net[field.value] }}
                   </v-flex>
                 </v-flex>
               </v-layout>
@@ -163,11 +163,11 @@ export default {
         let color
 
         if (percent > 0.1) {
-          color = '#C5E1A5'
+          color = '#C8E6C9'
         } else if (percent > -0.1 && percent < 0.1) {
-          color = '#FFF59D'
+          color = '#FFF9C4'
         } else {
-          color = '#EF9A9A'
+          color = '#FFCDD2'
         }
 
 

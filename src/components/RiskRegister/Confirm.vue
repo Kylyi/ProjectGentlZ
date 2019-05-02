@@ -1,5 +1,6 @@
 <template>
   <v-layout row wrap>
+    <v-divider></v-divider>
     <v-flex column xs6 pr-3>
       <v-flex row wrap mb-3><h6 class="title"><b>RISKS</b></h6></v-flex>
         <!-- RISKS -->

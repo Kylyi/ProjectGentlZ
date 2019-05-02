@@ -1,5 +1,5 @@
 <template>
-  <v-layout column wrap fluid>
+  <v-layout column wrap fluid id="delegateProjects">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
       <v-flex column xs7 style="height: 50px; padding: 10px 24px;">
@@ -134,7 +134,7 @@
               <v-icon 
                 :color="getColor(templateData.data)" 
                 :title="getTitle(templateData.data)"
-                v-html="'supervised_user_circle'" 
+                v-html="getIcon(templateData.data)" 
               />
             </div>
           </dx-data-grid>
@@ -161,6 +161,24 @@ export default {
   },
   methods: {
     ...mapActions(['selectPM', 'delegateProjects', 'notify']),
+    getIcon({temporaryAssign, project_pm}) {
+      if (temporaryAssign.hasOwnProperty('personName') && temporaryAssign.personName.length > 0) {
+        const currentUserSapName = this.selectedPM
+        if (project_pm === currentUserSapName) {
+          return 'supervised_user_circle'
+        }
+
+        if (temporaryAssign.personName.includes(currentUserSapName)) {
+          return 'supervised_user_circle'
+        } else if (project_pm === currentUserSapName) {
+          return 'success'
+        } else {
+          return 'supervised_user_circle'
+        }
+      } else {
+        return ''
+      }
+    },
     getColor({temporaryAssign, project_pm}) {
       if (temporaryAssign.hasOwnProperty('personName') && temporaryAssign.personName.length > 0) {
         const currentUserSapName = this.selectedPM
@@ -227,5 +245,5 @@ export default {
 </script>
 
 <style>
-
+  
 </style>

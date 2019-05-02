@@ -3,6 +3,7 @@ const { dialog } = require('electron').remote
 import fs from 'fs'
 import { generateDocx, generateXlsx } from '../helpers/templateGenerating'
 import * as blobUtil from 'blob-util'
+import store from '../index'
 
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))

@@ -274,7 +274,7 @@ export default {
       selectedUser: {},
       userPlaceholderImage: require('../renderer/assets/user-placeholder.jpg'),
       chosenRoles: [],
-      availableRoles: ['invoicingAdmin', 'hierarchyAdmin'],
+      availableRoles: ['invoicingAdmin', 'hierarchyAdmin', 'templatesAdmin'],
       manuallyAddedSubs: [],
       selectedUserRoles: []
     }

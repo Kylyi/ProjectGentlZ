@@ -33,210 +33,58 @@ export let configInvoicingColumns = function () {
   const fileFound = fs.existsSync(p)
 
   if (!fileFound) {
-    fs.writeFileSync(p, JSON.stringify([{
-        "name": "Project #",
-        "value": "project_id",
-        "editable": false,
-        "visible": true,
-        "dataType": "string"
-      },
-      {
-        "name": "Net #",
-        "value": "net_num",
-        "editable": false,
-        "visible": true,
-        "dataType": "string"
-      },
-      {
-        "name": "Net description",
-        "value": "net_descr",
-        "editable": false,
-        "visible": true,
-        "alignment": "left",
-        "dataType": "string"
-      },
-      {
-        "name": "Net panels no.",
-        "value": "net_panels_no",
-        "editable": false,
-        "visible": false,
-        "dataType": "number"
-      },
-      {
-        "name": "Net type",
-        "value": "net_type",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Net status",
-        "value": "net_status",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Net BPO",
-        "value": "net_bpo",
-        "editable": false,
-        "visible": true,
-        "dataType": "number"
-      },
-      {
-        "name": "Net original delivery",
-        "value": "net_orig_delivery",
-        "editable": false,
-        "visible": false,
-        "dataType": "date"
-      },
-      {
-        "name": "Net contractual date",
-        "value": "net_contract_delivery",
-        "editable": false,
-        "visible": false,
-        "dataType": "date"
-      },
-      {
-        "name": "Net transport",
-        "value": "net_transport",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Contractual dispatch",
-        "value": "contract_dispatch",
-        "editable": false,
-        "visible": false,
-        "dataType": "date"
-      },
-      {
-        "name": "Project incoterms",
-        "value": "project_inco",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Project destination",
-        "value": "project_destination",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Net package date",
-        "value": "net_package_date",
-        "editable": false,
-        "visible": false,
-        "dataType": "date"
-      },
-      {
-        "name": "Fixed",
-        "value": "fixed",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Actual dispatch date",
-        "value": "actual_dispatch_date",
-        "editable": false,
-        "visible": false,
-        "dataType": "date"
-      },
-      {
-        "name": "Project packaging",
-        "value": "project_packaging",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Project PM",
-        "value": "project_pm",
-        "editable": false,
-        "visible": true,
-        "dataType": "string"
-      },
-      {
-        "name": "PM group",
-        "value": "pm_group",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Net FAT",
-        "value": "net_fat",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Net revenues",
-        "value": "net_revenues",
-        "editable": true,
-        "visible": true,
-        "dataType": "number"
-      },
-      {
-        "name": "Project OB",
-        "value": "project_ob",
-        "editable": false,
-        "visible": true,
-        "dataType": "number"
-      },
-      {
-        "name": "Delay type",
-        "value": "delay_type",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Delay reason",
-        "value": "delay_cause",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Invoicing attention",
-        "value": "invoicing_attention",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Escalation attention",
-        "value": "escalation_attention",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Potential upside",
-        "value": "potential_upside",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "Comments",
-        "value": "comments",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      },
-      {
-        "name": "PPES comments",
-        "value": "ppes_comments",
-        "editable": false,
-        "visible": false,
-        "dataType": "string"
-      }
+    fs.writeFileSync(p, JSON.stringify([
+      {"name":"Project PM","value":"Project Manager","editable":false,"visible":true,"dataType":"string", "width": 106},
+      {"name":"Project #","value":"Project Definition","editable":false,"visible":true,"dataType":"string", "width": 85},
+      {"name":"Network #","value":"Network Num","editable":false,"visible":true,"dataType":"string", "width": 150, "cellTemplate": "cellTemplate"},
+      {"name":"Net description","value":"Network Description","editable":false,"visible":true,"alignment":"left","dataType":"string", "width": "100%"},
+      {"name":"SWG type","value":"Switchgear Type","editable":false,"visible":true,"dataType":"string", "width": 70},
+      {"name":"No. of Panels","value":"Number of Panels","editable":false,"visible":true,"dataType":"number", "width": 70},
+      {"name":"SSO","value":"SSO","editable":false,"visible":true,"dataType":"string", "alignment": "center", "width": 70, "cellTemplate": "ssoTemplate"},
+      {"name":"BPO","value":"Initial BPO","editable":false,"visible":true,"dataType":"number", "width": 70},
+      {"name":"INCO","value":"INCO Type","editable":false,"visible":true,"dataType":"string", "alignment": "center", "width": 75},
+      {"name":"Revenues","value":"Net Revenues","editable":true,"visible":true,"dataType":"number", "width": 100},
+      {"name":"Plant","value":"Plant","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Project name","value":"Project Name","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Customer","value":"Customer Name","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Customer country","value":"Customer Country","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Modules no.","value":"Number of Modules","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Net status","value":"Net Status from Tasks","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Net status - ENG","value":"Net Statuts - Engineering Phase","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Packaging","value":"Packaging","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Support center","value":"Project Support Center","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Buffer - overall","value":"Buffer Size - Overall Project","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Buffer - ENG","value":"Buffer Size - Enginnering Phase","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Progress - overall","value":"Project Progress - Overal Project","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Progress - ENG","value":"Project Progress - Engineering Phase","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Protections","value":"Protections","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Interlocking","value":"Interlocking","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Communication","value":"Communication","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Electrical ENG","value":"Electrical Engineer","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Mechanical ENG","value":"Mechanical Engineer","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Foreman","value":"Foreman","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Testing","value":"Testing","editable":false,"visible":false,"dataType":"string"},
+      {"name":"IED Programmer","value":"IED Programmer","editable":false,"visible":false,"dataType":"string"},
+      {"name":"LV panel install","value":"LV Pannel Installation","editable":false,"visible":false,"dataType":"string"},
+      {"name":"FAT","value":"FAT Fixed Date","editable":false,"visible":false,"dataType":"date" },
+      {"name":"FAT actual date","value":"FAT Actual Date","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Dispatch date","value":"Expedition Fixed","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Delivery date","value":"Delivery Date","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Contract expedition date","value":"Contractual Expedition Date","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Note","value":"Network Note","editable":false,"visible":false,"dataType":"string"},
+      {"name":"BPE","value":"Initial BPE","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Delivery date [%]","value":"Delivery Date Probability","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Packing fixed","value":"Packing fixed","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Contract delivery date","value":"Contractual Delivery Date","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Tolerated delay","value":"Tolerated delay","editable":false,"visible":false,"dataType":"string"},
+      {"name":"Actual delivery date","value":"Actual Delivery Date","editable":false,"visible":false,"dataType":"date"},
+      {"name":"PSD","value":"PSD","editable":false,"visible":false,"dataType":"date"},
+      {"name":"ZVR","value":"ZVR","editable":false,"visible":false,"dataType":"date"},
+      {"name":"ZVL","value":"ZVL","editable":false,"visible":false,"dataType":"date"},
+      {"name":"Revenues - project","value":"Project Revenues","editable":false,"visible":false,"dataType":"number"},
+      {"name":"OB","value":"Project OB","editable":false,"visible":false,"dataType":"number"},
+      {"name":"Panels no. - project","value":"Project Panels","editable":false,"visible":false,"dataType":"number"},
+      // {"name":"Invoice date Fixed","value":"Invoice Date Fixed","editable":false,"visible":false,"dataType":"boolean"}
     ]))
   }
 }
@@ -246,7 +94,13 @@ export let configInvoicingDetails = function () {
   const fileFound = fs.existsSync(p)
 
   if (!fileFound) {
-    fs.writeFileSync(p, JSON.stringify([]))
+    fs.writeFileSync(p, JSON.stringify(
+      [
+        {"name":"Network #","value":"Network Num","editable":false,"visible":true,"dataType":"string"},
+        {"name":"Net revenues","value":"Net Revenues","editable":true,"visible":true,"dataType":"number"},
+        {"name":"Order backlog","value":"Project OB","editable":false,"visible":true,"dataType":"number"}
+      ]
+    ))
   }
 }
 
@@ -255,314 +109,8 @@ export let configProjectsDetail = function () {
   const fileFound = fs.existsSync(p)
 
   if (!fileFound) {
-    fs.writeFileSync(p, JSON.stringify([{
-      "name": "Plant",
-      "value": "Plant",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Net #",
-      "value": "Network Num",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Net Description",
-      "value": "Network Description",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Project #",
-      "value": "Project Definition",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "PM",
-      "value": "Project Manager",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Status - ENG",
-      "value": "Net Statuts - Engineering Phase",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "Status - Tasks",
-      "value": "Net Status from Tasks",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "SSO",
-      "value": "SSO",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "SWG type",
-      "value": "Switchgear Type",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "# of panels",
-      "value": "Number of Panels",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }, {
-      "name": "Packaging",
-      "value": "Packaging",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Project support center",
-      "value": "Project Support Center",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "INCO",
-      "value": "INCO Type",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "Buffer - Overall",
-      "value": "Buffer Size - Overall Project",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }, {
-      "name": "Buffer - ENG",
-      "value": "Buffer Size - Enginnering Phase",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }, {
-      "name": "Progress - Overall",
-      "value": "Project Progress - Overal Project",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }, {
-      "name": "Progress - ENG",
-      "value": "Project Progress - Engineering Phase",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }, {
-      "name": "Protections",
-      "value": "Protections",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Interlocking",
-      "value": "Interlocking",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Communication",
-      "value": "Communication",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Electrical ENG",
-      "value": "Electrical Engineer",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Mechanical ENG",
-      "value": "Mechanical Engineer",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Foreman",
-      "value": "Foreman",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Testing",
-      "value": "Testing",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "IED Programmer",
-      "value": "IED Programmer",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "LV Pannel Installation",
-      "value": "LV Pannel Installation",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "FAT Fixed Date",
-      "value": "FAT Fixed Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "boolean"
-    }, {
-      "name": "FAT Actual Date",
-      "value": "FAT Actual Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "date"
-    }, {
-      "name": "Expedition fixed",
-      "value": "Expedition Fixed",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "boolean"
-    }, {
-      "name": "Delivery date",
-      "value": "Delivery Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "Contract. expedition date",
-      "value": "Contractual Expedition Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "Network note",
-      "value": "Network Note",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "BPO",
-      "value": "Initial BPO",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "number"
-    }, {
-      "name": "BPE",
-      "value": "Initial BPE",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "number"
-    }, {
-      "name": "Delivery date [%]",
-      "value": "Delivery Date Probability",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "number"
-    }, {
-      "name": "Packing fixed",
-      "value": "Packing fixed",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "boolean"
-    }, {
-      "name": "Contract. delivery date",
-      "value": "Contractual Delivery Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "Invoicing period",
-      "value": "Invoicing Period",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "string"
-    }, {
-      "name": "Tolerated delay",
-      "value": "Tolerated delay",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "string"
-    }, {
-      "name": "Actual delivery date",
-      "value": "Actual Delivery Date",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "PSD",
-      "value": "PSD",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "ZVR",
-      "value": "ZVR",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "ZVL",
-      "value": "ZVL",
-      "editable": false,
-      "alignment": "center",
-      "visible": false,
-      "dataType": "date"
-    }, {
-      "name": "# of modules",
-      "value": "Number of Modules",
-      "editable": false,
-      "alignment": "center",
-      "visible": true,
-      "dataType": "number"
-    }]))
+    fs.writeFileSync(p, JSON.stringify([
+      {"name":"Plant","value":"Plant","editable":false,"alignment":"center","visible":true,"dataType":"string"}
+    ]))
   }
 }

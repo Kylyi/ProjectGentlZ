@@ -12,7 +12,7 @@
 
     <v-container fluid>
       <v-layout row wrap>
-        <!-- // Left side -->
+        <!-- Left side -->
         <v-flex column xs5>
           <v-flex row wrap>
             <v-layout row wrap>
@@ -161,15 +161,15 @@
           <!-- BUTTON -->
           <v-flex row mt-3>
             <template v-if="position==='new'">
-              <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid" @click="submit" depressed color="primary"> Insert template </v-btn>
+              <v-btn style="width:100%; margin:0; padding:0" :disabled="!valid || !userInfo.roles.includes('templatesAdmin')" @click="submit" depressed color="primary"> Insert template </v-btn>
             </template>
             <template v-else>
               <v-layout row wrap>
                 <v-flex column xs6>
-                  <v-btn style="margin:0" depressed color="accent" :disabled="!chosenTemplate" @click="deleteTemplate"> Remove template </v-btn>
+                  <v-btn style="margin:0" depressed color="accent" :disabled="!chosenTemplate || !userInfo.roles.includes('templatesAdmin')" @click="deleteTemplate"> Remove template </v-btn>
                 </v-flex>
                 <v-flex column xs6 text-xs-right>
-                  <v-btn style="margin:0" depressed color="primary" :disabled="!valid" @click="submit"> Edit template </v-btn>
+                  <v-btn style="margin:0" depressed color="primary" :disabled="!valid || !userInfo.roles.includes('templatesAdmin')" @click="submit"> Edit template </v-btn>
                 </v-flex>
               </v-layout>
             </template>
@@ -193,6 +193,8 @@
                       <li><b>${field_name}</b> for MS Excel files</li>
                     </ul>
                     <br>
+                    <i>There are many other features, such as iterating over objects in documents or IF->THEN clause. If you have any specific needs, contact your supervisor who will contact Gentl admin.</i>
+                    <br><br>
                   </li>
                   <li>
                     Currently, templates support these fields to autofill: <br>
@@ -269,7 +271,7 @@ export default {
     templateExample: require('../renderer/assets/templateExample.png')
   }),
   computed: {
-    ...mapGetters(['allTemplatesBasic'])
+    ...mapGetters(['allTemplatesBasic', 'userInfo'])
   },
   methods: {
     ...mapActions(['addTemplate', 'notify', 'removeTemplate']),

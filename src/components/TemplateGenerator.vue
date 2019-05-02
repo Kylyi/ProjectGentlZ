@@ -21,7 +21,7 @@
           </v-btn>
 
           <v-card id="optionsMenu">
-            <v-list>
+            <v-list style="padding-top: 16px;">
               <!-- Generator mode -->
               <v-list-tile>
                 <v-list-tile-content>
@@ -29,10 +29,10 @@
                       <v-flex row wrap>Mode</v-flex>
                       <v-flex row wrap>
                         <v-btn-toggle v-model="generatorSelectionMode" @change="changeGeneratorSelectionMode" :mandatory="true">
-                          <v-btn flat value="project">
+                          <v-btn color="primary" flat value="project">
                             Project
                           </v-btn>
-                          <v-btn flat value="net">
+                          <v-btn color="primary" flat value="net">
                             Network
                           </v-btn>
                         </v-btn-toggle>
@@ -50,10 +50,10 @@
                       <v-flex row wrap>Open document after generating</v-flex>
                       <v-flex row wrap>
                         <v-btn-toggle v-model="openAfterGenerate" @change="changeOpenAfterGenerate" :mandatory="true">
-                          <v-btn flat value="yes">
+                          <v-btn flat color="primary" value="yes">
                             Yes
                           </v-btn>
-                          <v-btn flat value="no">
+                          <v-btn flat color="primary" value="no">
                             No
                           </v-btn>
                         </v-btn-toggle>
@@ -143,7 +143,7 @@
                       v-for="(item,i) in chosenTemplates"
                       :key="i"
                     >
-                      <v-container fluid>
+                      <v-container fluid style="padding: 0 20px 20px 20px">
                         <v-layout column wrap mt-2>
                           <v-flex row wrap v-html="item.hasOwnProperty('templateDescription') ? item['templateDescription'] : 'This template has no description...'">
                           </v-flex>

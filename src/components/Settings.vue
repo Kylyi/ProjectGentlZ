@@ -254,11 +254,14 @@ table.draggableTable .v-input__control {
       this.userEmail = this.$store.getters.userInfo.email || null
       this.userPhone = this.$store.getters.userInfo.phone || null
 
-      this.projectsDetail = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
-
       const allOptions = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8'))
+
+      const projectsDetail = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'projectDetails.json'), 'utf-8'))
       const detailSettings = JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingDetails.json'), 'utf-8'))
-      allOptions.push({dataType: 'special', editable: false, name: 'Invoice date', value: 'Invoice Date', visible: false})
+      allOptions.push(
+        {dataType: 'special', editable: false, name: 'Invoice date', value: 'Invoice Date', visible: false},
+        // {dataType: 'date', editable: false, name: 'FAT', value: 'FAT Fixed Date', visible: false}
+      )
 
       const x = allOptions.map(e => {
         const y = detailSettings.filter(u => e['value'] === u['value'])
@@ -271,7 +274,22 @@ table.draggableTable .v-input__control {
         }
         return y.length > 0 ? y[0] : e
       })
+      
+
+      const z = allOptions.map(e => {
+        const y = projectsDetail.filter(u => e['value'] === u['value'])
+
+        if (y.length > 0) {
+          return y[0]
+        } else {
+          e['visible'] = false
+          return e
+        }
+        return y.length > 0 ? y[0] : e
+      })
+
       this.invoicingDetail =  x
+      this.projectsDetail = z
     },
     computed: {
       ...mapGetters(['obDailyPath1301', 'obDailyPath1601', 'validPassword']),
@@ -308,6 +326,7 @@ table.draggableTable .v-input__control {
     methods: {
       ...mapActions(['editProjectsDetail', 'changeUserSapName', 'changeFileLocation', 'changeInvoicingDetail', 'checkPassword', 'changePassword', 'notify', 'changeUserContactInfo']),
       triggerEdit(fileName) {
+        const projectsDetail = this.projectsDetail.filter(e => e.visible)
         this.editProjectsDetail({fileName, projectsDetailObj: this.projectsDetail})
       },
       removeFromList (val) {

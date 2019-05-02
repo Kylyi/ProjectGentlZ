@@ -72,27 +72,17 @@
       </div>
 
       <div slot="detailTemplate" slot-scope="templateData">
-        <v-tabs>
-          <v-tab>
-            <span class="primary--text">{{templateData.data._id}}</span>
-          </v-tab>
+        <v-layout row wrap style="padding: 8px 8px 40px 8px;">
+          <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
+            <v-flex row wrap text-xs-center>
+              <b>{{field.name}}</b>
+            </v-flex>
 
-          <v-tabs-items>
-            <v-tab-item>
-              <v-layout row wrap style="padding: 8px 8px 40px 8px;">
-                <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
-                  <v-flex row wrap text-xs-center>
-                    <b>{{field.name}}</b>
-                  </v-flex>
-
-                  <v-flex row wrap text-xs-center style="min-height: 21px;">
-                    {{templateData.data[field.value]}}
-                  </v-flex>
-                </v-flex>
-              </v-layout>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-tabs>
+            <v-flex row wrap text-xs-center style="min-height: 21px;">
+              {{ (field.dataType === 'date' && templateData.data[field.value]) ? templateData.data[field.value].substr(0,10) : templateData.data[field.value] }}
+            </v-flex>
+          </v-flex>
+        </v-layout>
       </div>
 
       <dx-state-storing
