@@ -21,8 +21,10 @@ const actions = {
     try {
       if (!netId) return
       const projId = netId
+      const date = new Date()
       await projectsDb.upsert(projId, doc => {
         doc.riskRegister = editedRiskRegister
+        doc.riskRegister.dateChanged = date.toISOString().substr(0,10)
         return doc
       })
       dispatch('fetchAllProjectsBasic')

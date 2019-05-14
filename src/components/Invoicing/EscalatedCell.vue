@@ -1,0 +1,37 @@
+<template>
+  <v-layout row wrap>
+    <v-flex column shrink>
+      <v-icon style="padding-right: 4px;" title="This project is escalated." color="error">
+        {{ templateData.rowType === 'data' ? templateData.data['Tolerated delay'] === 'X' ? 'error' : '' : ''}}
+      </v-icon>
+    </v-flex>
+    <v-flex column grow>
+      {{templateData.text}}
+    </v-flex>
+  </v-layout>
+</template>
+
+
+<style>
+  .delayed {
+    color: red;
+  }
+  .hasted {
+    color: green;
+  }
+  .normal {
+    color: black;
+  }
+</style>
+
+
+
+<script>
+  const moment = require('moment')
+
+  export default {
+    props: ['templateData'],
+    methods: {
+    }
+  }
+</script>

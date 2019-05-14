@@ -49,7 +49,7 @@
       />
       <dx-column
         caption="Opps / Risks"
-        cell-template="bilanceTemplate"
+        cell-template="riskRegisterAlertTemplate"
         :calculate-cell-value="bilanceValue"
         alignment="center"
         :allow-sorting="true"
@@ -68,10 +68,12 @@
         {{templateData.data.project_panels}} / {{templateData.data.project_modules}}
       </div>
 
-      <v-flex row wrap fill-height slot="bilanceTemplate" slot-scope="templateData">
-        <span v-if="templateData.data.riskRegisterBilance" class="success--text"> {{(templateData.data.riskRegisterBilance.bilanceOpps/1000).toFixed(0)}}K</span>
-           / 
-        <span v-if="templateData.data.riskRegisterBilance" class="error--text">{{(templateData.data.riskRegisterBilance.bilanceRisks/1000).toFixed(0)}}K</span>
+      <!-- <div slot="riskRegisterAlertTemplate" slot-scope="templateData">
+        
+      </div> -->
+
+      <v-flex row wrap fill-height slot="riskRegisterAlertTemplate" slot-scope="templateData">
+        <risk-register-alert :template-data="templateData" />
       </v-flex>
 
       <div slot="actionsTemplate" slot-scope="templateData">
@@ -82,10 +84,14 @@
       <div slot="detailTemplate" slot-scope="templateData">
         <v-tabs>
           <v-tab
-            v-for="netId in templateData.data.nets_keys"
-            :key="netId"
+            v-for="net in templateData.data.nets"
+            :key="net._id"
           >
-            <span class="primary--text">{{netId}}</span>
+            <v-layout column wrap>
+              <v-flex row wrap class="primary--text">{{net['Network Num']}}</v-flex>
+              <v-flex row wrap style="font-size: 10px;">{{net['Network Description']}}</v-flex>
+            </v-layout>
+            <!-- <span class="primary--text">{{netId}}</span> -->
           </v-tab>
 
           <v-tabs-items>
@@ -122,8 +128,9 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import config from 'devextreme/core/config'
+import RiskRegisterAlert from './ProjectsMode/RiskRegisterAlert'
 export default {
+  components: { RiskRegisterAlert },
   data: () => {
     return {
       selectedNet: 0

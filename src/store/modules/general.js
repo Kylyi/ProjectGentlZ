@@ -48,7 +48,7 @@ const actions = {
   async checkConnectivity({ commit, dispatch }, online) {
     try {
       dispatch('checkDatabaseConnectivity')
-      await fetch('http://XC-S-ZW00410.XC.ABB.COM:5984/')
+      await fetch('http://40.113.87.17:5984/')
       commit('setOffline', true)
     } catch (error) {
       commit('setOffline', false)

@@ -1,6 +1,10 @@
 <template>
   <v-layout column xs wrap id="invoicingTable">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
+
+      <v-btn v-shortkey="['ctrl', 'alt', 'a']" @shortkey="setInvoicingAdminMode(true)" style="display: none;">
+      </v-btn>
+
       <!-- Title -->
       <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Invoicing</h3>
@@ -258,8 +262,8 @@
               format="dd.MM.yy"
               alignment="center"
               :showWhenGrouped="true"
-              width="120px"
-              cell-template="formattedCell"
+              width="100px"
+              cell-template="formattedCellInvoiceDate"
             />
             
             <dx-column
@@ -269,7 +273,7 @@
               format="dd.MM.yy"
               alignment="center"
               :showWhenGrouped="true"
-              width="120px"
+              width="100px"
             />
 
             <!-- GROUPING -->
@@ -355,9 +359,21 @@
             </dx-summary>
 
             <div
-              slot="formattedCell"
+              slot="formattedCellInvoiceDate"
               slot-scope="data">
-              <formatted-cell :template-data="data"/>
+              <formatted-cell-invoice-date :template-data="data"/>
+            </div>
+
+            <div
+              slot="formattedCellDispatchDate"
+              slot-scope="data">
+              <formatted-cell-dispatch-date :template-data="data"/>
+            </div>
+
+            <div
+              slot="escalatedCell"
+              slot-scope="data">
+              <escalated-cell :template-data="data"/>
             </div>
 
             <div
@@ -471,7 +487,9 @@
 <script>
   import localStorage from 'localStorage'
   import {readFile} from '../main/scripts/misc'
-  import FormattedCell from './Invoicing/FormattedCell.vue'
+  import FormattedCellInvoiceDate from './Invoicing/FormattedCellInvoiceDate.vue'
+  import EscalatedCell from './Invoicing/EscalatedCell.vue'
+  import FormattedCellDispatchDate from './Invoicing/FormattedCellDispatchDate.vue'
   import DetailTemplate from './Invoicing/DetailTemplate.vue'
   import CellTemplate from './Invoicing/CellTemplate.vue'
   import HeaderTemplate from './Invoicing/HeaderTemplate.vue'
@@ -485,6 +503,7 @@
     name: 'Invoicing',
     created: async function () {
       this.getInvoicingSettings()
+      this.setInvoicingAdminMode(false)
       ipcRenderer.on('invoicingArrReadyFromMain', () => {
         this.billings = this.invoicingFilteredByDateRange
       })
@@ -502,7 +521,7 @@
       'invoicingGroupingDate', 'invoicingDatesModified', 'invoicingLastUpdate', 'invoicingCompareDate', 'invoicingFilteredByDateRange'])
     },
     methods: {
-      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate']),
+      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode']),
       groupByYear (a) {
         return moment(a['Invoice Date'][this.invoicingGroupingDate]).format('YYYY')
       },
@@ -571,6 +590,8 @@
         this.signFilterActive[sign] = true
       },
       restoreView() {
+        const cnf = confirm('Do you really want to restore view?')
+        if (!cnf) return
         let currentState = this.$refs['invoicingGrid'].instance.state()
         currentState.columns = this.columns
         this.$refs['invoicingGrid'].instance.state(currentState)
@@ -585,11 +606,13 @@
       }
     },
     components: {
-      FormattedCell,
+      FormattedCellInvoiceDate,
       CellTemplate,
       HeaderTemplate,
       DetailTemplate,
-      SsoTemplate
+      SsoTemplate,
+      EscalatedCell,
+      FormattedCellDispatchDate
     }
   };
 </script>

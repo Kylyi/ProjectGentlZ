@@ -127,7 +127,7 @@ export default {
             this.riskRegister = this.defaultRiskRegister
           } else {
             await this.fetchDefaultRiskRegister()
-            this.riskRegister = this.defaultRiskRegister
+            this.riskRegister = JSON.parse(JSON.stringify(this.defaultRiskRegister))
           }
         }
       }
@@ -145,7 +145,7 @@ export default {
       })
     },
     projNetNo (proj) {
-      return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']} — ${proj.netsKeys.length} networks` : `${proj['Project Definition']}`
+      return proj.hasOwnProperty('netsKeys') ?  `${proj['Project Definition']}: ${proj['Project Name'] || ''} (${proj.netsKeys.length} networks)` : `${proj['Project Definition']}`
     },
     async saveRiskRegister() {
       const editedRiskRegister = Object.assign(this.riskRegister, { bilance: this.$refs.confirmation.bilance })

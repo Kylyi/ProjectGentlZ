@@ -14,7 +14,7 @@ PouchDB.plugin(require('pouch-resolve-conflicts'))
 // LOCAL DB
 const projects = new PouchDB('src/db/projectsdb', { revs_limit: 3 })
 // MY DB
-const remoteProjects = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projectsdb', { revs_limit: 2 })
+const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projectsdb', { revs_limit: 2 })
 
 let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
   .on('change', (c) => {
@@ -71,6 +71,7 @@ const getters = {
           project_modules: e['Number of Modules'],
           project_revenue: e['Project Revenues'],
           riskRegisterBilance: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.bilance : null,
+          riskRegisterDateChanged: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.dateChanged : null,
           nets_keys: [e['_id']],
           nets: [e]
         }]

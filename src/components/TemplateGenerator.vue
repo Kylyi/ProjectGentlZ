@@ -28,7 +28,7 @@
                     <v-list-tile-action-text>
                       <v-flex row wrap>Mode</v-flex>
                       <v-flex row wrap>
-                        <v-btn-toggle v-model="generatorSelectionMode" @change="changeGeneratorSelectionMode" :mandatory="true">
+                        <v-btn-toggle :value="generatorSelectionMode" @change="changeGeneratorSelectionMode" :mandatory="true">
                           <v-btn color="primary" flat value="project">
                             Project
                           </v-btn>
@@ -101,7 +101,10 @@
                     v-for="(item,i) in chosenProjects"
                     :key="i"
                   >
-                    <span class="primary--text">{{item._id}}</span>
+                    <v-layout column wrap>
+                      <v-flex row wrap class="primary--text">{{generatorSelectionMode === 'net' ? item._id : item['Project Definition']}}</v-flex>
+                      <v-flex row wrap style="font-size: 10px;">{{generatorSelectionMode === 'net' ? item['Network Description'] : (item['Project Name'] || '')}}</v-flex>
+                    </v-layout>
                   </v-tab>
 
                   <v-tabs-items>
@@ -109,7 +112,7 @@
                       v-for="(item,i) in chosenProjects"
                       :key="i"
                     >
-                      <v-container fluid>
+                      <v-container fluid style="padding: 8px 24px;">
                         <v-layout row wrap mt-2>
                           <v-flex column xs4 v-for="field in visibleProjectsDetail" :key="field.value">
                             <v-flex row wrap text-xs-center>
@@ -220,10 +223,10 @@
     }),
     created: async function () {
       this.openAfterGenerate = this.$store.state.templates.openAfterGenerate
-      this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
+      // this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
     },
     computed: {
-      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading', 'visibleProjectsDetail']),
+      ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading', 'visibleProjectsDetail', 'generatorSelectionMode']),
       accordionData: {
         get: function() {
           return [

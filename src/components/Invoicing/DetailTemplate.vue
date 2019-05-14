@@ -1,7 +1,7 @@
 <template>
   <v-layout id="detailTemplate" column wrap style="margin: 10px;">
     <v-layout row wrap>
-      <p class="subheading primary--text" style="margin-bottom: 0;">Detailed info</p>
+      <p class="subheading primary--text" style="margin-bottom: 0;">Detailed info <v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></p>
     </v-layout>
 
     <v-divider></v-divider>
@@ -12,7 +12,7 @@
           <v-flex column xs5>
             <v-layout row wrap v-for="v in invoicingDetail" :key="v.value">
               <!-- ICONS -->
-              <v-flex column xs6 md4 lg3 xl2>
+              <v-flex column style="width: 70px; max-width: 70px; min-width: 70px;">
                 <v-layout row wrap justify-center align-center fill-height>
                   <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
                     :color="getColor(key)" v-html="key">
@@ -28,7 +28,7 @@
               </v-flex>
 
               <!-- VALUES -->
-              <v-flex column xs10 md10 lg5 xl6>
+              <v-flex column grow>
                 <!-- DATE TYPE -->
                 <template v-if="v.dataType === 'date'">
                   <el-date-picker
@@ -111,12 +111,12 @@
       </v-flex>
 
       <!-- RIGHT SIDE -->
-      <v-flex column shrink pl-3>
+      <!-- <v-flex column shrink pl-3>
         <v-layout row wrap><v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></v-layout>
         <v-layout row wrap pl-2 pr-2>
 
         </v-layout>
-      </v-flex>
+      </v-flex> -->
     </v-layout>
 
     <!-- MENU FOR ASSIGNING SIGNS -->

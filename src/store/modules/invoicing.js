@@ -22,7 +22,8 @@ const state = {
   compareDate: null,
   filteredInvoicing: [],
   invoicingDetail: [],
-  signComments: []
+  signComments: [],
+  invoicingAdminMode: false
 }
 
 const getters = {
@@ -39,7 +40,8 @@ const getters = {
   invoicingCompareDate: state => state.compareDate,
   invoicingFilteredByDateRange: state => state.filteredInvoicing,
   invoicingDetail: state => state.invoicingDetail,
-  signComments: state => state.signComments.reverse()
+  signComments: state => state.signComments.reverse(),
+  invoicingAdminMode: state => state.adminMode
 }
 
 const actions = {
@@ -105,6 +107,11 @@ const actions = {
   },
   async signInfo({ commit }, signInfo) {
     commit('setSignInfo', signInfo)
+  },
+  async setInvoicingAdminMode({ commit, dispatch, rootState }, val) {
+    if (!rootState.user.userInfo.roles.includes('invoicingAdmin')) return
+    commit('setInvoicingAdminMode', val)
+    dispatch('getInvoicingSettings')
   }
 }
 
@@ -130,19 +137,29 @@ const mutations = {
       })
     }
 
-    const filteredProjects =  allProjects.filter(e => {
-      return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
-      && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
-      && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))
-    })
-
-    ipcRenderer.send('invoicingArrReady')
-    state.filteredInvoicing = filteredProjects
+    if (store.state.invoicing.invoicingAdminMode) {
+      const filteredProjects =  allProjects.filter(e => {
+        return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
+          && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+        })
+      state.filteredInvoicing = filteredProjects
+    } else {
+      const filteredProjects =  allProjects.filter(e => {
+        return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
+        && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+        && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))
+      })
+      state.filteredInvoicing = filteredProjects
+    }
+    setTimeout(() => {
+      ipcRenderer.send('invoicingArrReady')
+    }, 100)
   },
   setSignInfo: (state, comments) => {
     state.signComments = comments
     state.showSignInfo = true
-  }
+  },
+  setInvoicingAdminMode: (state, val) => state.invoicingAdminMode = val
 }
 
 export default {

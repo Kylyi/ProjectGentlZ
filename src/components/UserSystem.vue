@@ -302,6 +302,8 @@ export default {
     async saveHierSettings() {
       this.overwriteHierarchySettings(this.nodes)
       const usersToUpdate = await this.getAllSubs()
+      console.log(this.nodes)
+      console.log(usersToUpdate)
       this.changeUsersSubordinates(usersToUpdate)
     },
     getIcon(type) {
@@ -348,6 +350,7 @@ export default {
       if (idx !== -1) this[arr].splice(idx, 1)
     },
     editUser() {
+      console.log(this.manuallyAddedSubs)
       this.partialOverwriteUser({
         userId: this.selectedUserInfo._id,
         data: {

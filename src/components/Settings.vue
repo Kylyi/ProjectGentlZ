@@ -19,24 +19,40 @@
             <v-layout row wrap v-if="expansionOpen === 0" style="padding: 0px 24px 10px 24px; text-align:justify;">
 
               <!-- DATA-MAPPING -->
-              <v-flex column shrink>
-                <v-flex row wrap>
-                  <v-layout row wrap>
-                    <v-layout column grow justify-center>
-                      <b class="subheading primary--text">Data-mapping settings</b>
+              <v-form v-model="userInfoForm">
+                <v-flex column shrink>
+                  <v-flex row wrap>
+                    <v-layout row wrap>
+                      <v-layout column grow justify-center>
+                        <b class="subheading primary--text">Data-mapping settings</b>
+                      </v-layout>
+                      <v-layout column shrink>
+                        <v-btn @click="changeUser(sapUsername, sapUsernumber)" flat icon style="margin: 0;"><v-icon>save</v-icon></v-btn>
+                      </v-layout>
                     </v-layout>
-                    <v-layout column shrink>
-                      <v-btn @click="changeUser(sapUsername, sapUsernumber)" flat icon style="margin: 0;"><v-icon>save</v-icon></v-btn>
-                    </v-layout>
-                  </v-layout>
+                  </v-flex>
+                  <v-flex row wrap mt-2>
+                    <!-- <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="Jméno Příjmení"></v-text-field> -->
+                    <v-combobox
+                      v-model="sapUsername"
+                      label="PPES username"
+                      :items="uniquePms"
+                      persistent-hint
+                      hint="If you can't find your name, you can just add it."
+                      :rules="[v => (v && v.length > 0) || 'Nothing selected']"
+                    />
+                  </v-flex>
+                  <v-flex row wrap mt-2>
+                    <v-text-field
+                      v-model="sapUsernumber"
+                      style="width: 200px;"
+                      hide-details
+                      label="SAP personal number"
+                      placeholder="0XXXXXXXX"
+                      :rules="[v => (v && v.length === 8) || 'Wrong format.']"></v-text-field>
+                  </v-flex>
                 </v-flex>
-                <v-flex row wrap mt-2>
-                  <v-text-field v-model="sapUsername" style="width: 200px;" hide-details label="SAP name (check PPES)" placeholder="Jméno Příjmení"></v-text-field>
-                </v-flex>
-                <v-flex row wrap mt-2>
-                  <v-text-field v-model="sapUsernumber" style="width: 200px;" hide-details label="SAP personal number" placeholder="0XXXXXXXX"></v-text-field>
-                </v-flex>
-              </v-flex>
+              </v-form>
 
               <!-- CONTACT INFO -->
               <v-flex column shrink pl-5>
@@ -292,7 +308,7 @@ table.draggableTable .v-input__control {
       this.projectsDetail = z
     },
     computed: {
-      ...mapGetters(['obDailyPath1301', 'obDailyPath1601', 'validPassword']),
+      ...mapGetters(['obDailyPath1301', 'obDailyPath1601', 'validPassword', 'uniquePms']),
       dragOptions() {
         return {
           animation: 200,
@@ -320,7 +336,8 @@ table.draggableTable .v-input__control {
         newPasswordAgain: '',
         pwdLengthRule: v => (v && v.length >= 5) || 'Not long enough.',
         changePasswordForm: false,
-        contactInfoForm: false
+        contactInfoForm: false,
+        userInfoForm: false
       }
     },
     methods: {
@@ -349,7 +366,16 @@ table.draggableTable .v-input__control {
         this.changeFileLocation({plant: '1601', path: file.path})
       },
       changeUser(sapUsername, sapUsernumber) {
-        this.changeUserSapName({sapUsername, sapUsernumber})
+        if (this.userInfoForm) {
+          this.changeUserSapName({sapUsername, sapUsernumber})
+        } else {
+          this.notify({
+            text: 'Please fill all fields.',
+            color: 'error',
+            state: true,
+            timeout: 3000
+          })
+        }
       },
       checkPwd(v) {
         this.checkPassword(v)

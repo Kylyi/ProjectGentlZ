@@ -2,7 +2,7 @@
   <v-container fluid style="padding: 0;">
     <v-layout column wrap>
       <v-flex row wrap><h5 class="headline"><b>Risk register quickview</b></h5></v-flex>
-      <v-flex row wrap>
+      <v-flex row wrap style="padding-top: 32px;">
         <dx-chart
         :data-source="chosenProjects[0].riskRegister.bilance.chartData"
       >
