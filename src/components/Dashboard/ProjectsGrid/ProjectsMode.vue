@@ -79,6 +79,7 @@
       <div slot="actionsTemplate" slot-scope="templateData">
           <v-icon @click.stop="generateTemplate(templateData.data)" color="grey darken-4" title="Generate template">trip_origin</v-icon>
           <v-icon @click.stop="manageRiskRegister(templateData.data)" color="teal lighten-1" title="Manage risk register">business</v-icon>
+          <v-icon @click.stop="markProjectAsDone(templateData.data)" color="success" title="Mark project as finished">assignment_turned_in</v-icon>
       </div>
 
       <div slot="detailTemplate" slot-scope="templateData">
@@ -122,7 +123,6 @@
         :savingTimeout="5000"
       />
     </dx-data-grid>
-
   </v-layout>
 </template>
 
@@ -133,12 +133,13 @@ export default {
   components: { RiskRegisterAlert },
   data: () => {
     return {
-      selectedNet: 0
+      selectedNet: 0,
+      projectDoneDialog: false
     }
   },
   computed: mapGetters(['pmProjectsProjectMode', 'visibleProjectsDetail', 'generateTemplateDialog']),
   methods: {
-    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail']),
+    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail', 'deactivateNets']),
     generateTemplateTrigger(projData) {
       this.chooseProjects(projData)
       this.openGenerateTemplateDialog(true)
@@ -176,11 +177,16 @@ export default {
         } else {
           color = '#FFCDD2'
         }
-
-
         row.cellElement.style.backgroundColor = color
       }
 
+    },
+    async markProjectAsDone(data) {
+      const cnf = confirm('This action will mark selected project, including all of its network diagrams, as finished. Finished projects will no longer appear in many functionalities of Gentl.')
+
+      if (cnf) {
+        this.deactivateNets(data.nets_keys)
+      }
     }
   }
 }

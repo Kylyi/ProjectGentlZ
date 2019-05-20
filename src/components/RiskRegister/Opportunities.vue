@@ -24,72 +24,67 @@
 
           <v-layout row wrap class="categoryWrapper" style="overflow: -webkit-paged-x;">
             <template v-if="selectedTab.includes(i)">
-                <v-layout row>
-                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">Definition</v-flex>
-                  <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px;">Description</v-flex>
-                  <v-flex column text-xs-center style="min-width: 85px; max-width: 85px; padding: 0 4px;">Exists</v-flex>
-                  <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px;">Additional info</v-flex>
-                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">Planned action for mitigation</v-flex>
-                  <v-flex column style="min-width: 128px; max-width: 180px; min-width:180px; padding: 0 4px;">Owner</v-flex>
-                  <v-flex column text-xs-center style="min-width: 100px; max-width: 100px; padding: 0 4px;">Probability</v-flex>
-                  <v-flex column text-xs-center style="min-width: 130px; max-width: 130px; padding: 0 4px;">Price impact [CZK]</v-flex>
+                <v-layout row style="position: sticky; top: 0; background-color: white; z-index: 3;">
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px; background-color: white;">Definition</v-flex>
+                  <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px; background-color: white;">Description</v-flex>
+                  <v-flex column text-xs-center style="min-width: 85px; max-width: 85px; padding: 0 4px; background-color: white;">Exists</v-flex>
+                  <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px; background-color: white;">Additional info</v-flex>
+                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px; background-color: white;">Planned action for mitigation</v-flex>
+                  <v-flex column style="min-width: 128px; max-width: 180px; min-width:180px; padding: 0 4px; background-color: white;">Owner</v-flex>
+                  <v-flex column text-xs-center style="min-width: 100px; max-width: 100px; padding: 0 4px; background-color: white;">Probability</v-flex>
+                  <v-flex column text-xs-center style="min-width: 130px; max-width: 130px; padding: 0 4px; background-color: white;">Price impact [CZK]</v-flex>
                 </v-layout>
-
-                <v-layout row v-for="(risk, idx) in riskCategory" :key="idx">
-                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">{{risk.name}}</v-flex>
-                  <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px;">{{risk.info}}</v-flex>
-                  <v-flex column style="min-width: 85px; max-width: 85px; padding: 0 4px;">
-                    <v-layout row wrap justify-center align-center fill-height>
-                      <v-btn-toggle v-model="opportunities[i][idx].exists" style="box-shadow: none;" @change="validateCategories([[i, riskCategory]])">
-                        <v-btn flat :value="false" :color="!opportunities[i][idx].exists ? 'success' : ''">No</v-btn>
-                        <v-btn flat :value="true" :color="opportunities[i][idx].exists ? 'error' : ''">Yes</v-btn>
-                      </v-btn-toggle>
-                    </v-layout>
-                  </v-flex>
-                  <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px;">
-                    <textarea v-model="opportunities[i][idx].description" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%; padding: 4px;"></textarea>
-                  </v-flex>
-                  <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">
-                    <textarea v-model="opportunities[i][idx].plannedAction" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
-                  </v-flex>
-                  <v-flex column style="min-width: 180px; max-width: 180px; padding: 0 4px;">
-                    <v-layout row wrap align-center justify-center fill-height>
-                      <!-- <multiselect v-model="opportunities[i][idx].owner" @input="validateCategories([[i, riskCategory]])"  :multiple="true" :options="people" style="font-size: 13px; max-width: 100%;" placeholder="" select-label="" deselect-label="" tag-placeholder="" :taggable="true" @tag="addPerson($event,i,idx )" /> -->
-                      <!-- <v-combobox
-                        :items="people"
-                        v-model="opportunities[i][idx].owner"
-                        style="font-size: 13px;"
-                        @change="validateCategories([[i, riskCategory]])"
+                
+                <v-layout row wrap style="max-height: 500px;">
+                  <v-layout row v-for="(risk, idx) in riskCategory" :key="idx">
+                    <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">{{risk.name}}</v-flex>
+                    <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px;">{{risk.info}}</v-flex>
+                    <v-flex column style="min-width: 85px; max-width: 85px; padding: 0 4px;">
+                      <v-layout row wrap justify-center align-center fill-height>
+                        <v-btn-toggle v-model="opportunities[i][idx].exists" style="box-shadow: none;" @change="validateCategories([[i, riskCategory]])" mandatory>
+                          <v-btn flat :value="false" :color="!opportunities[i][idx].exists ? 'success' : ''">No</v-btn>
+                          <v-btn flat :value="true" :color="opportunities[i][idx].exists ? 'error' : ''">Yes</v-btn>
+                        </v-btn-toggle>
+                      </v-layout>
+                    </v-flex>
+                    <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px;">
+                      <textarea v-model="opportunities[i][idx].description" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%; padding: 4px;"></textarea>
+                    </v-flex>
+                    <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px;">
+                      <textarea v-model="opportunities[i][idx].plannedAction" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
+                    </v-flex>
+                    <v-flex column style="min-width: 180px; max-width: 180px; padding: 0 4px;">
+                      <v-layout row wrap align-center justify-center fill-height>
+                        <textarea v-model="opportunities[i][idx].owner" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
+                      </v-layout>
+                    </v-flex>
+                    <v-flex column style="min-width: 100px; max-width: 100px; padding: 0 4px;">
+                      <vue-numeric
+                        v-model="opportunities[i][idx].probability"
+                        @blur="validateCategories([[i, riskCategory]])"
+                        thousand-separator=" "
+                        decimal-separator=","
+                        :precision="2"
+                        :min="0"
+                        :max="1"
+                        style="width: 100%; height: 100%;  padding: 4px; text-align: center;"
                       >
-                      </v-combobox> -->
-                      <textarea v-model="opportunities[i][idx].owner" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
-                    </v-layout>
-                  </v-flex>
-                  <v-flex column style="min-width: 100px; max-width: 100px; padding: 0 4px;">
-                    <vue-numeric
-                      v-model="opportunities[i][idx].probability"
-                      @blur="validateCategories([[i, riskCategory]])"
-                      thousand-separator=" "
-                      decimal-separator=","
-                      :precision="2"
-                      :min="0"
-                      :max="1"
-                      style="width: 100%; height: 100%;  padding: 4px; text-align: center;"
-                    >
-                    </vue-numeric>
-                  </v-flex>
-                  <v-flex column style="min-width: 130px; max-width: 130px; padding: 0 4px;">
-                    <vue-numeric
-                      v-model="opportunities[i][idx].priceImpact"
-                      @blur="validateCategories([[i, riskCategory]])"
-                      thousand-separator=" "
-                      decimal-separator=","
-                      :precision="0"
-                      style="width: 100%; height: 100%; padding: 4px; text-align: center;"
-                    >
-                    </vue-numeric>
-                  </v-flex>
+                      </vue-numeric>
+                    </v-flex>
+                    <v-flex column style="min-width: 130px; max-width: 130px; padding: 0 4px;">
+                      <vue-numeric
+                        v-model="opportunities[i][idx].priceImpact"
+                        @blur="validateCategories([[i, riskCategory]])"
+                        thousand-separator=" "
+                        decimal-separator=","
+                        :precision="0"
+                        style="width: 100%; height: 100%; padding: 4px; text-align: center;"
+                      >
+                      </vue-numeric>
+                    </v-flex>
+                  </v-layout>
                 </v-layout>
+                
             </template>
           </v-layout>
         </el-collapse-item>

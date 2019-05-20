@@ -397,7 +397,7 @@ table.draggableTable .v-input__control {
       changeContactInfo(userEmail, userPhone) {
         if (this.contactInfoForm) {
           this.changeUserContactInfo({userEmail, userPhone})
-          this.$refs.contactInfoForm.reset()
+          // this.$refs.contactInfoForm.reset()
         } else {
           this.notify({
             text: 'There are some missing values',

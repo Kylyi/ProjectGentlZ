@@ -94,7 +94,7 @@
 
               <v-divider></v-divider>
 
-              <v-list-tile>
+              <!-- <v-list-tile>
                 <v-list-tile-content>
                     <v-list-tile-action-text>
                       <v-list-tile-title>Select date range</v-list-tile-title>
@@ -109,6 +109,26 @@
                         @input="changeInvoicingDateRange"
                       />
                     </v-list-tile-action-text>
+                </v-list-tile-content>
+              </v-list-tile> -->
+
+              <v-list-tile>
+                <v-list-tile-content>
+                    <v-list-tile-action-text>
+                      <v-list-tile-title>Grouping via</v-list-tile-title>
+                      <v-flex row wrap>
+                        <v-btn-toggle :value="invoicingGroupingDate" @change="groupingDateChange" mandatory>
+                          <v-btn flat color="primary" :value="invoicingLastUpdate">
+                            Current date
+                          </v-btn>
+                          <v-btn flat color="primary" :value="invoicingCompareDate" :disabled="!invoicingCompareDate">
+                            Compare date
+                          </v-btn>
+                        </v-btn-toggle>
+                      </v-flex>
+
+                    </v-list-tile-action-text>
+
                 </v-list-tile-content>
               </v-list-tile>
 
@@ -143,47 +163,74 @@
                 disabled
               ></v-text-field>
             </v-flex>
-            <v-flex column shrink>
-              <v-autocomplete
+            <v-flex column shrink style="padding-left: 8px;">
+              <v-combobox
                 :value="invoicingCompareDate"
                 :items="invoicingDatesModified"
                 placeholder="Select date to compare with"
                 no-data-text="There are no other revisions than the current one."
                 label="Compare date"
                 @change="changeCompareDate"
-              ></v-autocomplete>
+              ></v-combobox>
+            </v-flex>
+            <v-flex column shrink style="padding-left: 8px;">
+              <v-flex row wrap>
+                <label class="v-label theme--light" style="font-size: 13px;">Date range</label>
+              </v-flex>
+              <v-flex row wrap>
+                <el-date-picker
+                  :value="invoicingDateRange"
+                  type="daterange"
+                  range-separator="To"
+                  start-placeholder="Start date"
+                  end-placeholder="End date"
+                  format="dd.MM.yyyy"
+                  :firstDayOfWeek="1"
+                  @input="changeInvoicingDateRange"
+                  style="max-width: 270px; margin-top: -3px;"
+                  size="small"
+                  :clearable="false"
+                />
+              </v-flex>
             </v-flex>
           </v-layout>
           
         </v-flex>
         <v-flex column shrink>
-          <v-btn icon @click="filterSignOnAll('warning')">
-            <v-icon :color="signFilterActive.warning ? 'red' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
-              warning
-            </v-icon>
-          </v-btn>
-          <v-btn icon @click="filterSignOnAll('info')">
-            <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
-              info
-            </v-icon>
-          </v-btn>
-          <v-btn icon @click="filterSignOnAll('arrow_upward')">
-            <v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
-              arrow_upward
-            </v-icon>
-          </v-btn>
-          <v-btn icon @click="filterSignOnAll('arrow_downward')">
-            <v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
-              arrow_downward
-            </v-icon>
-          </v-btn>
+          <v-layout row wrap justify-center align-center fill-height>
+            <v-btn icon @click="filterSignOnAll('error')">
+              <v-icon :color="signFilterActive.error ? 'error' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+                error
+              </v-icon>
+            </v-btn>
+            <v-btn icon @click="filterSignOnAll('warning')">
+              <v-icon :color="signFilterActive.warning ? 'error' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+                warning
+              </v-icon>
+            </v-btn>
+            <v-btn icon @click="filterSignOnAll('info')">
+              <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+                info
+              </v-icon>
+            </v-btn>
+            <v-btn icon @click="filterSignOnAll('arrow_upward')">
+              <v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+                arrow_upward
+              </v-icon>
+            </v-btn>
+            <v-btn icon @click="filterSignOnAll('arrow_downward')">
+              <v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+                arrow_downward
+              </v-icon>
+            </v-btn>
+          </v-layout>
         </v-flex>
       </v-layout>
 
       <v-layout row wrap v-if="billings">
         
         <!-- GRID -->
-        <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="max-height: 80vh;">
+        <v-flex column wrap xs12 v-if="invoicingLastUpdate" style="max-height: calc(100vh - 218px)">
           <dx-data-grid
             ref="invoicingGrid"
             :data-source="billingsFiltered ? billingsFiltered : billings"
@@ -195,7 +242,6 @@
             :row-alternation-enabled="true"
             :show-row-lines="true"
             :show-column-lines="true"
-            @context-menu-preparing="setContextMenu"
             :word-wrap-enabled="true"
             style="height: 100%; width:100%;"
             :column-min-width="50"
@@ -216,8 +262,9 @@
 
             <dx-column-chooser :enabled="true"/>
 
-            <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" expandMode="rowClick" :allow-collapsing="true"/>
-            <dx-scrolling mode="virtual" show-scrollbar="never" />
+            <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" :allow-collapsing="true"/>
+            <!-- <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" expandMode="rowClick" :allow-collapsing="true"/> -->
+            <dx-scrolling mode="virtual" :preload-enabled="true" show-scrollbar="always" :useNative="true" row-rendering-mode="virtual" />
 
             <dx-selection
               select-all-mode="page"
@@ -430,9 +477,9 @@
     max-width: 10px;
   }
 
-  #invoicingTable .dx-scrollable-container {
+  /* #invoicingTable .dx-scrollable-container {
     overflow: auto;
-  }
+  } */
 
   #invoicingTable .dx-group-cell{
     border-right: 1px solid #ddd;
@@ -513,7 +560,7 @@
       columns: JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8')),
       optionsMenu: false,
       billingsFiltered: false,
-      signFilterActive: {warning: false, info: false, arrow_downward: false, arrow_upward: false},
+      signFilterActive: {warning: false, info: false, arrow_downward: false, arrow_upward: false, error: false},
       fieldSignFilter: null,
     }),
     computed: {
@@ -543,50 +590,60 @@
           return (moment(doc['Invoice Date'][this.invoicingLastUpdate]).format(format) !== moment(doc['Invoice Date'][this.invoicingCompareDate]).format(format))
         })
       },
-      setContextMenu (e) {
-       if (e.target === 'header') {
-        e.items.push({text: 'Find warnings', beginGroup: true, value: e.column.dataField, icon: 'warning', onItemClick: this.u})
-        e.items.push({text: 'Find flagged', value: e.column.dataField, icon: 'info', onItemClick: this.u})
-        e.items.push({text: 'Find up', value: e.column.dataField, icon: 'arrowup', onItemClick: this.u})
-        e.items.push({text: 'Find down', value: e.column.dataField, icon: 'arrowdown', onItemClick: this.u})
-        e.items.push({text: 'Reset', value: null, onItemClick: this.u})
-        return e
-       }
+      async groupingDateChange(e) {
+        await this.changeGroupingDate(e)
+        this.$refs['invoicingGrid'].instance.refresh()
       },
-      u (e) {
-        const field = e.itemData.value
-        if (!field) {
-          this.fieldSignFilter = null
-          return this.billingsFiltered = false
-        }
-        const icon = e.itemData.icon.startsWith('arrow') ? e.itemData.icon.substr(0,5) + "_" + e.itemData.icon.substr(5)+"ward" : e.itemData.icon
-        this.fieldSignFilter = {[field]: icon}
+      // setContextMenu (e) {
+      //  if (e.target === 'header') {
+      //   e.items.push({text: 'Find warnings', beginGroup: true, value: e.column.dataField, icon: 'warning', onItemClick: this.u})
+      //   e.items.push({text: 'Find flagged', value: e.column.dataField, icon: 'info', onItemClick: this.u})
+      //   e.items.push({text: 'Find up', value: e.column.dataField, icon: 'arrowup', onItemClick: this.u})
+      //   e.items.push({text: 'Find down', value: e.column.dataField, icon: 'arrowdown', onItemClick: this.u})
+      //   e.items.push({text: 'Reset', value: null, onItemClick: this.u})
+      //   return e
+      //  }
+      // },
+      // u (e) {
+      //   const field = e.itemData.value
+      //   if (!field) {
+      //     this.fieldSignFilter = null
+      //     return this.billingsFiltered = false
+      //   }
+      //   const icon = e.itemData.icon.startsWith('arrow') ? e.itemData.icon.substr(0,5) + "_" + e.itemData.icon.substr(5)+"ward" : e.itemData.icon
+      //   this.fieldSignFilter = {[field]: icon}
 
-        this.billingsFiltered = this.billings.filter(x => {
-          let res = false
-          if (x.sign.hasOwnProperty(field)) {
-            res = Object.keys(x.sign[field]).includes(icon)
-          }
-          return res
-        })
+      //   this.billingsFiltered = this.billings.filter(x => {
+      //     let res = false
+      //     if (x.sign.hasOwnProperty(field)) {
+      //       res = Object.keys(x.sign[field]).includes(icon)
+      //     }
+      //     return res
+      //   })
 
-      },
+      // },
       filterSignOnAll (sign) {
         if (this.signFilterActive[sign] === true) {
           this.signFilterActive[sign] = false
           return this.billingsFiltered = false
         }
 
-        this.signFilterActive = {warning: false, info: false, arrow_downward: false,  arrow_upward: false}
-        this.billingsFiltered = this.billings.filter(x => {
-          let res = false
-          res = Object.keys(x.sign).filter(e => {
-            // return x.sign[e].find(u => u.startsWith(sign))
-            return Object.keys(x.sign[e]).includes(sign)
-          })
+        this.signFilterActive = {warning: false, info: false, arrow_downward: false, arrow_upward: false, error: false}
 
-          return res.length > 0
-        })
+        if (sign !== 'error') {
+          this.billingsFiltered = this.billings.filter(x => {
+            let res = false
+            res = Object.keys(x.sign).filter(e => {
+              // return x.sign[e].find(u => u.startsWith(sign))
+              return Object.keys(x.sign[e]).includes(sign)
+            })
+
+            return res.length > 0
+          })
+        } else {
+          this.billingsFiltered = this.billings.filter(x => x['Tolerated delay'] === 'X')
+        }
+
         this.signFilterActive[sign] = true
       },
       restoreView() {

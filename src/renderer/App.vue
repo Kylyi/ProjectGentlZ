@@ -74,7 +74,7 @@
           </v-list-group>
 
           <!-- Invoicing -->
-          <v-list-group prepend-icon="credit_card">
+          <!-- <v-list-group prepend-icon="credit_card">
 
             <v-list-tile slot="activator">
               <v-list-tile-title>Invoicing</v-list-tile-title>
@@ -97,7 +97,16 @@
 
             </v-list-tile>
 
-          </v-list-group>
+          </v-list-group> -->
+
+          <v-list-tile router to="/invoicing">
+            <v-list-tile-action>
+              <v-icon>credit_card</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>Invoicing</v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
 
           <!-- Risk Register -->
           <v-list-group prepend-icon="business">
@@ -254,17 +263,13 @@
         <v-layout row wrap>
           <v-flex column grow>
             <v-list style="padding: 0;" id="checkSignsList">
-              <v-list-tile v-for="comment in signComments" :key="comment.comment">
-                <v-list-tile-action>
-                  <tr style="vertical-align: middle;">
-                    <td style="width: 400px; word-break: break-word; border-bottom: 1px dashed gray;"><span style="color: black;">{{comment.owner}} - {{comment.time}}</span></td>
-                  </tr>
-                  <tr>
-                    <td style="width: 400px; word-break: break-word;">
-                      {{comment.comment}}
-                    </td>
-                  </tr>
-                </v-list-tile-action>
+              <v-list-tile v-for="(comment, i) in signComments" :key="comment.comment" style="padding-right: 0px;">
+                <v-layout row wrap>
+                  <v-flex column style="width: 400px; min-width: 400px; max-width: 400px;">
+                    <v-flex row wrap style="border-bottom: 1px dashed gray;">{{comment.owner}} - {{comment.time}}</v-flex>
+                    <v-flex row wrap>{{comment.comment}}</v-flex>
+                  </v-flex>
+                </v-layout>
               </v-list-tile>
             </v-list>
           </v-flex>

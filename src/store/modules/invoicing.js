@@ -16,7 +16,7 @@ const state = {
   lastUpdate: null,
   datesModified: [],
   // dateRange: JSON.parse(localStorage.getItem('invoicingDateRange')) || [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)],
-  dateRange: [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(3, 'months').toISOString().substr(0, 10)],
+  dateRange: [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(5, 'months').toISOString().substr(0, 10)],
   weekGrouping: JSON.parse(localStorage.getItem('invoicingWeekGrouping')) || false,
   groupingDate: null,
   compareDate: null,
@@ -87,9 +87,9 @@ const actions = {
   async changeCompareDate({ commit }, val) {
     commit('setCompareDate', val)
   },
-  async changeGroupingDate({}, val) {
+  async changeGroupingDate({ commit }, val) {
     console.log(val)
-    // commit('setGroupingDate', val)
+    commit('setGroupingDate', val)
   },
   async changeInvoicingDetail({ dispatch, commit }, {fileName, invoicingDetail}) {
     rewriteDefaultSettingFile(fileName, invoicingDetail)
@@ -127,7 +127,10 @@ const mutations = {
   setCompareDate: (state, date) => state.compareDate = date,
   setInvoicingDetail: (state, detail) => state.invoicingDetail = detail,
   setFilteredInvoicing: (state, {lastUpdate, pms}) => {
-    const allProjects = store.getters.allProjectsBasic
+    const allActiveProjects = store.getters.allProjectsBasic
+    const allNonActiveProjects = store.state.projects.nonActiveProjects
+    const allProjects = allActiveProjects.concat(allNonActiveProjects)
+
     if (allProjects.length === 0 ) {
       store.dispatch('notify', {
         text: ' ErrorID::2 - There are no projects AT ALL. ',

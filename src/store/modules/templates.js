@@ -70,7 +70,7 @@ const actions = {
           async function generate() {
             try {
               // GET PROJECT DATA
-              const projData = p
+              let projData = p
 
               // GET TEMPLATE DATA
               const tmplData = await templates.getAttachment(t._id, t.template_name)
@@ -79,7 +79,7 @@ const actions = {
                 title: 'Save document',
                 defaultPath: t['template_name'],
                 buttonLabel: 'Save',
-                filters: t['template_type'] === 'xlsx' ? [{name: 'Excel', extensions: ['xlsx']}] : [{name: 'Microsoft word', extensions: ['docx']}]
+                filters: t['template_type'].startsWith('xls') ? [{name: 'Excel', extensions: ['xlsx', 'xlsm', 'xlsb']}] : [{name: 'Microsoft word', extensions: ['docx']}]
               })
               
               if (savePath) {
@@ -87,7 +87,7 @@ const actions = {
                 if (t.template_type === 'docx') {
                   await generateDocx({savePath, projData, tmplData})
                   if (openFile) dispatch('openFile', savePath)
-                } else if (t.template_type === 'xlsx') {
+                } else if (t.template_type.startsWith('xls')) {
                   await generateXlsx({savePath, projData, tmplData})
                   if (openFile) dispatch('openFile', savePath)
                 }

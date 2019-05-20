@@ -1,122 +1,115 @@
 <template>
-  <v-layout id="detailTemplate" column wrap style="margin: 10px;">
+  <v-layout id="detailTemplate" column wrap style="margin: 8px 36px 8px 8px;">
     <v-layout row wrap>
-      <p class="subheading primary--text" style="margin-bottom: 0;">Detailed info <v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></p>
+      <v-flex column xs5 style="height: 36px;">
+        <span class="subheading primary--text" style="margin-bottom: 0;">Detailed info <v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></span>
+      </v-flex>
+      <v-flex column xs7 style="height: 36px; display: table;">
+        <span class="subheading primary--text" style="margin-bottom: 0; display: table-cell; vertical-align: bottom; padding-bottom: 3px;">SAP comments</span>
+      </v-flex>
     </v-layout>
 
     <v-divider></v-divider>
     
     <v-layout row wrap pt-2>
-      <v-flex column grow>
-        <v-layout row wrap>
-          <v-flex column xs5>
-            <v-layout row wrap v-for="v in invoicingDetail" :key="v.value">
-              <!-- ICONS -->
-              <v-flex column style="width: 70px; max-width: 70px; min-width: 70px;">
-                <v-layout row wrap justify-center align-center fill-height>
-                  <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
-                    :color="getColor(key)" v-html="key">
-                  </v-icon>
-                </v-layout>
-              </v-flex>
-
-              <!-- FIELDS -->
-              <v-flex column xs6 md8 lg3 xs3 @contextmenu="contextM($event, v.value)" style="padding-right: 4px;">
-                <v-layout row wrap justify-end align-center fill-height>
-                  {{v.name}}
-                </v-layout>
-              </v-flex>
-
-              <!-- VALUES -->
-              <v-flex column grow>
-                <!-- DATE TYPE -->
-                <template v-if="v.dataType === 'date'">
-                  <el-date-picker
-                    size="mini"
-                    v-model="templateData.data[v.value]"
-                    type="date"
-                    :disabled="!v.editable"
-                    placeholder="Pick a day"
-                    format="dd.MM.yyyy"
-                    :firstDayOfWeek="1"
-                    style="width: 100%;"
-                    >
-                  </el-date-picker>
-                </template>
-
-                <!-- NUMBER TYPE -->
-                <template v-else-if="v.dataType === 'number'">
-                  <div :class="`el-input el-input--mini ${!v.editable ? 'is-disabled' : ''}`">
-                    <vue-numeric
-                    v-model="templateData.data[v.value]"
-                    style="width: 100%; height: 28px; text-align: center;"
-                    class="el-input__inner"
-                    thousand-separator=" "
-                    decimal-separator=","
-                    :precision="0"
-                    :disabled="!v.editable"
-                  ></vue-numeric>
-                  </div>
-                </template>
-
-                <!-- INVOICE DATE -->
-                <template v-else-if="v.dataType == 'special'">
-                  <el-date-picker
-                    size="mini"
-                    v-model="templateData.data[v.value][invoicingLastUpdate]"
-                    type="date"
-                    :disabled="!v.editable"
-                    placeholder="Pick a day"
-                    format="dd.MM.yyyy"
-                    :firstDayOfWeek="1"
-                    style="width: 100%;"
-                  >
-                  </el-date-picker>
-                </template>
-
-        
-                <template v-else>
-                  <el-input
-                    :type="v.dataType"
-                    size="mini"
-                    prefix-icon="el-icon-edit"
-                    :disabled="!v.editable"
-                    v-model="templateData.data[v.value]"
-                    style="width: 100%;"  
-                  >
-                  </el-input>
-                </template>
-              </v-flex>
-
-              <!-- FIXING -->
-              <v-flex column xs2 md2 lg1 xl1>
-                <v-layout row wrap justify-center align-center fill-height>
-                  <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
-                </v-layout>
-              </v-flex>
+      <v-flex column xs5 :style="`display: block; max-height: ${detailHeight}px; overflow: auto;`">
+        <v-layout row wrap v-for="v in invoicingDetail" :key="v.value">
+          <!-- ICONS -->
+          <v-flex column style="width: 70px; max-width: 70px; min-width: 70px;">
+            <v-layout row wrap justify-center align-center fill-height>
+              <v-icon small v-for="(values, key) in templateData.data['sign'][v.value]" :key="key" @click="signInfo($event, values, key, v.value)"
+                :color="getColor(key)" v-html="key">
+              </v-icon>
             </v-layout>
-            
           </v-flex>
 
-          <v-flex column xs7>
-            <table :style="`display: block; max-height: ${invoicingDetail.length * 28}px; overflow: auto;`">
-              <tbody>
-                <tr v-for="(comment, index) in ppesComments" :key="index">
-                  <td>{{comment}}</td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- FIELDS -->
+          <v-flex column xs6 md8 lg3 xs3 @contextmenu="contextM($event, v.value)" style="padding-right: 4px;">
+            <v-layout row wrap justify-end align-center fill-height>
+              {{v.name}}
+            </v-layout>
+          </v-flex>
+
+          <!-- VALUES -->
+          <v-flex column grow>
+            <!-- DATE TYPE -->
+            <template v-if="v.dataType === 'date'">
+              <el-date-picker
+                size="mini"
+                v-model="templateData.data[v.value]"
+                type="date"
+                :disabled="!v.editable"
+                placeholder="Pick a day"
+                format="dd.MM.yyyy"
+                :firstDayOfWeek="1"
+                style="width: 100%;"
+                >
+              </el-date-picker>
+            </template>
+
+            <!-- NUMBER TYPE -->
+            <template v-else-if="v.dataType === 'number'">
+              <div :class="`el-input el-input--mini ${!v.editable ? 'is-disabled' : ''}`">
+                <vue-numeric
+                v-model="templateData.data[v.value]"
+                style="width: 100%; height: 28px; text-align: center;"
+                class="el-input__inner"
+                thousand-separator=" "
+                decimal-separator=","
+                :precision="0"
+                :disabled="!v.editable"
+              ></vue-numeric>
+              </div>
+            </template>
+
+            <!-- INVOICE DATE -->
+            <template v-else-if="v.dataType == 'special'">
+              <el-date-picker
+                size="mini"
+                v-model="templateData.data[v.value][invoicingLastUpdate]"
+                type="date"
+                :disabled="!v.editable"
+                placeholder="Pick a day"
+                format="dd.MM.yyyy"
+                :firstDayOfWeek="1"
+                style="width: 100%;"
+              >
+              </el-date-picker>
+            </template>
+
+    
+            <template v-else>
+              <el-input
+                :type="v.dataType"
+                size="mini"
+                prefix-icon="el-icon-edit"
+                :disabled="!v.editable"
+                v-model="templateData.data[v.value]"
+                style="width: 100%;"  
+              >
+              </el-input>
+            </template>
+          </v-flex>
+
+          <!-- FIXING -->
+          <v-flex column xs2 md2 lg1 xl1>
+            <v-layout row wrap justify-center align-center fill-height>
+              <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
+            </v-layout>
           </v-flex>
         </v-layout>
+        
       </v-flex>
 
-      <!-- RIGHT SIDE -->
-      <!-- <v-flex column shrink pl-3>
-        <v-layout row wrap><v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></v-layout>
-        <v-layout row wrap pl-2 pr-2>
-
-        </v-layout>
-      </v-flex> -->
+      <v-flex column xs7>
+        <table :style="`display: block; max-height: ${detailHeight}px; overflow: auto;`">
+          <tbody>
+            <tr v-for="(comment, index) in ppesComments" :key="index">
+              <td>{{comment}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </v-flex>
     </v-layout>
 
     <!-- MENU FOR ASSIGNING SIGNS -->
@@ -163,21 +156,16 @@
       transition="slide-y-transition"
     >
       <v-list style="padding: 0;" id="checkSignsList">
-        <v-list-tile v-for="(comment, i) in reversedSignComments" :key="comment.comment">
-          <v-list-tile-action>
-            <tr style="vertical-align: middle;">
-              <td style="width: 400px; word-break: break-word; border-bottom: 1px dashed gray;"><span style="color: black;">{{comment.owner}} - {{comment.time}}</span></td>
-              <td><v-icon style="vertical-align: middle;" @click="removeSignComment(comment, i)" color="error">delete</v-icon></td>
-            </tr>
-            <tr>
-              <td style="width: 400px; word-break: break-word;">
-                {{comment.comment}}
-              </td>
-              <td width="24px;">
-
-              </td>
-            </tr>
-          </v-list-tile-action>
+        <v-list-tile v-for="(comment, i) in reversedSignComments" :key="comment.comment" style="padding-right: 0px;">
+          <v-layout row wrap>
+            <v-flex column style="width: 400px; min-width: 400px; max-width: 400px;">
+              <v-flex row wrap style="border-bottom: 1px dashed gray;">{{comment.owner}} - {{comment.time}}</v-flex>
+              <v-flex row wrap>{{comment.comment}}</v-flex>
+            </v-flex>
+            <v-flex column style="width: 24px; min-width: 24px; max-width: 24px;">
+              <v-flex row wrap><v-icon @click="removeSignComment(comment, i)" color="error">delete</v-icon></v-flex>
+            </v-flex>
+          </v-layout>
         </v-list-tile>
       </v-list>
     </v-menu>
@@ -263,6 +251,7 @@
 
   #checkSignsList > div > div {
     height: fit-content;
+    padding-right: 2px;
   }
 </style>
 
@@ -302,6 +291,9 @@
       },
       ppesComments() {
         return this.templateData.data['Network Note'].split('|')
+      },
+      detailHeight() {
+        return this.invoicingDetail.length * 28
       }
     },
     methods: {
@@ -378,6 +370,7 @@
           // this.$props.templateData.data.sign = Object.assign({}, this.$props.templateData.data.sign, {[this.currentField]: [sign+' - ' + this.signComment]})
         }
 
+        this.saveData()
         this.showMenu = false
       },
       signInfo (e, values, key, field) {

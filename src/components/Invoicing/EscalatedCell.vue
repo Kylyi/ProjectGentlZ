@@ -1,7 +1,7 @@
 <template>
   <v-layout row wrap>
     <v-flex column shrink>
-      <v-icon style="padding-right: 4px;" title="This project is escalated." color="error">
+      <v-icon small style="padding-right: 4px;" title="This project is escalated." color="error">
         {{ templateData.rowType === 'data' ? templateData.data['Tolerated delay'] === 'X' ? 'error' : '' : ''}}
       </v-icon>
     </v-flex>

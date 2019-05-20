@@ -26,6 +26,7 @@ const conn = new sql.ConnectionPool(JSON.parse(readDefaultSettingFile('databaseS
 
 const state = {
   allProjectsBasic: [],
+  nonActiveProjects: [],
   pmProjectsBasic: [],
   projectsDetail: [],
   chosenProjects: [],
@@ -278,20 +279,25 @@ const getters = {
 
 const actions = {
   async fetchAllProjectsBasic({ commit }) {
-    async function getProjects() {
-      return projects.find({ selector: { "_id": { $gt: null } }, limit: null, sort: ['_id'] })
-    }
+    await projects.createIndex({
+      index: {
+        fields: ['_id', 'projectDone']
+      }
+    })
 
-    const projs = await getProjects()
-    commit('setAllProjects', projs.docs)
+    const nonActiveProjects = await projects.find({
+      selector: {
+        projectDone: true
+      }
+    })
+    const activeProjects = await projects.find({
+      selector: {
+        projectDone: {'$exists': false}
+      }
+    })
 
-    // if (force || !localStorage.getItem('allProjectsBasic')) {
-    //   const projs = await getProjects()
-    //   localStorage.setItem('allProjectsBasic', JSON.stringify(projs.docs))
-    //   commit('setAllProjects', projs.docs)
-    // } else {
-    //   commit('setAllProjects', JSON.parse(localStorage.getItem('allProjectsBasic')))
-    // }
+    commit('setAllProjects', activeProjects.docs)
+    commit('setAllNonActiveProjects', nonActiveProjects.docs)
   },
   async fetchForeignProjectsBasic({ commit }) {
     commit('setForeignProjectsBasic', JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [])
@@ -579,57 +585,52 @@ const actions = {
       })
     }
   },
-  async selectPM({ commit }, pmName) {
+  async selectPM({ dispatch }, pmName) {
     commit('setSelectedPM', pmName)
   },
-  async addProjects({ commit }, projs) {
-    const projUpserts = data.map(async (p) => {
-      await projects.upsert(String(p['Network Num']), doc => {
-        p['Net Revenues'] = Number(p['Project Panels']) > 0 ? (Number(p['Project Revenues']) * Number(p['Number of Panels']) / Number(p['Project Panels'])) : 1
+  async deactivateNets({ dispatch }, netsKeys) {
+    try {
+      await projectsReplicator.cancel()
 
-        if (doc.hasOwnProperty('fixedFields')) {
-          const placeholderFixedFields = doc['fixedFields'].concat(fixedFields)
-          p['fixedFields'] = [...new Set(placeholderFixedFields)]
-
-          p['fixedFields'].forEach(u => {
-            if (doc.hasOwnProperty(u)) {
-              p[u] = doc[u]
-            } else {
-              p[u] = {}
-            }
-          })    
-        } else {
-          p['fixedFields'] = fixedFields
-          p['riskRegister'] = {}
-          p['sign'] = {}
-          p['temporaryAssign'] = {}
-        }
-
-        const today = new Date().toISOString().substr(0,10)
-        if (doc.hasOwnProperty('Invoice Date')) {
-          p['Invoice Date'] = Object.assign({}, doc['Invoice Date'], {[today]: p['Invoice Date']})
-        } else {
-          p['Invoice Date'] = {[today]: p['Invoice Date']}
-        }
-
-        return p
+      const netsDeactivate = netsKeys.map(async (netId) => {
+        await projects.upsert(netId, doc => {
+          doc.projectDone = true
+          return doc
+        })
       })
 
-      Promise.all(projUpserts)
-      .then(() => {
-        projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-          .on('change', (c) => {
-            if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
+      Promise.all(netsDeactivate)
+        .then(() => {
+          projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
+            .on('change', (c) => {
+              console.log(c)
+              if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
+            })
+        })
+        .then(() => {
+          dispatch('fetchAllProjectsBasic')
+          dispatch('notify', {
+            text: 'Project deactivated.',
+            color: 'success',
+            state: true,
+            timeout: 2000
           })
+        })
+        .catch(err => console.error(err))
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        color: 'error',
+        state: true,
+        timeout: 5000
       })
-      .catch((err) => console.log(err))
-
-    })
+    }
   }
 }
 
 const mutations = {
   setAllProjects: (state, projects) => state.allProjectsBasic = projects,
+  setAllNonActiveProjects: (state, projects) => state.nonActiveProjects = projects,
   setPmProjects: (state, projects) => state.pmProjectsBasic = projects,
   setProjectsDetail: (state, projsDetail) => state.projectsDetail = projsDetail,
   setChosenProjects: async (state, projData) => state.chosenProjects = projData,

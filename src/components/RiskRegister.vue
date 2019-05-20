@@ -1,5 +1,5 @@
 <template>
-  <v-layout id="riskRegister" fluid>
+  <v-layout id="riskRegister">
     <v-layout column wrap>
       <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
@@ -19,7 +19,7 @@
               :custom-label="projNetNo" track-by="Project Definition"><span slot="noResult">No projects found.</span></multiselect>
           </v-flex>
 
-          <v-flex row wrap mt-3 v-if="chosenProjects.length > 0">
+          <v-flex row wrap mt-3 v-if="chosenProjects.length > 0" @scroll="scrolled">
             <v-card>
               <v-card-title style="padding: 0;">
                 <v-layout align-center row wrap>
@@ -181,6 +181,9 @@ export default {
           timeout: 5000
         })
       }
+    },
+    scrolled(e) {
+      console.log(e)
     }
   }
 }
