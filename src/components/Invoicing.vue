@@ -2,8 +2,8 @@
   <v-layout column xs wrap id="invoicingTable">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
 
-      <v-btn v-shortkey="['ctrl', 'alt', 'a']" @shortkey="setInvoicingAdminMode(true)" style="display: none;">
-      </v-btn>
+      <!-- <v-btn v-shortkey="['ctrl', 'alt', 'a']" @shortkey="triggerAdminMode" style="display: none;">
+      </v-btn> -->
 
       <!-- Title -->
       <v-flex column shrink style="height: 50px; padding: 10px 24px;">
@@ -12,143 +12,142 @@
 
       <!-- MENU -->
       <v-flex column grow text-xs-right style="padding: 0px 24px;">
-        <v-menu
-          v-model="optionsMenu"
-          :close-on-content-click="false"
-          :nudge-width="300"
-          nudge-left="335"
-        >
-          <v-btn fab  slot="activator">
-            <v-icon color="primary" >
-              fas fa-cogs
-            </v-icon>
-          </v-btn>
+        <v-layout row wrap justify-end align-center>
+          <v-flex v-if="userInfo.roles.includes('invoicingAdmin')" column shrink>
+            <v-btn outline
+              color="white"
+              :style="`background-color: ${invoicingAdminMode ? '#ff5252!important' : ''}`"
+              @click="triggerAdminMode"
+            >
+              Admin mode</v-btn>
+          </v-flex>
+          <v-flex column shrink v-else>
+            <v-btn outline
+              color="white"
+              :style="`background-color: ${invoicingReadOnly ? '#ff5252!important' : ''}`"
+              @click="setReadOnly(!invoicingReadOnly)"
+            >
+              Readonly</v-btn>
+          </v-flex>
+          <v-flex column shrink>
+            <v-menu
+              v-model="optionsMenu"
+              :close-on-content-click="false"
+              :nudge-width="300"
+              nudge-left="335"
+              >
+              <v-btn fab  slot="activator">
+                <v-icon color="primary" >
+                  fas fa-cogs
+                </v-icon>
+              </v-btn>
 
-          <v-card id="optionsMenu">
-            <v-list>
-              <!-- DEVTODO -->
-              <!-- <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Group via</v-list-tile-title>
-                      <v-flex row wrap>
-                        <v-btn-toggle :value="invoicingGroupingDate" @change="changeGroupingDate">
-                          <v-btn flat :value="invoicingLastUpdate">
-                            Current invoice date
-                          </v-btn>
-                          <v-btn flat :value="invoicingCompareDate">
-                            Compare date
-                          </v-btn>
-                        </v-btn-toggle
-                      ></v-flex>
+              <v-card id="optionsMenu">
+                <v-list>
+                  <v-divider></v-divider>
 
-                    </v-list-tile-action-text>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                        <v-list-tile-action-text>
+                          <v-list-tile-title>Week grouping</v-list-tile-title>
+                          <v-flex row wrap>
+                            <v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping" mandatory>
+                              <v-btn flat color="primary" :value="true">
+                                Shown
+                              </v-btn>
+                              <v-btn flat color="primary" :value="false">
+                                Hidden
+                              </v-btn>
+                            </v-btn-toggle>
+                          </v-flex>
 
-                </v-list-tile-content>
-              </v-list-tile> -->
+                        </v-list-tile-action-text>
 
-              <v-divider></v-divider>
+                    </v-list-tile-content>
+                  </v-list-tile>
 
-              <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Week grouping</v-list-tile-title>
-                      <v-flex row wrap>
-                        <v-btn-toggle :value="invoicingWeekGrouping" @change="changeWeekGrouping" mandatory>
-                          <v-btn flat color="primary" :value="true">
-                            Shown
-                          </v-btn>
-                          <v-btn flat color="primary" :value="false">
-                            Hidden
-                          </v-btn>
-                        </v-btn-toggle>
-                      </v-flex>
+                  <v-divider></v-divider>
 
-                    </v-list-tile-action-text>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                        <v-list-tile-action-text>
+                          <v-list-tile-title>Get missing</v-list-tile-title>
+                          <v-flex row wrap><v-btn-toggle @change="getMissingBy">
+                            <v-btn flat color="primary" value="YYYY-MM">
+                              By month
+                            </v-btn>
+                            <v-btn flat color="primary" value="YYYY-MM-DD">
+                              By day
+                            </v-btn>
+                            <!-- <v-btn flat value="none">
+                              Reset
+                            </v-btn> -->
+                          </v-btn-toggle></v-flex>
 
-                </v-list-tile-content>
-              </v-list-tile>
+                        </v-list-tile-action-text>
 
-              <v-divider></v-divider>
+                    </v-list-tile-content>
+                  </v-list-tile>
 
-              <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Get missing</v-list-tile-title>
-                      <v-flex row wrap><v-btn-toggle @change="getMissingBy">
-                        <v-btn flat color="primary" value="YYYY-MM">
-                          By month
-                        </v-btn>
-                        <v-btn flat color="primary" value="YYYY-MM-DD">
-                          By day
-                        </v-btn>
-                        <!-- <v-btn flat value="none">
-                          Reset
-                        </v-btn> -->
-                      </v-btn-toggle></v-flex>
+                  <v-divider></v-divider>
 
-                    </v-list-tile-action-text>
+                  <!-- <v-list-tile>
+                    <v-list-tile-content>
+                        <v-list-tile-action-text>
+                          <v-list-tile-title>Select date range</v-list-tile-title>
+                          <el-date-picker
+                            :value="invoicingDateRange"
+                            type="daterange"
+                            range-separator="To"
+                            start-placeholder="Start date"
+                            end-placeholder="End date"
+                            format="dd.MM.yyyy"
+                            :firstDayOfWeek="1"
+                            @input="changeInvoicingDateRange"
+                          />
+                        </v-list-tile-action-text>
+                    </v-list-tile-content>
+                  </v-list-tile> -->
 
-                </v-list-tile-content>
-              </v-list-tile>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                        <v-list-tile-action-text>
+                          <v-list-tile-title>Grouping via</v-list-tile-title>
+                          <v-flex row wrap>
+                            <v-btn-toggle :value="invoicingGroupingDate" @change="groupingDateChange" mandatory>
+                              <v-btn flat color="primary" :value="invoicingLastUpdate">
+                                Current date
+                              </v-btn>
+                              <v-btn flat color="primary" :value="invoicingCompareDate" :disabled="!invoicingCompareDate">
+                                Compare date
+                              </v-btn>
+                            </v-btn-toggle>
+                          </v-flex>
 
-              <v-divider></v-divider>
+                        </v-list-tile-action-text>
 
-              <!-- <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Select date range</v-list-tile-title>
-                      <el-date-picker
-                        :value="invoicingDateRange"
-                        type="daterange"
-                        range-separator="To"
-                        start-placeholder="Start date"
-                        end-placeholder="End date"
-                        format="dd.MM.yyyy"
-                        :firstDayOfWeek="1"
-                        @input="changeInvoicingDateRange"
-                      />
-                    </v-list-tile-action-text>
-                </v-list-tile-content>
-              </v-list-tile> -->
+                    </v-list-tile-content>
+                  </v-list-tile>
 
-              <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Grouping via</v-list-tile-title>
-                      <v-flex row wrap>
-                        <v-btn-toggle :value="invoicingGroupingDate" @change="groupingDateChange" mandatory>
-                          <v-btn flat color="primary" :value="invoicingLastUpdate">
-                            Current date
-                          </v-btn>
-                          <v-btn flat color="primary" :value="invoicingCompareDate" :disabled="!invoicingCompareDate">
-                            Compare date
-                          </v-btn>
-                        </v-btn-toggle>
-                      </v-flex>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                        <v-list-tile-action-text>
+                          <v-list-tile-title>Restore view</v-list-tile-title>
+                          <v-btn outline color="primary" @click="restoreView">Restore to default view</v-btn>
+                        </v-list-tile-action-text>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                </v-list>
 
-                    </v-list-tile-action-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
 
-                </v-list-tile-content>
-              </v-list-tile>
-
-              <v-list-tile>
-                <v-list-tile-content>
-                    <v-list-tile-action-text>
-                      <v-list-tile-title>Restore view</v-list-tile-title>
-                      <v-btn outline color="primary" @click="restoreView">Restore to default view</v-btn>
-                    </v-list-tile-action-text>
-                </v-list-tile-content>
-              </v-list-tile>
-            </v-list>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-
-              <v-btn flat @click="optionsMenu = false">Close</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-menu>
+                  <v-btn flat @click="optionsMenu = false">Close</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-menu>
+          </v-flex>
+        </v-layout>
       </v-flex>
     </v-layout>
 
@@ -156,13 +155,6 @@
       <v-layout row wrap>
         <v-flex column grow>
           <v-layout row wrap>
-            <v-flex column shrink>
-              <v-text-field
-                label="Last update"
-                v-model="invoicingLastUpdate"
-                disabled
-              ></v-text-field>
-            </v-flex>
             <v-flex column shrink style="padding-left: 8px;">
               <v-combobox
                 :value="invoicingCompareDate"
@@ -245,6 +237,7 @@
             :word-wrap-enabled="true"
             style="height: 100%; width:100%;"
             :column-min-width="50"
+            @cell-prepared="getConditionalFormatting"
           >
             <!-- <dx-load-panel :enabled="false" text="Kill me please"></dx-load-panel> -->
             <dx-header-filter
@@ -300,10 +293,12 @@
               :cell-template="col.cellTemplate || undefined"
               :format="col.dataType === 'number' ? '#,##0' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
               :width="col.width || ''"
+              :header-filter="(col.value === 'Project Manager' && invoicingAdminMode) ? peopleFilter : undefined"
+              :calculate-filter-expression="(col.value === 'Project Manager' && invoicingAdminMode) ? getFiltering : undefined"
             />
 
             <dx-column
-              :data-field="`Invoice Date[${invoicingLastUpdate}]`"
+              :calculate-cell-value="getLastInvoiceDate"
               caption="Current invoice date"
               data-type="date"
               format="dd.MM.yy"
@@ -311,6 +306,8 @@
               :showWhenGrouped="true"
               width="100px"
               cell-template="formattedCellInvoiceDate"
+              :allow-filtering="true"
+              name="invoiceDate"
             />
             
             <dx-column
@@ -321,6 +318,7 @@
               alignment="center"
               :showWhenGrouped="true"
               width="100px"
+              :allow-search="true"
             />
 
             <!-- GROUPING -->
@@ -404,6 +402,13 @@
                 display-format="{0} modules"
               />
             </dx-summary>
+
+            <v-layout row wrap
+              slot="netDescrCell"
+              slot-scope="data"
+            >
+              {{data.displayValue}}
+            </v-layout>
 
             <div
               slot="formattedCellInvoiceDate"
@@ -555,6 +560,9 @@
         this.billings = this.invoicingFilteredByDateRange
       })
     },
+    beforeDestroy() {
+      this.setReadOnly(false)
+    },
     data: () => ({
       billings: null,
       columns: JSON.parse(readFile(path.join(path.dirname(__dirname), 'defaultSettings', 'invoicingColumns.json'), 'utf-8')),
@@ -564,19 +572,40 @@
       fieldSignFilter: null,
     }),
     computed: {
-      ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic',
-      'invoicingGroupingDate', 'invoicingDatesModified', 'invoicingLastUpdate', 'invoicingCompareDate', 'invoicingFilteredByDateRange'])
+      ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic', 'peopleFilter', 'invoicingAdminMode', 'peopleSameLevel',
+      'invoicingGroupingDate', 'invoicingDatesModified', 'invoicingLastUpdate', 'invoicingCompareDate', 'invoicingFilteredByDateRange', 'invoicingReadOnly', 'userInfo'])
     },
     methods: {
-      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode']),
+      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode', 'setPeopleFilter', 'changeInvoicingReadOnly', 'notify']),
       groupByYear (a) {
-        return moment(a['Invoice Date'][this.invoicingGroupingDate]).format('YYYY')
+        let date
+
+        if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
+          date = Object.values(a['Invoice Date']).pop()
+        } else {
+          date = a['Invoice Date'][this.invoicingGroupingDate]
+        }
+        return date ? moment(date).format('YYYY') : 'Non-existent'
       },
       groupByMonth (a) {
-        return moment(a['Invoice Date'][this.invoicingGroupingDate]).month()
+        let date
+
+        if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
+          date = Object.values(a['Invoice Date']).pop()
+        } else {
+          date = a['Invoice Date'][this.invoicingGroupingDate]
+        }
+        return date ? moment(date).month() : 'Non-existent'
       },
       groupByWeek (a) {
-        return moment(a['Invoice Date'][this.invoicingGroupingDate]).week()
+        let date
+
+        if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
+          date = Object.values(a['Invoice Date']).pop()
+        } else {
+          date = a['Invoice Date'][this.invoicingGroupingDate]
+        }
+        return date ? moment(date).week() : 'Non-existent'
       },
       x (x) {
         return moment(x+1, 'MM').format('MMMM')
@@ -593,6 +622,9 @@
       async groupingDateChange(e) {
         await this.changeGroupingDate(e)
         this.$refs['invoicingGrid'].instance.refresh()
+      },
+      async t() {
+        console.log(this.$refs['invoicingGrid'].instance.columnOption('Project Manager'))
       },
       // setContextMenu (e) {
       //  if (e.target === 'header') {
@@ -660,6 +692,59 @@
         } else {
           return 'no FAT'
         }
+      },
+      triggerAdminMode() {
+        this.setPeopleFilter()
+        this.setInvoicingAdminMode(true)
+        this.changeInvoicingReadOnly(false)
+      },
+      getFiltering(value, operation, target) {
+        if (target === 'headerFilter') {
+          let filterExpr = [['Project Manager', '=', value.val]]
+
+          this.peopleSameLevel.forEach(p => {
+            if (p.supervisors.includes(value.lookup)) {
+              filterExpr.push('or')
+              filterExpr.push(['Project Manager', '=', p.sapUsername])
+            }
+          })
+          return filterExpr
+        }
+      },
+      async getConditionalFormatting(row) {
+        if (row.column.caption === 'Net description' && row.rowType === 'data') {
+          let color
+
+          if (row.data['Net Status from Tasks'] === 'E') {
+            color = '#B3E5FC'
+          } else if (row.data.sign.hasOwnProperty('Network Num') && row.data.sign['Network Num'].hasOwnProperty('warning')) {
+            color = '#FFCDD2'
+          } else if (row.data.sign.hasOwnProperty('Network Num') && row.data.sign['Network Num'].hasOwnProperty('arrow_downward')) {
+            color = '#FFE0B2'
+          } else if (row.data.sign.hasOwnProperty('Network Num') && row.data.sign['Network Num'].hasOwnProperty('arrow_upward')) {
+            color = '#C8E6C9'
+          }
+
+          row.cellElement.style.backgroundColor = color
+        }
+
+      },
+      getLastInvoiceDate(row) {
+        const lastDate = Object.values(row['Invoice Date']).pop()
+        return new Date(lastDate)
+      },
+      setReadOnly(val) {
+        if (this.invoicingAdminMode && val) {
+          this.notify({
+            text: 'You are already in Admin mode.',
+            color: 'info',
+            state: true
+          })
+          return
+        }
+
+        this.setInvoicingAdminMode(val)
+        this.changeInvoicingReadOnly(val)
       }
     },
     components: {

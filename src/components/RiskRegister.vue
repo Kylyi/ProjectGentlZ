@@ -123,8 +123,9 @@ export default {
           this.step2Allowed = false
           this.step3Allowed = false
           this.step = 1
+
           if (this.defaultRiskRegister.hasOwnProperty(('risks'))) {
-            this.riskRegister = this.defaultRiskRegister
+            this.riskRegister = JSON.parse(JSON.stringify(this.defaultRiskRegister))
           } else {
             await this.fetchDefaultRiskRegister()
             this.riskRegister = JSON.parse(JSON.stringify(this.defaultRiskRegister))

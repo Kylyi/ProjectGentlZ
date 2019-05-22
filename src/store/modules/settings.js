@@ -9,6 +9,7 @@ settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
     if (c.direction === 'pull') {
       store.dispatch('fetchInvoicingSettings', true)
+      store.dispatch('fetchHierarchySettings')
     }
   })
 

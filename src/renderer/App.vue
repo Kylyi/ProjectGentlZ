@@ -452,6 +452,7 @@
 
       //FETCH SETTINGS
       this.fetchInvoicingSettings()
+      this.fetchHierarchySettings()
 
     },
     data: () => ({
@@ -510,7 +511,7 @@
     methods: {
       ...mapActions([ 'loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification',
       'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings',
-      'fetchInvoicingDetail', 'setShowSignInfo']),
+      'fetchInvoicingDetail', 'setShowSignInfo', 'fetchHierarchySettings']),
       callLogin() {
         this.loginWithPassword(this.userPassword)
       },

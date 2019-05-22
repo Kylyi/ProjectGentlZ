@@ -23,7 +23,8 @@ const state = {
   filteredInvoicing: [],
   invoicingDetail: [],
   signComments: [],
-  invoicingAdminMode: false
+  invoicingAdminMode: false,
+  invoicingReadOnly: false
 }
 
 const getters = {
@@ -41,7 +42,8 @@ const getters = {
   invoicingFilteredByDateRange: state => state.filteredInvoicing,
   invoicingDetail: state => state.invoicingDetail,
   signComments: state => state.signComments.reverse(),
-  invoicingAdminMode: state => state.adminMode
+  invoicingAdminMode: state => state.invoicingAdminMode,
+  invoicingReadOnly: state => state.invoicingReadOnly
 }
 
 const actions = {
@@ -109,9 +111,11 @@ const actions = {
     commit('setSignInfo', signInfo)
   },
   async setInvoicingAdminMode({ commit, dispatch, rootState }, val) {
-    if (!rootState.user.userInfo.roles.includes('invoicingAdmin')) return
     commit('setInvoicingAdminMode', val)
     dispatch('getInvoicingSettings')
+  },
+  async changeInvoicingReadOnly({ commit }, val) {
+    commit('setInvoicingReadOnly', val)
   }
 }
 
@@ -148,8 +152,9 @@ const mutations = {
       state.filteredInvoicing = filteredProjects
     } else {
       const filteredProjects =  allProjects.filter(e => {
-        return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
-        && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+        const lastDate = Object.values(e['Invoice Date']).pop()
+        return lastDate >= state.dateRange[0]
+        && lastDate <= state.dateRange[1]
         && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))
       })
       state.filteredInvoicing = filteredProjects
@@ -162,7 +167,8 @@ const mutations = {
     state.signComments = comments
     state.showSignInfo = true
   },
-  setInvoicingAdminMode: (state, val) => state.invoicingAdminMode = val
+  setInvoicingAdminMode: (state, val) => state.invoicingAdminMode = val,
+  setInvoicingReadOnly: (state, val) => state.invoicingReadOnly = val
 }
 
 export default {

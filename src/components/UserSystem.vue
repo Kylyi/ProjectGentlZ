@@ -375,9 +375,10 @@ export default {
       if (traversePath.length > 0) {
         for (let idx = traversePath.length; idx > 0; idx--) {
           const n = this.$refs['treeView'].getNode(traversePath.slice(0, idx))
-          if (n.data.type !== 'folder') {
-            supervisors.push(n.title)
-          }
+          // if (n.data.type !== 'folder') {
+          //   supervisors.push(n.title)
+          // }
+          supervisors.push(n.title)
         }   
       }
 

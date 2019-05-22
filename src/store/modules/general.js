@@ -15,7 +15,9 @@ const state = {
   dbConnectivity: false,
   revision: '2',
   currentPosition: {left: 0, top: 0},
-  customDialogBody: null
+  customDialogBody: null,
+  peopleFilter: {},
+  peopleSameLevel: []
 }
 
 const getters = {
@@ -38,7 +40,9 @@ const getters = {
   dbConnectivity: state => state.dbConnectivity,
   revision: state => state.revision,
   currentPosition: state => state.currentPosition,
-  customDialogBody: state => state.customDialogBody
+  customDialogBody: state => state.customDialogBody,
+  peopleFilter: state => state.peopleFilter,
+  peopleSameLevel: state => state.peopleSameLevel
 }
 
 const actions = {
@@ -92,6 +96,70 @@ const actions = {
   },
   async setCustomDialogBody({ commit }, body) {
     commit('setCustomDialogBody', body)
+  },
+  async setPeopleFilter({ commit, rootState }) {
+    Array.prototype.unique = function() {
+      return this.filter(function (value, index, self) { 
+        return self.indexOf(value) === index;
+      });
+    }
+
+    const hier = rootState.settings.heirarchySettings
+    let hierE = {x: []}
+    let groups = []
+    let allPeople = []
+
+    function getHierE(arr, path, level) {
+      let idx = 0
+      arr.forEach(p => {
+        if (!path) {
+          
+          hierE.x.push({
+            text: p.title,
+            value: {
+              lookup: p.title,
+              val: p['data']['sapUsername']
+            }
+          })
+
+          if (p.hasOwnProperty('children')) {
+            groups.push('1')
+            getHierE(p.children, hierE.x[idx], 2)
+          }
+
+          idx++
+
+        } else {
+          path.items = path.items || []
+          path.items.push({
+            text: p.title,
+            value: {
+              lookup: p.title,
+              val: p['data']['sapUsername']
+            }
+          })
+          allPeople.push({
+            gentlId: p['data']['gentlId'],
+            supervisors: p['data']['supervisors'],
+            sapUsername: p['data']['sapUsername']
+          })
+
+          if (p.hasOwnProperty('children')) {
+            groups.push(String(level))
+            getHierE(p.children, path.items[idx], level + 1)
+          }
+
+          idx++
+        }
+
+      })
+    }
+    getHierE(hier)
+    commit('setPeopleFilter', {
+      groupInterval: groups.unique(),
+      dataSource: hierE.x
+    })
+    commit('setPeopleSameLevel', allPeople)
   }
 }
 
@@ -107,7 +175,9 @@ const mutations = {
     state.currentPosition['left'] = x
     state.currentPosition['top'] = y
   },
-  setCustomDialogBody: (state, body) => state.customDialogBody = body
+  setCustomDialogBody: (state, body) => state.customDialogBody = body,
+  setPeopleFilter: (state, filter) => state.peopleFilter = filter,
+  setPeopleSameLevel: (state, people) => state.peopleSameLevel = people
 }
 
 export default {

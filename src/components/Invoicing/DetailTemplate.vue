@@ -2,7 +2,7 @@
   <v-layout id="detailTemplate" column wrap style="margin: 8px 36px 8px 8px;">
     <v-layout row wrap>
       <v-flex column xs5 style="height: 36px;">
-        <span class="subheading primary--text" style="margin-bottom: 0;">Detailed info <v-btn icon flat @click="saveData"><v-icon>save</v-icon></v-btn></span>
+        <span class="subheading primary--text" style="margin-bottom: 0;">Detailed info <v-btn icon flat @click="saveData" :disabled="invoicingReadOnly"><v-icon>save</v-icon></v-btn></span>
       </v-flex>
       <v-flex column xs7 style="height: 36px; display: table;">
         <span class="subheading primary--text" style="margin-bottom: 0; display: table-cell; vertical-align: bottom; padding-bottom: 3px;">SAP comments</span>
@@ -38,7 +38,7 @@
                 size="mini"
                 v-model="templateData.data[v.value]"
                 type="date"
-                :disabled="!v.editable"
+                :disabled="(!v.editable || invoicingReadOnly)"
                 placeholder="Pick a day"
                 format="dd.MM.yyyy"
                 :firstDayOfWeek="1"
@@ -49,7 +49,7 @@
 
             <!-- NUMBER TYPE -->
             <template v-else-if="v.dataType === 'number'">
-              <div :class="`el-input el-input--mini ${!v.editable ? 'is-disabled' : ''}`">
+              <div :class="`el-input el-input--mini ${(!v.editable || invoicingReadOnly) ? 'is-disabled' : ''}`">
                 <vue-numeric
                 v-model="templateData.data[v.value]"
                 style="width: 100%; height: 28px; text-align: center;"
@@ -57,7 +57,7 @@
                 thousand-separator=" "
                 decimal-separator=","
                 :precision="0"
-                :disabled="!v.editable"
+                :disabled="(!v.editable || invoicingReadOnly)"
               ></vue-numeric>
               </div>
             </template>
@@ -68,7 +68,7 @@
                 size="mini"
                 v-model="templateData.data[v.value][invoicingLastUpdate]"
                 type="date"
-                :disabled="!v.editable"
+                :disabled="(!v.editable || invoicingReadOnly)"
                 placeholder="Pick a day"
                 format="dd.MM.yyyy"
                 :firstDayOfWeek="1"
@@ -83,7 +83,7 @@
                 :type="v.dataType"
                 size="mini"
                 prefix-icon="el-icon-edit"
-                :disabled="!v.editable"
+                :disabled="(!v.editable || invoicingReadOnly)"
                 v-model="templateData.data[v.value]"
                 style="width: 100%;"  
               >
@@ -94,7 +94,7 @@
           <!-- FIXING -->
           <v-flex column xs2 md2 lg1 xl1>
             <v-layout row wrap justify-center align-center fill-height>
-              <v-icon :disabled="!v.editable" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
+              <v-icon :disabled="(!v.editable || invoicingReadOnly)" @click="changeData(v.value)">{{templateData.data.fixedFields.includes(v.value) ? 'radio_button_checked' : 'radio_button_unchecked'}}</v-icon>
             </v-layout>
           </v-flex>
         </v-layout>
@@ -284,7 +284,7 @@
     },
     props: ['templateData'],
     computed: {
-      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate', 'userInfo', 'invoicingDetail']),
+      ...mapGetters(['invoicingLastUpdate', 'invoicingCompareDate', 'userInfo', 'invoicingDetail', 'invoicingReadOnly']),
       reversedSignComments() {
         const reversed = this.signComments.reverse()
         return reversed
@@ -315,7 +315,7 @@
       },
       contextM (e, field) {
         e.preventDefault()
-        if (field !== 'Network Num') {
+        if (field !== 'Network Num' || this.invoicingReadOnly) {
           return
         }
         this.showMenu = false
@@ -386,7 +386,7 @@
         this.showSignInfo = true
       },
       removeSignComment (comment, idx) {
-        if ((comment.owner !== username.sync().toLowerCase()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) {
+        if (((comment.owner !== username.sync().toLowerCase()) && (!this.userInfo['roles'].includes('invoicingAdmin'))) || this.invoicingReadOnly) {
           return 
         }
 

@@ -56,6 +56,8 @@
               <dx-column
                 data-field="project_pm"
                 caption="Project PM"
+                :header-filter="peopleFilter"
+                :calculate-filter-expression="getFiltering"
               />
 
               <dx-column
@@ -70,7 +72,8 @@
               />
 
               <div slot="delegateTemplate" slot-scope="templateData">
-                <v-icon 
+                <v-icon
+                  small 
                   color="info" 
                   v-html="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ?'fas fa-chess-pawn' : ''" 
                   :title="templateData.data.temporaryAssign.hasOwnProperty('personName') && templateData.data.temporaryAssign.personName.length > 0 ? String(templateData.data.temporaryAssign.personName) : ''"
@@ -151,16 +154,19 @@
 import { mapActions, mapGetters } from 'vuex';
 export default {
   name: 'DelegateProjects',
+  created() {
+    this.setPeopleFilter()
+  },
   data: () => {
     return {
       chosenPerson: null
     }
   },
   computed: {
-    ...mapGetters(['allProjectsProjectsMode', 'uniquePms', 'selectedPM', 'selectedPmProjects'])
+    ...mapGetters(['allProjectsProjectsMode', 'uniquePms', 'selectedPM', 'selectedPmProjects', 'heirarchySettings', 'peopleFilter', 'peopleSameLevel'])
   },
   methods: {
-    ...mapActions(['selectPM', 'delegateProjects', 'notify']),
+    ...mapActions(['selectPM', 'delegateProjects', 'notify', 'setPeopleFilter']),
     getIcon({temporaryAssign, project_pm}) {
       if (temporaryAssign.hasOwnProperty('personName') && temporaryAssign.personName.length > 0) {
         const currentUserSapName = this.selectedPM
@@ -239,6 +245,22 @@ export default {
       }
 
       
+    },
+    getFiltering(value, operation, target) {
+      if (target === 'headerFilter') {
+        let filterExpr = [['project_pm', '=', value.val]]
+
+        this.peopleSameLevel.forEach(p => {
+          if (p.supervisors.includes(value.lookup)) {
+            filterExpr.push('or')
+            filterExpr.push(['project_pm', '=', p.sapUsername])
+          }
+        })
+
+
+        console.log(filterExpr)
+        return filterExpr
+      }
     }
   }
 }
