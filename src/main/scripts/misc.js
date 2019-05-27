@@ -37,7 +37,7 @@ export let configInvoicingColumns = function () {
       {"name":"Project PM","value":"Project Manager","editable":false,"visible":true,"dataType":"string", "width": 106},
       {"name":"Project #","value":"Project Definition","editable":false,"visible":true,"dataType":"string", "width": 86, "cellTemplate": "escalatedCell"},
       {"name":"Network #","value":"Network Num","editable":false,"visible":true,"dataType":"string", "width": 150, "cellTemplate": "cellTemplate"},
-      {"name":"Net description","value":"Network Description","editable":false,"visible":true,"alignment":"left","dataType":"string", "width": 390},
+      {"name":"Net description","value":"Network Description","editable":false,"visible":true,"alignment":"left","dataType":"string", "width": 370},
       {"name":"SWG type","value":"Switchgear Type","editable":false,"visible":true,"dataType":"string", "width": 60},
       {"name":"No. of Panels","value":"Number of Panels","editable":false,"visible":true,"dataType":"number", "width": 65},
       {"name":"SSO","value":"SSO","editable":false,"visible":true,"dataType":"string", "alignment": "center", "width": 70, "cellTemplate": "ssoTemplate"},

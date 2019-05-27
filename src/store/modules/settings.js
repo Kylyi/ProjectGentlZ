@@ -1,5 +1,6 @@
 import store from '../index'
 import PouchDB from 'pouchdb'
+import username from 'username'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
@@ -7,6 +8,7 @@ const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/se
 const settings = new PouchDB('src/db/settings')
 settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
+    console.dir(c)
     if (c.direction === 'pull') {
       store.dispatch('fetchInvoicingSettings', true)
       store.dispatch('fetchHierarchySettings')
@@ -69,6 +71,20 @@ const actions = {
         state: true,
         color: 'error'
       })
+    }
+  },
+  async setUserView({ dispatch }, view) {
+    try {
+      const userN = username.sync().toLowerCase()
+      await settings.upsert('invoicing', doc => {
+        doc.views[userN] = view
+        return doc
+      })
+      
+      await dispatch('fetchInvoicingSettings')
+      dispatch('getInvoicingSettings')
+    } catch (err) {
+      
     }
   }
 }

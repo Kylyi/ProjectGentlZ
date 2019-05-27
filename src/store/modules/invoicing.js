@@ -24,7 +24,8 @@ const state = {
   invoicingDetail: [],
   signComments: [],
   invoicingAdminMode: false,
-  invoicingReadOnly: false
+  invoicingReadOnly: false,
+  invoicingViews: {}
 }
 
 const getters = {
@@ -43,7 +44,8 @@ const getters = {
   invoicingDetail: state => state.invoicingDetail,
   signComments: state => state.signComments.reverse(),
   invoicingAdminMode: state => state.invoicingAdminMode,
-  invoicingReadOnly: state => state.invoicingReadOnly
+  invoicingReadOnly: state => state.invoicingReadOnly,
+  invoicingViews: state => state.invoicingViews
 }
 
 const actions = {
@@ -77,6 +79,7 @@ const actions = {
         pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).concat([rootState.user.userInfo.sapUsername]).unique()
       })
       commit('setGroupingDate', invSettings.lastUpdate)
+      commit('setViews', invSettings.views)
     } catch (error) {
       dispatch('notify', {
         text: ' ErrorID::1 - ' + error,
@@ -168,7 +171,8 @@ const mutations = {
     state.showSignInfo = true
   },
   setInvoicingAdminMode: (state, val) => state.invoicingAdminMode = val,
-  setInvoicingReadOnly: (state, val) => state.invoicingReadOnly = val
+  setInvoicingReadOnly: (state, val) => state.invoicingReadOnly = val,
+  setViews: (state, val) => state.invoicingViews = val
 }
 
 export default {

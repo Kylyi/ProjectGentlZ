@@ -41,23 +41,34 @@ const getters = {
   allProjectsBasic: state => state.allProjectsBasic,
   pmProjectsBasic: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    return state.allProjectsBasic.filter(e => {
-      return e['Project Manager'] === getters.userInfo.sapUsername ||
-      state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
-      (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
-    })
+
+    let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
+
+    if (getters.userInfo.sapUsername !== 'SpecialUser') {
+      return projsBasic.filter(e => {
+        return e['Project Manager'] === getters.userInfo.sapUsername ||
+        state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
+        (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
+      })
+    } else {
+      return projsBasic
+    }
   },
   projectsDetail: state => state.projectsDetail,
   visibleProjectsDetail: state => state.projectsDetail.filter(e => e.visible),
   chosenProjects: state => state.chosenProjects,
   pmProjectsProjectMode: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
+
     let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
-    projsBasic = projsBasic.filter(e => 
-      e['Project Manager'] === getters.userInfo.sapUsername || 
-      state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
-      (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
+    
+    if (getters.userInfo.sapUsername !== 'SpecialUser') {
+      projsBasic = projsBasic.filter(e => 
+        e['Project Manager'] === getters.userInfo.sapUsername || 
+        state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
+        (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
       )
+    }
 
     if (projsBasic.length === 0) return []
     return projsBasic.reduce((agg, e) => {
@@ -149,9 +160,15 @@ const getters = {
   },
   pmProjectsUniqueProjects: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
-    const projsBasic = getters.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
-    || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
-    || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername)))
+
+    let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
+    if (getters.userInfo.sapUsername !== 'SpecialUser') {
+      projsBasic = getters.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
+        || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
+        || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
+      )
+    }
+
     if (projsBasic.length === 0) return []
     
       return projsBasic.reduce((agg, e) => {

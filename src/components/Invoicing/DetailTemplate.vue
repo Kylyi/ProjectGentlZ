@@ -153,6 +153,7 @@
       :position-y="currentPosition.top"
       absolute
       offset-y
+      :close-on-content-click="false"
       transition="slide-y-transition"
     >
       <v-list style="padding: 0;" id="checkSignsList">
@@ -256,18 +257,14 @@
 </style>
 
 <script>
-  import {readFile} from '../../main/scripts/misc'
   import { mapGetters, mapActions } from 'vuex'
   import username from 'username'
-  import { DxNumberBox } from 'devextreme-vue';
+  import moment from 'moment'
 
   export default {
     async created() {
       // this.revisionsAvailable = await this.fetchProjectRevisions(this.templateData.key)
       this.signOptions = this.userInfo.roles.includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
-    },
-    components: {
-      DxNumberBox
     },
     data: function () {
       return {
@@ -328,7 +325,7 @@
       },
       changeSign () {
         const sign = this.selectedSign
-        const time = new Date()
+        let time = moment().format('dddd DD.MM.YYYY HH:mm')
 
         if (this.$props.templateData.data.sign.hasOwnProperty(this.currentField)) {
           // let iconExists = this.$props.templateData.data.sign[this.currentField].find(e => e.startsWith(sign))
@@ -338,7 +335,7 @@
             this.$props.templateData.data.sign[this.currentField][sign].push({
               comment: this.signComment,
               owner: username.sync().toLowerCase(),
-              time: time.toUTCString()
+              time: time
             })
             // const ix = this.$props.templateData.data.sign[this.currentField].indexOf(iconExists)
             // iconExists = iconExists + ' - ' + this.signComment

@@ -34,34 +34,44 @@ export let generateDocx = async function (data) {
 }
 
 export let generateXlsx = async function (data) {
-  // const template = new XlsxTemplate(data.tmplData)
-  // const sheetNumber = 1
-  // const values = data.projData
-  // template.substitute(sheetNumber, values)
-  // const buf = template.generate({
-  //     type: 'nodebuffer'
-  //   });
-
-  // return fs.writeFileSync(path.resolve(data.savePath), buf);
+  const template = new XlsxTemplate(data.tmplData)
   const wb = XLSX.read(data.tmplData, {
     type: 'array'
   })
 
-  const regExp = /([${]{2}[a-z ]+\})/gi
-  wb.SheetNames.forEach(sh => {
-    Object.values(wb.Sheets[sh]).forEach(cell => {
-      if (cell.hasOwnProperty('v')) {
-        (String(cell.v).match(regExp) || []).forEach(val => {
-          cell.v = cell.v.replace(val, data.projData[val.slice(2, val.length - 1)])
-        })
-      }
-    })
-  })
+  const values = data.projData
+  console.dir(wb)
+  for (let shNum = 1; shNum <= wb.SheetNames.length; shNum++) {
+    template.substitute(shNum, values)
+  }
+
+  const buf = template.generate({
+      type: 'nodebuffer'
+    });
+
+  return fs.writeFileSync(path.resolve(data.savePath), buf);
+
+
+
+  // const wb = XLSX.read(data.tmplData, {
+  //   type: 'array'
+  // })
+
+  // const regExp = /([${]{2}[a-z ]+\})/gi
+  // wb.SheetNames.forEach(sh => {
+  //   Object.values(wb.Sheets[sh]).forEach(cell => {
+  //     if (cell.hasOwnProperty('v')) {
+  //       (String(cell.v).match(regExp) || []).forEach(val => {
+  //         cell.v = cell.v.replace(val, data.projData[val.slice(2, val.length - 1)])
+  //       })
+  //     }
+  //   })
+  // })
   
-  XLSX.writeFile(wb, data.savePath, {
-    Props: {
-      'Program name': 'Gentl.'
-    }
-  })
+  // XLSX.writeFile(wb, data.savePath, {
+  //   Props: {
+  //     'Program name': 'Gentl.'
+  //   }
+  // })
 
 }

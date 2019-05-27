@@ -258,6 +258,7 @@
         :position-y="currentPosition.top"
         absolute
         offset-y
+        :close-on-content-click="false"
         transition="slide-y-transition"
         >
         <v-layout row wrap>

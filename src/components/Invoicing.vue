@@ -132,8 +132,16 @@
                   <v-list-tile>
                     <v-list-tile-content>
                         <v-list-tile-action-text>
-                          <v-list-tile-title>Restore view</v-list-tile-title>
-                          <v-btn outline color="primary" @click="restoreView">Restore to default view</v-btn>
+                          <v-list-tile-title>Views</v-list-tile-title>
+                          <v-autocomplete
+                            :items="Object.keys(invoicingViews)"
+                            hint="Available views"
+                            persistent-hint
+                            @change="loadView"
+                          />
+                          <v-btn outline @click="saveView" style="margin-left: 0;">Save current view globally</v-btn>
+                          <br>
+                          <v-btn outline color="primary" @click="restoreView" style="margin-left: 0;">Restore to default view</v-btn>
                         </v-list-tile-action-text>
                     </v-list-tile-content>
                   </v-list-tile>
@@ -307,6 +315,7 @@
               width="100px"
               cell-template="formattedCellInvoiceDate"
               :allow-filtering="true"
+              :allow-sorting="true"
               name="invoiceDate"
             />
             
@@ -555,13 +564,17 @@
     name: 'Invoicing',
     created: async function () {
       this.getInvoicingSettings()
-      this.setInvoicingAdminMode(false)
+      if (this.userInfo.roles.includes('invoicingReader') && !this.userInfo.roles.includes('invoicingAdmin')) {
+        this.setReadOnly(true)
+      }
+
       ipcRenderer.on('invoicingArrReadyFromMain', () => {
         this.billings = this.invoicingFilteredByDateRange
       })
     },
     beforeDestroy() {
       this.setReadOnly(false)
+      this.setInvoicingAdminMode(false)
     },
     data: () => ({
       billings: null,
@@ -572,11 +585,11 @@
       fieldSignFilter: null,
     }),
     computed: {
-      ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic', 'peopleFilter', 'invoicingAdminMode', 'peopleSameLevel',
+      ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic', 'peopleFilter', 'invoicingAdminMode', 'peopleSameLevel', 'invoicingViews',
       'invoicingGroupingDate', 'invoicingDatesModified', 'invoicingLastUpdate', 'invoicingCompareDate', 'invoicingFilteredByDateRange', 'invoicingReadOnly', 'userInfo'])
     },
     methods: {
-      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode', 'setPeopleFilter', 'changeInvoicingReadOnly', 'notify']),
+      ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode', 'setPeopleFilter', 'changeInvoicingReadOnly', 'notify', 'setUserView']),
       groupByYear (a) {
         let date
 
@@ -745,6 +758,30 @@
 
         this.setInvoicingAdminMode(val)
         this.changeInvoicingReadOnly(val)
+      },
+      saveView() {
+        try {
+          const cnf = confirm('Do you really want to save current view?')
+          if (!cnf) return
+          let currentState = this.$refs['invoicingGrid'].instance.state()
+          this.setUserView(currentState.columns)
+          this.notify({
+            text: 'Saved.',
+            color: 'success',
+            state: true
+          })
+        } catch (err) {
+          this.notify({
+            text: err,
+            color: 'error',
+            state: true
+          })
+        }
+      },
+      loadView(e) {
+        let currentState = this.$refs['invoicingGrid'].instance.state()
+        currentState.columns = this.invoicingViews[e]
+        this.$refs['invoicingGrid'].instance.state(currentState)
       }
     },
     components: {
