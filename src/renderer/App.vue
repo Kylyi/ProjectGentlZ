@@ -73,38 +73,13 @@
             </v-list-tile>
           </v-list-group>
 
-          <!-- Invoicing -->
-          <!-- <v-list-group prepend-icon="credit_card">
-
-            <v-list-tile slot="activator">
-              <v-list-tile-title>Invoicing</v-list-tile-title>
-            </v-list-tile>
-            
-            <v-list-tile 
-              router
-              :to="item.to"
-              :key="i"
-              v-for="(item, i) in invoicing"
-              exact>
-
-            <v-list-tile-action>
-              <v-icon v-html="item.icon"></v-icon>
-            </v-list-tile-action>
-
-            <v-list-tile-content>
-              <v-list-tile-title v-text="item.title"></v-list-tile-title>
-            </v-list-tile-content>
-
-            </v-list-tile>
-
-          </v-list-group> -->
-
+          <!-- INVOICING -->
           <v-list-tile router to="/invoicing">
             <v-list-tile-action>
-              <v-icon>credit_card</v-icon>
+              <v-icon>attach_money</v-icon>
             </v-list-tile-action>
             <v-list-tile-content>
-              <v-list-tile-title>Invoicing</v-list-tile-title>
+              <v-list-tile-title>Revenues</v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
 
@@ -174,7 +149,7 @@
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
         <span style="padding-left: 14px; -webkit-app-region: no-drag;" v-html="updateState ? updateState : ''"></span>
         <v-spacer></v-spacer>
-        <span style="padding-right: 10px;">Last data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
+        <span style="padding-right: 10px;">Latest data update: {{invoicingSettings ? invoicingSettings.lastUpdate : 'never'}}</span>
         <v-icon
           v-if="!userInfo.sapUsername"
           color="error"
@@ -183,22 +158,26 @@
         >
           account_circle
         </v-icon>
+        <v-icon v-if="!pccRemote.production" color="info" style="-webkit-app-region: no-drag;" title="Using test database (AB2).">
+          bug_report
+        </v-icon>
         <v-icon
           :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
           style="-webkit-app-region: no-drag;"
           v-html="offline ? 'sync_disabled' : 'sync'"
           :color="offline ? 'error' : ''" />
-        <v-icon
+        <!-- <v-icon
           :title="`ABB database ${dbConnectivity? 'is':'is NOT'} connected`"
           style="-webkit-app-region: no-drag;"
           v-html="dbConnectivity ? 'power' : 'power_off'" 
           :color="dbConnectivity ? '' : 'error'" 
-        />
+        /> -->
         <v-icon
           @click="rightDrawer = !rightDrawer"
-          style="-webkit-app-region: no-drag;"
+          id="notifIcon"
           v-html="notifications[1].notifs.length > 0 ? 'notification_important' : 'notifications'"
-          :color="notifications[1].notifs.length > 0 ? 'error' : ''"
+          :style="`-webkit-app-region: no-drag;`"
+          :color="notifications[1].notifs.length > 0 ? 'error' : notifications[2].notifs.length > 0 ? 'info' : notifications[3].notifs.length > 0 ? 'success' : '' "
         />
         <v-icon @click="minimize" style="-webkit-app-region: no-drag;">minimize</v-icon>
         <v-icon @click="fullscreen" v-html="maximizedWindow? 'fullscreen_exit' : 'fullscreen'" style="-webkit-app-region: no-drag;"></v-icon>
@@ -223,10 +202,11 @@
             <td style="text-align: center; width: 38px"></td>
           </tr>
           <tr 
-            v-for="notif in notifications[notificationsTypeSelected].notifs"
-            :key="notif._id" 
+            v-for="(notif, idx) in notifications[notificationsTypeSelected].notifs"
+            :key="idx" 
             :class="notif.type+'--text'"
             :style="`border: 1px dashed ${notif.type === 'error' ? '#ff5252' : notif.type === 'info' ? '#2196f3' : '#4caf50' }`"
+            @dblclick="removeNotification(notif.name)"
             >
             <td style="width: 19px; text-align: center;">
               <v-icon small color="error" 
@@ -236,8 +216,8 @@
             <td style="width: 100px; text-align: center;">{{notif.name}}</td>
             <td style="text-align: center; padding: 0 3px;">{{notif.actionDescription}}</td>
             <td style="text-align: center; width: 34px">
-              <v-icon v-if="!notif.actionForce" small color="success">check</v-icon>
-              <v-icon color="error" small>close</v-icon>
+              <!-- <v-icon v-if="!notif.actionForce" small color="success">check</v-icon> -->
+              <v-icon color="error" @click="removeNotification(notif.name)" small>close</v-icon>
             </td>
           </tr>
         </table>
@@ -264,7 +244,7 @@
         <v-layout row wrap>
           <v-flex column grow>
             <v-list style="padding: 0;" id="checkSignsList">
-              <v-list-tile v-for="(comment, i) in signComments" :key="comment.comment" style="padding-right: 0px;">
+              <v-list-tile v-for="(comment, i) in signComments" :key="i" style="padding-right: 0px;">
                 <v-layout row wrap>
                   <v-flex column style="width: 400px; min-width: 400px; max-width: 400px;">
                     <v-flex row wrap style="border-bottom: 1px dashed gray;">{{comment.owner}} - {{comment.time}}</v-flex>
@@ -296,17 +276,6 @@
       <v-system-bar window dark fixed app style="-webkit-app-region: drag; -webkit-user-select: none; z-index: 10;">
         <font face="Lucida Handwriting" style="margin-left: 1em;">Gentl.</font>
         <v-spacer></v-spacer>
-        <v-icon
-          :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
-          style="-webkit-app-region: no-drag;"
-          v-html="offline ? 'sync_disabled' : 'sync'"
-          :color="offline ? 'error' : ''" />
-        <v-icon
-          :title="`ABB database ${dbConnectivity? 'is':'is NOT'} connected`"
-          style="-webkit-app-region: no-drag;"
-          v-html="dbConnectivity ? 'power' : 'power_off'" 
-          :color="dbConnectivity ? '' : 'error'" 
-        />
         <v-icon @click="minimize" style="-webkit-app-region: no-drag;">minimize</v-icon>
         <v-icon @click="fullscreen" v-html="maximizedWindow? 'fullscreen_exit' : 'fullscreen'" style="-webkit-app-region: no-drag;"></v-icon>
         <v-icon @click="close" color="red lighten-1" style="-webkit-app-region: no-drag;">close</v-icon>
@@ -318,27 +287,56 @@
         <v-card-title primary-title style="padding: 0px;">
           <v-layout column xs12 text-xs-center>
 
-            <v-flex row wrap v-if="password" style="text-align: -webkit-center;">
+            <v-flex row wrap v-if="password" style="text-align: center;">
               <v-flex row wrap>
-                <input v-model="userPassword" type="password" autocomplete="off" placeholder="Password" class="el-input__inner" style="width: 320px; text-align: center;" @keyup.enter="callLogin" />
-              </v-flex>
-              <v-flex row wrap mt-2>
                 Seems like you already have an account but your passwords don't match. Please try a different password.
               </v-flex>
+              <v-flex id="loginPass" row style="width: 350px; margin:auto;" pt-2>
+                <v-text-field
+                  v-model="loginPassword.pass" @click:append="loginPassword.passType = !loginPassword.passType"
+                  required :type="loginPassword.passType ? 'password' : 'text'"
+                  label="Password"
+                  single-line :append-icon="loginPassword.passType ? 'visibility_off' : 'visibility'"
+                  style="text-align:center;"
+                  @keydown.enter="callLogin"
+                >
+                </v-text-field>
+                <v-btn block @click="callLogin" color="accent">Login</v-btn>
+              </v-flex>
+              
             </v-flex>
 
-            <v-flex row wrap v-else style="text-align: -webkit-center;">
-              <el-form :model="createAccountForm" ref="createAccountForm" :rules="createAccountRules" status-icon style="width: 320px;">
-                <el-form-item prop="pass">
-                  <el-input placeholder="Password" type="password" v-model="createAccountForm.pass" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item prop="pass2">
-                  <el-input placeholder="Confirm password" type="password" v-model="createAccountForm.pass2" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item style="margin-bottom: 0px;">
-                  <v-btn outline depressed color="primary" @click="submitForm('createAccountForm')">Register</v-btn>
-                </el-form-item>
-              </el-form>
+            <v-flex row v-else>
+              <v-form
+                id="registerForm"
+                v-model="registerForm"
+                ref="registerForm"
+                style="margin: auto; width: 350px;"
+              >
+                <v-text-field
+                  v-model="registerPasswords.pass" @click:append="registerPasswords.passType = !registerPasswords.passType"
+                  required :type="registerPasswords.passType ? 'password' : 'text'"
+                  :rules="[val => val && val.length >= 5 || 'Passwords must be at least 5 characters long.']"
+                  label="Password"
+                  single-line :append-icon="registerPasswords.passType ? 'visibility_off' : 'visibility'"
+                  style="text-align:center;"
+                  @keydown.enter="submitForm('registerForm')"
+                >
+                </v-text-field>
+
+                <v-text-field
+                  v-model="registerPasswords.pass2" @click:append="registerPasswords.pass2Type = !registerPasswords.pass2Type"
+                  required :type="registerPasswords.pass2Type ? 'password' : 'text'"
+                  :rules="[identicalPasswords]"
+                  label="Password again"
+                  single-line :append-icon="registerPasswords.pass2Type ? 'visibility_off' : 'visibility'"
+                  style="text-align:center;"
+                  @keydown.enter="submitForm('registerForm')"
+                >
+                </v-text-field>
+
+                <v-btn block @click="submitForm('registerForm')" color="accent">Register</v-btn>
+              </v-form>
               
             </v-flex>
           </v-layout>
@@ -354,51 +352,6 @@
   </v-app>
 </template>
 
-<style lang="scss">
-  .bottom {
-    position: absolute;
-    bottom: 0;
-    margin: auto;
-    left: 0;
-    right: 0;
-  }
-
-  .abs-center {
-    position: absolute;
-    margin: auto;
-    left: 0;
-    right: 0; 
-  }
-
-  .el-input > input {
-    text-align: center;
-  }
-
-  #card {
-    padding: 0px; 
-  }
-
-  #notificationBar {
-    position: fixed;
-    right: 0;
-    width: 300px;
-    background-color: #424242;
-    height: calc(100% - 32px);
-    margin-top: 32px;
-    z-index: 50;
-    color: #fff;
-  }
-
-  #app {
-    background-color: #F5F5F5;
-  }
-
-  #app .v-list {
-    padding: 0;
-  }
-</style>
-
-
 <script>
   const { remote, ipcRenderer} = require('electron')
   import { mapGetters, mapActions } from "vuex";
@@ -406,7 +359,8 @@
 
   export default {
     name: 'app',
-    created: function () {
+    created: async function () {
+      this.fullscreen()
       this.$root.$on('show-sign-info', (e) => setTimeout(() => {
         this.showSignInfo = e
       }), 100)
@@ -441,15 +395,18 @@
         localStorage.setItem('revision', this.revision)
       } 
 
+      // INIT DBs
+      await this.initProjectsDb()
+
       // FETCH PROJECTS
       this.fetchAllProjectsBasic();
-      this.fetchProjectsDetail();
+      // this.fetchProjectsDetail();
 
       // FETCH TEMPLATES
       this.fetchAllTemplates();
 
       // FETCH INVOICING
-      this.fetchInvoicingDetail()
+      // this.fetchInvoicingDetail()
 
       //FETCH SETTINGS
       this.fetchInvoicingSettings()
@@ -457,30 +414,36 @@
 
     },
     data: () => ({
+      registerForm: false,
+      registerPasswords: {
+        pass: '',
+        passType: true,
+        pass2: '',
+        pass2Type: true
+      },
+      loginPassword: {
+        pass: '',
+        passType: true
+      },
       drawer: true,
       rightDrawer: false,
       notificationsTypeSelected: 0,
       clipped: true,
       miniVariant: false,
       maximizedWindow: false,
-      userPassword: '',
-      createAccountForm: {
-        pass: '',
-        pass2: ''
-      },
       updateState: false,
       showSignInfo: false,
       customDialog: false,
-      logo: require('./assets/Logo.png'),
+      logo: require('./assets/Logo_production.png'),
       invoicing: [
         { icon: 'grid_on', title: 'Interface', to: '/invoicing' },
-        // { icon: 'cloud_upload', title: 'Import data', to: '/importInvoicing' }
       ],
       templates: [
         { icon: 'trip_origin', title: 'Template generator', to: '/templateGenerator'},
         { icon: 'edit', title: 'Manage templates', to: '/newTemplate' },
       ],
       projects: [
+        { icon: 'web', title: 'Project view', to: '/ProjectView'},
         { icon: 'supervised_user_circle', title: 'Delegate projects', to: '/delegateProjects'}
       ],
       riskRegister: [
@@ -490,31 +453,12 @@
     }),
     computed: {
       ...mapGetters(['offline', 'loggedIn', 'snackbar', 'openAfterGenerate', 'userInfo', 'notifications', 'dbConnectivity', 'password', 'invoicingSettings', 'revision',
-      'signComments', 'currentPosition', 'customDialogBody']),
-      createAccountRules: function () {
-        const pass1 = this.createAccountForm.pass
-        return {
-          pass: [
-            {validator: (rule, value, callback) => {value.length >= 5 ? callback() : callback(new Error('Password needs to be at least 5 characters long.'))}, trigger: 'blur'}
-          ],
-          pass2: [
-            {validator: function (rule, value, callback) {value === pass1 ? callback() : callback(new Error('Passwords don\'t match'))}, trigger: 'change'}
-          ]
-        }
-      },
-      createAccountFormValid: function () {
-        this.$refs['createAccountForm'].validate(valid => {
-          console.log(valid)
-          return true
-        })
-      }
+      'signComments', 'currentPosition', 'customDialogBody', 'pccRemote'])
     },
     methods: {
-      ...mapActions([ 'loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification',
-      'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings',
-      'fetchInvoicingDetail', 'setShowSignInfo', 'fetchHierarchySettings']),
+      ...mapActions(['loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification', 'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings', 'fetchInvoicingDetail', 'fetchHierarchySettings', 'initProjectsDb']),
       callLogin() {
-        this.loginWithPassword(this.userPassword)
+        this.loginWithPassword(this.loginPassword.pass)
       },
       close () {
         const window = remote.getCurrentWindow()
@@ -530,18 +474,12 @@
         this.maximizedWindow = window.isMaximized()
       },
       submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
-          if (valid) {
-            this.registerUser(this.createAccountForm.pass)
-          }
-        });
+        if (this.$refs[formName].validate()) {
+          this.registerUser(this.registerPasswords.pass)
+        }
       },
       async changeConnectivity(e) {
         this.checkConnectivity(e.type === 'online')
-      },
-      commitAction (notifName, e, action, actionArgs) {
-        this.removeNotification(notifName)
-        if (e) this.$store.dispatch(action, actionArgs)
       },
       getColor(icon) {
         if (icon === 'arrow_upward') {
@@ -553,8 +491,69 @@
         } else {
           return 'info'
         }
+      },
+      identicalPasswords(val) {
+        return (val && val.length >= 5 && val === this.registerPasswords.pass) || 'Passwords must be identical.'
       }
     }
   }
-
 </script>
+
+<style>
+  .bottom {
+    position: absolute;
+    bottom: 0;
+    margin: auto;
+    left: 0;
+    right: 0;
+  }
+  .abs-center {
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0; 
+  }
+  #card {
+    padding: 0px; 
+  }
+  #notificationBar {
+    position: fixed;
+    right: 0;
+    width: 300px;
+    background-color: #424242;
+    height: calc(100% - 32px);
+    margin-top: 32px;
+    z-index: 50;
+    color: #fff;
+  }
+  #app {
+    background-color: #F5F5F5;
+  }
+  #app .v-list {
+    padding: 0;
+  }
+  .dx-row-focused > td {
+    background-color: black!important;
+  }
+  .dx-master-detail-row > td {
+    background-color: white!important;
+  }
+  #registerForm input {
+    text-align: center;
+  }
+  #registerForm .v-label:first-child {
+    left: 140px!important;
+  }
+  #registerForm .v-label:last-child {
+    left: 114px!important;
+  }
+  #loginPass input {
+    text-align: center;
+  }
+  #loginPass .v-label {
+    left: 140px!important;
+  }
+  .multiselect--active {
+    z-index: 5!important;
+  }
+</style>

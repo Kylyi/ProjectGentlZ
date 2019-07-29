@@ -1,61 +1,20 @@
 <template>
-  <v-layout column wrap id="projectsGrid">
+  <v-layout column id="projectsGrid" style="max-height: 100%; background-color: white;">
     <!-- Title -->
-    <v-layout row wrap>
-        <v-flex grow>
-          <v-layout column wrap justify-center fill-height>
-            <h5 class="headline"><b>My projects overview</b></h5>
-          </v-layout>
-        </v-flex>
-
-        <v-flex shrink>
-          <v-container fluid grid-list-md style="padding: 0;">
-            <v-layout row wrap>
-              <v-flex d-flex>
-                <v-layout row wrap>
-                  <v-flex d-flex xs12>
-                    <b>Mode</b>
-                  </v-flex>
-                  <v-flex d-flex xs12>
-                    <span :style="`color: ${generatorSelectionMode === 'net' ? '#2196f3' : ''}`">Network</span>
-                    <el-switch
-                      :value="generatorSelectionMode"
-                      active-color="#ff5252"
-                      inactive-color="#2196f3"
-                      active-value="project"
-                      inactive-value="net"
-                      @change="changeGeneratorSelectionMode(false)"
-                    >
-                    </el-switch>
-                    <span :style="`color: ${generatorSelectionMode === 'project' ? '#ff5252' : ''}`">Project</span>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-              <!-- <v-flex d-flex>
-                <v-btn
-                  title="Removes all projects that don't belong to me."
-                  :color="foreignProjectsBasic.length > 0 ? 'error' : ''"
-                  @click="removeForeignNets"
-                  icon
-                >
-                  <v-icon>supervisor_account</v-icon>
-                </v-btn>
-              </v-flex> -->
-              <v-flex d-flex>
-                <v-btn
-                  v-if="dbConnectivity"
-                  icon
-                  @click="addActiveProjects"
-                  title="Refresh all projects"
-                  :disabled="loading"
-                >
-                  <v-icon :class="loading ? 'fa-spin' : ''">fas fa-sync</v-icon
-                ></v-btn>
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-flex>
-    </v-layout>
+    <h5 class="headline" style="position: absolute; top: 8px; left: 16px; z-index: 3;"><b>My projects overview</b></h5>
+    <div style="display: inline-block; position:absolute; right: 172px; top: 16px; z-index:3;">  
+      <div style="display: flex; align-items: center;">
+        <span><b>Mode:</b> &nbsp;</span>
+        <v-btn-toggle mandatory
+          @change="changeGeneratorSelectionMode(false)"
+          :value="generatorSelectionMode"
+          style="box-shadow: none;"
+        >
+          <v-btn small flat value="net" :color="generatorSelectionMode === 'net' ? selectColor : ''">Network</v-btn>
+          <v-btn small flat value="project" :color="generatorSelectionMode === 'net' ? '' : selectColor">Project</v-btn>
+        </v-btn-toggle>
+      </div>
+    </div>
 
     <!-- Table -->
     <template v-if="generatorSelectionMode === 'net'">
@@ -79,9 +38,18 @@ import ProjectsMode from './ProjectsGrid/ProjectsMode'
 
 export default {
   components: { GenerateTemplateDialog, NetMode, ProjectsMode },
-  computed: mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading', 'foreignProjectsBasic']),
+  computed: {
+    ...mapGetters(['generatorSelectionMode', 'dbConnectivity', 'loading', 'foreignProjectsBasic']),
+    selectColor(arg) {
+      if (this.generatorSelectionMode === 'project') {
+        return 'primary'
+      } else {
+        return 'info'
+      }
+    }
+  },
   methods: {
-    ...mapActions(['addActiveProjects', 'fetchProjectsDetail', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchForeignProjectsBasic', 'removeForeignNets'])
+    ...mapActions(['addActiveProjects', 'fetchAllTemplates', 'changeGeneratorSelectionMode', 'fetchForeignProjectsBasic', 'removeForeignNets'])
   }
 }
 </script>
@@ -102,5 +70,7 @@ div#myProjectsTable td {
 #generateTemplate:hover {
   background-color: #F3E5F5;
 }
-
+#projectsGrid .dx-datagrid-header-panel {
+  padding-right: 4px;
+}
 </style>

@@ -21,6 +21,11 @@ export default new Router({
       component: require('../components/NewTemplate.vue').default
     },
     {
+      path: '/projectView',
+      name: 'ProjectView',
+      component: require('../components/ProjectView.vue').default
+    },
+    {
       path: '/delegateProjects',
       name: 'DelegateProjects',
       component: require('../components/DelegateProjects.vue').default

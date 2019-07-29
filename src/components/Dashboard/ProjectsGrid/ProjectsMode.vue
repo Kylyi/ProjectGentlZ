@@ -1,10 +1,10 @@
 <template>
-  <v-layout id="projectsMode" mt-3 style="max-height: 500px;">
+  <v-layout id="projectsMode" mt-3 style="max-height: 100%;">
     <dx-data-grid
       ref="projectsTable"
-      :data-source="pmProjectsProjectMode"
+      :data-source="pmProjects"
       show-borders
-      key-expr='project_id'
+      key-expr='Project Definition'
       column-auto-width
       :allow-column-reordering="true"
       :allow-column-resizing="true"
@@ -12,8 +12,10 @@
       :show-row-lines="true"
       :show-column-lines="true"
       :word-wrap-enabled="true"
-      @row-click="onSelectionChanged"
+      @focused-row-changing="onSelectionChanged"
+      :focused-row-enabled="true"
       @cell-prepared="getConditionalFormatting"
+      :repaint-changes-only="true"
     >
       <!-- <dx-scrolling mode="virtual"/> -->
       <dx-paging :enabled="true" :page-size="50"/>
@@ -26,12 +28,12 @@
       <dx-search-panel :visible="true"/>
       
       <dx-column
-        data-field="project_id"
+        data-field="Project Definition"
         caption="Project #"
         alignment="center"
       />
       <dx-column
-        data-field="project_name"
+        data-field="Project Name"
         caption="Project name"
         alignment="left"
       />
@@ -41,7 +43,7 @@
         cell-template="panelsModulesTemplate"
       />
       <dx-column
-        data-field="project_revenue"
+        data-field="Project Revenues"
         caption="Revenues"
         data-type="number"
         format="thousands"
@@ -65,19 +67,15 @@
 
 
       <div slot="panelsModulesTemplate" slot-scope="templateData">
-        {{templateData.data.project_panels}} / {{templateData.data.project_modules}}
+        {{templateData.data['Project Panels']}} / {{templateData.data['Project Modules']}}
       </div>
-
-      <!-- <div slot="riskRegisterAlertTemplate" slot-scope="templateData">
-        
-      </div> -->
 
       <v-flex row wrap fill-height slot="riskRegisterAlertTemplate" slot-scope="templateData">
         <risk-register-alert :template-data="templateData" />
       </v-flex>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click.stop="generateTemplate(templateData.data)" color="grey darken-4" title="Generate template">trip_origin</v-icon>
+          <v-icon @click.stop="generateTemplate(templateData.data)" color="red darken-4" title="Generate template">trip_origin</v-icon>
           <v-icon @click.stop="manageRiskRegister(templateData.data)" color="teal lighten-1" title="Manage risk register">business</v-icon>
           <v-icon @click.stop="markProjectAsDone(templateData.data)" color="success" title="Mark project as finished">assignment_turned_in</v-icon>
       </div>
@@ -87,6 +85,7 @@
           <v-tab
             v-for="net in templateData.data.nets"
             :key="net._id"
+            @click="fetchNetTasksInfo(net._id)"
           >
             <v-layout column wrap>
               <v-flex row wrap class="primary--text">{{net['Network Num']}}</v-flex>
@@ -131,21 +130,24 @@ import { mapGetters, mapActions } from "vuex";
 import RiskRegisterAlert from './ProjectsMode/RiskRegisterAlert'
 export default {
   components: { RiskRegisterAlert },
+  created() {
+    this.$root.$off('contentWindowResized')
+    this.$root.$on('contentWindowResized', () => {
+      if (this.$refs['projectsTable'].instance) this.$refs['projectsTable'].instance.updateDimensions()
+    })
+  },
   data: () => {
     return {
       selectedNet: 0,
       projectDoneDialog: false
     }
   },
-  computed: mapGetters(['pmProjectsProjectMode', 'visibleProjectsDetail', 'generateTemplateDialog']),
+  computed: mapGetters(['pmProjects', 'visibleProjectsDetail', 'generateTemplateDialog', 'chosenProjects']),
   methods: {
-    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail', 'deactivateNets']),
+    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'deactivateNets', 'fetchNetTasksInfo']),
     generateTemplateTrigger(projData) {
       this.chooseProjects(projData)
       this.openGenerateTemplateDialog(true)
-    },
-    changeProjectSelection(proj) {
-      this.chooseProjects(proj.nets[0].net_info[0].task_info)
     },
     bilanceValue(row) {
       if (!row.riskRegisterBilance) return 0
@@ -160,14 +162,20 @@ export default {
       this.$router.push('/riskRegister')
     },
     async onSelectionChanged (data) {
-      await this.chooseProjects(data.data.nets[0])
+      if (data.newRowIndex !== data.prevRowIndex) {
+        this.fetchNetTasksInfo(data.rows[data.newRowIndex].data.nets_keys[0])
+        await this.chooseProjects(data.rows[data.newRowIndex].data)
+      }
+
+      // if (this.chosenProjects[0] && this.chosenProjects[0].nets_keys[0] !== data.data.nets[0]._id) this.fetchNetTasksInfo(data.data.nets[0]._id)
+      // await this.chooseProjects(data.data)
     },
     async getConditionalFormatting(row) {
       if (row.column.caption === 'Opps / Risks' && row.rowType === 'data') {
         if (!row.data.riskRegisterBilance) return
 
         const bilance = row.data.riskRegisterBilance.bilanceOpps - row.data.riskRegisterBilance.bilanceRisks
-        const percent = bilance/(row.data.project_revenue || 1)
+        const percent = bilance/(row.data['Project Revenues'] || 1)
         let color
 
         if (percent > 0.1) {

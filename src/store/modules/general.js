@@ -17,7 +17,13 @@ const state = {
   currentPosition: {left: 0, top: 0},
   customDialogBody: null,
   peopleFilter: {},
-  peopleSameLevel: []
+  peopleSameLevel: [],
+  peoplePmFilter: {},
+  tasksLoading: false,
+  contentWindowSize: {
+    width: window.innerWidth - 250 - 24,
+    height: window.innerHeight - 32 - 70
+  }
 }
 
 const getters = {
@@ -42,7 +48,10 @@ const getters = {
   currentPosition: state => state.currentPosition,
   customDialogBody: state => state.customDialogBody,
   peopleFilter: state => state.peopleFilter,
-  peopleSameLevel: state => state.peopleSameLevel
+  peopleSameLevel: state => state.peopleSameLevel,
+  peoplePmFilter: state => state.peoplePmFilter,
+  tasksLoading: state => state.tasksLoading,
+  contentWindowSize: state => state.contentWindowSize
 }
 
 const actions = {
@@ -52,28 +61,18 @@ const actions = {
   async checkConnectivity({ commit, dispatch }, online) {
     try {
       dispatch('checkDatabaseConnectivity')
-      await fetch('http://40.113.87.17:5984/')
+      await fetch('http://127.0.0.1:5984/')
       commit('setOffline', true)
     } catch (error) {
       commit('setOffline', false)
     }
   },
-  async addNotifications({ commit, dispatch }, notifications) {
-    const notifs = notifications.reduce((agg, e) => {
-      const isIn = agg.map(n => n.actionId === e.actionId).indexOf(true)
-      
-      if (isIn !== -1) {
-        agg[isIn].actionArgs = agg[isIn].actionArgs.concat(e.actionArgs)
-        return agg
-      } else {
-        return [...agg, e]
-      }
-    }, [])
+  async addNotifications({ commit, dispatch }, notifications = []) {
+    if (!Array.isArray(notifications)) notifications = [notifications]
 
-    notifs.forEach(n => {
-      if (n.actionForce) dispatch(n.actionName, n.actionArgs)
+    notifications.forEach(n => {
       commit('addNotification', n)
-    });
+    })
   },
   async removeNotification({ commit }, notifName) {
     commit('removeNotification', notifName)
@@ -104,8 +103,10 @@ const actions = {
       });
     }
 
-    const hier = rootState.settings.heirarchySettings
+    const hier = rootState.settings.hierarchySettings.hier
+    const pmChief = rootState.settings.hierarchySettings.pmChief
     let hierE = {x: []}
+    let hierPM = {x: []}
     let groups = []
     let allPeople = []
 
@@ -113,7 +114,6 @@ const actions = {
       let idx = 0
       arr.forEach(p => {
         if (!path) {
-          
           hierE.x.push({
             text: p.title,
             value: {
@@ -138,28 +138,47 @@ const actions = {
               val: p['data']['sapUsername']
             }
           })
-          allPeople.push({
-            gentlId: p['data']['gentlId'],
-            supervisors: p['data']['supervisors'],
-            sapUsername: p['data']['sapUsername']
-          })
+          
 
           if (p.hasOwnProperty('children')) {
             groups.push(String(level))
             getHierE(p.children, path.items[idx], level + 1)
           }
 
+          if (p.title === pmChief) {
+            hierPM.x = path
+          }
+
           idx++
         }
 
+        if (p['data']['type'] !== 'folder') {
+          allPeople.push({
+            gentlId: p['data']['gentlId'],
+            supervisors: p['data']['supervisors'],
+            sapUsername: p['data']['sapUsername']
+          })
+        }
       })
     }
+    
     getHierE(hier)
+
+    commit('setPeoplePmFilter', {
+      groupInterval: groups.unique(),
+      dataSource: hierPM.x.items
+    })
     commit('setPeopleFilter', {
       groupInterval: groups.unique(),
       dataSource: hierE.x
     })
     commit('setPeopleSameLevel', allPeople)
+  },
+  async setTasksLoading({ commit }, val) {
+    commit('setTasksLoading', val)
+  },
+  async setContentWindowSize({ commit }, size) {
+    commit('setContentWindowSize', size)
   }
 }
 
@@ -177,7 +196,10 @@ const mutations = {
   },
   setCustomDialogBody: (state, body) => state.customDialogBody = body,
   setPeopleFilter: (state, filter) => state.peopleFilter = filter,
-  setPeopleSameLevel: (state, people) => state.peopleSameLevel = people
+  setPeopleSameLevel: (state, people) => state.peopleSameLevel = people,
+  setPeoplePmFilter: (state, people) => state.peoplePmFilter = people,
+  setTasksLoading: (state, val) => state.tasksLoading = val,
+  setContentWindowSize: (state, size) => state.contentWindowSize = size
 }
 
 export default {

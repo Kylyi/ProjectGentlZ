@@ -1,97 +1,82 @@
 <template>
-  <v-layout column wrap>
-    <v-layout row wrap>
-      <v-layout column wrap shrink><h1 display-3 class="myHeading" style="padding-right: 10px;">PCC</h1></v-layout>
-      <v-layout column wrap shrink justify-center><v-icon>delete</v-icon></v-layout>
-    </v-layout>
-    <v-flex row wrap>
+  <v-layout id="tasksQuickview" column style="max-height: 100%; background-color: white;">
+    <h5 class="headline" style="z-index:3; position: absolute; left: 16px; top: 4px;"><b>Tasks</b></h5>
+    <p style="display: none;">{{ tableLoading }}</p>
 
-      <el-table
-        v-if="taskInfo"
-        :data="taskInfo"
-        style="width: 100%;"
-        max-height="450"
+    <v-layout row wrap mt-2 style="max-height: 100%;">
+      <dx-data-grid
+        ref="tasksGrid"
+        :data-source="taskInfo"
+        show-borders
+        key-expr='TaskID'
+        column-auto-width
+        :allow-column-reordering="true"
+        :allow-column-resizing="true"
+        :row-alternation-enabled="true"
+        :show-row-lines="true"
+        :show-column-lines="true"
+        :word-wrap-enabled="true"
+        :column-min-width="20"
+        no-data-text="No network selected or possible connection problems."
       >
-        <el-table-column
-          prop="May Start"
-          label="May start"
-          align="center"
-        >
-          <template slot-scope="scope">
-            <v-btn
-              icon
-              @click="changeTaskDone"
-            >
-              <v-icon
-                :color="scope.row['May Start'] === 'ANO' ? 'success' : 'error'"
-                v-html="scope.row['May Start'] === 'ANO' ? 'mood' : 'sentiment_dissatisfied'"
-              />
-            </v-btn>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="Task Num"
-          label="Task #"
-          align="center"
+        <dx-header-filter
+          :visible="true"
+          :allow-search="true"
         />
-        <el-table-column
-          prop="Task Description"
-          label="Task description"
-          min-width="250"
-          align="center"
+
+        <dx-column-chooser :enabled="true"/>
+        <dx-state-storing
+          :enabled="true"
+          type="localStorage"
+          storage-key="tasksGrid"
+          :savingTimeout="2000"
         />
-        <el-table-column
-          prop="Days to Start"
-          label="Days to start"
-          align="center"
+
+        <dx-column
+          v-for="col in taskColumns"
+          :key="col.value"
+          :caption="col.name"
+          :data-field="col.value"
+          :data-type="col.dataType"
+          :format="col.dataType === 'number' ? '#,##0' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
+          :visible="col.visible"
         />
-        <el-table-column
-          prop="Actual Work"
-          label="Actual work"
-          align="center"
-        />
-        <el-table-column
-          prop="Work percentage"
-          label="% done"
-          align="center"
-        />
-        <el-table-column
-          prop="Task Status"
-          label="Status"
-          align="center"
-        >
-          <template slot-scope="scope">
-            <v-icon
-              :color="scope.row['Task Status'] === 'NS' ? 'error' : 'success'"
-              v-html="scope.row['Task Status'] === 'NS' ? 'clear' : 'check'"
-              :title="scope.row['Task Status'] === 'NS' ? 'Not started.' : 'Vim jen, co je NS, ostatni nevim, co znamenaji :)'"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-    </v-flex>
+
+      </dx-data-grid>
+      
+    </v-layout>
   </v-layout>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
 export default {
+  created() {
+    if (!this.taskColumns) {
+      this.setTaskColumns()
+    }
+  },
   computed: {
-    ...mapGetters(['taskInfo'])
+    ...mapGetters(['taskInfo', 'tasksLoading', 'taskColumns']),
+    tableLoading: function() {
+      if (!this.$refs['tasksGrid']) return this.tasksLoading
+
+      if (this.tasksLoading) {
+        this.$refs['tasksGrid'].instance.beginCustomLoading('Fetching data from SAP.')
+      } else {
+        this.$refs['tasksGrid'].instance.endCustomLoading()
+      }
+      return this.tasksLoading
+    }
   },
   methods: {
-    ...mapActions(['notify']),
-    changeTaskDone() {
-      this.notify({
-        text: 'This will work once I get SAP connector :)',
-        state: true,
-        color: 'info'
-      }) 
-    }
+    ...mapActions(['notify', 'setTaskColumns'])
   }
 }
 </script>
 
 <style>
-
+#tasksQuickview .dx-datagrid-header-panel {
+  padding-right: 4px;
+}
 </style>

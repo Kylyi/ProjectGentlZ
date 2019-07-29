@@ -141,6 +141,24 @@ Vue.use(VueNumeric)
 // import VTooltip from 'v-tooltip'
 // Vue.use(VTooltip)
 
+// Draggable resizable
+import VueDraggableResizable from 'vue-draggable-resizable'
+import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
+Vue.component('vue-draggable-resizable', VueDraggableResizable)
+
+// Responsive Grid Layout
+import VueResponsiveGridLayout from 'vue-responsive-grid-layout'
+Vue.use(VueResponsiveGridLayout)
+
+// Vue resize
+import 'vue-resize/dist/vue-resize.css'
+import VueResize from 'vue-resize'
+Vue.use(VueResize)
+
+// Split panel
+import VueSplit from 'vue-split-panel'
+Vue.use(VueSplit)
+
 // CSS
 import './assets/style/mystyle.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'

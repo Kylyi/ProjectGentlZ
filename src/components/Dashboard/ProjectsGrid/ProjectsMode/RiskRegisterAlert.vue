@@ -2,8 +2,8 @@
   <v-layout row wrap>
     <v-flex column shrink>
       <v-icon
-        :color="alert ==='warning' ? 'error' : alert === 'info' ? 'info' : 'success'"
-        :title="`Last evaluation: ${templateData.data.riskRegisterDateChanged || 'never'}.`"
+        :color="alert ==='warning' ? 'error' : alert === 'info' ? 'info' : alert ==='report' ? 'warning' : 'success'"
+        :title="`Last evaluation: ${templateData.data.riskRegisterBilance.dateChanged || templateData.data.riskRegisterBilance.dateChangedDraft || 'never'}.`"
       >
         {{alert}}
       </v-icon>
@@ -24,23 +24,22 @@ export default {
   props: ['templateData'],
   computed: {
     alert: function() {
-      const dateChanged = this.templateData.data.riskRegisterDateChanged
-      if (!dateChanged) return 'warning' //'<i class="v-icon material-icons" style="color: #ef5350;" title="Not evaluated yet.">warning</i>'
+      const dateChanged = this.templateData.data.riskRegisterBilance.dateChanged
+      const dateChangedDraft = this.templateData.data.riskRegisterBilance.dateChangedDraft
+
+      if (!dateChanged && dateChangedDraft) return 'report'
+      if (!dateChanged) return 'warning'
 
       const date = new Date()
       const currentDay = Number(moment(date).format('DD'))
       if (currentDay >=15 && (moment(dateChanged).month() !== moment(date).month() )) {
         return 'warning'
-        // return `<i class="v-icon material-icons" style="color: #ef5350;" title="Last evaluation ${dateChanged}">warning</i>`
       } else if (moment(dateChanged).month() === moment(date).month()) {
         return 'check'
-        // return `<i class="v-icon material-icons" style="color: #66bb6a;" title="Last evaluation ${dateChanged}">check</i>`
       } else if (moment(date).diff(dateChanged, 'days') > 30) {
         return 'warning'
-        // return `<i class="v-icon material-icons" style="color: #ef5350;" title="Last evaluation ${dateChanged}">warning</i>`
       } else {
         return 'info'
-        // return `<i class="v-icon material-icons" style="color: #1e88e5;" title="Last evaluation ${dateChanged}">info</i>`
       }
 
     }

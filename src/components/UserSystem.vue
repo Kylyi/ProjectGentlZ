@@ -43,8 +43,8 @@
             <v-card-title style="margin-top: 16px; padding: 0 16px;"><b style="primary--text">{{selectedUser.title}}</b></v-card-title>
             <v-card-text style="padding: 4px 16px;">
               <v-flex row wrap>
-                <v-text-field disabled label="Phone number" :value="'+420'+selectedUserInfo.phone" style="display: inline-block;"></v-text-field>
-                <v-text-field disabled label="Email" :value="selectedUserInfo.email+'@cz.abb.com'" style="padding-left: 5px; display: inline-block;"></v-text-field>
+                <v-text-field disabled label="Phone number" :value="'+420'+selectedUserInfo.phone" style="display: inline-block; width: 120px;"></v-text-field>
+                <v-text-field disabled label="Email" :value="selectedUserInfo.email+'@cz.abb.com'" style="padding-left: 5px; display: inline-block; width: 340px;"></v-text-field>
 
                 <v-flex row wrap>
                   <b>Roles</b>
@@ -249,8 +249,8 @@ export default {
   },
   async created() {
     if (!this.offline) await this.fetchAllUsers()
-    await this.fetchHierarchySettings()
-    this.nodes = this.heirarchySettings
+    // await this.fetchHierarchySettings()
+    this.nodes = this.hierarchySettings.hier
   },
   beforeDestroy() {
     
@@ -293,7 +293,8 @@ export default {
         data: {
           type: 'person',
           gentlId: this.chosenPerson._id,
-          sapUsername: this.chosenPersonSapUserName
+          sapUsername: this.chosenPersonSapUserName,
+          subordinates: []
         }
       })
       this.$refs['newPersonForm'].reset()
@@ -416,7 +417,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['allUsers', 'heirarchySettings', 'offline', 'selectedUserInfo', 'uniquePms', 'userInfo'])
+    ...mapGetters(['allUsers', 'hierarchySettings', 'offline', 'selectedUserInfo', 'uniquePms', 'userInfo'])
   }
 }
 </script>

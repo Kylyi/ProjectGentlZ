@@ -5,7 +5,7 @@ const XLSX = require('xlsx')
 import fs from 'fs'
 import path from 'path'
 
-export let generateDocx = async function (data) {
+export let generateDocx = async function (data, fillData = true) {
   const content = data.tmplData
   const zip = new JSZip(content);
   const doc = new Docxtemplater();
@@ -13,7 +13,7 @@ export let generateDocx = async function (data) {
   doc.setData(data.projData)
 
   try {
-    doc.render()
+    if (fillData) doc.render() 
   } catch (error) {
     const e = {
       message: error.message,
@@ -33,16 +33,17 @@ export let generateDocx = async function (data) {
   return fs.writeFileSync(path.resolve(data.savePath), buf);
 }
 
-export let generateXlsx = async function (data) {
+export let generateXlsx = async function (data, fillData = true) {
   const template = new XlsxTemplate(data.tmplData)
   const wb = XLSX.read(data.tmplData, {
     type: 'array'
   })
 
   const values = data.projData
-  console.dir(wb)
-  for (let shNum = 1; shNum <= wb.SheetNames.length; shNum++) {
-    template.substitute(shNum, values)
+  if (fillData) {
+    for (let shNum = 1; shNum <= wb.SheetNames.length; shNum++) {
+      template.substitute(shNum, values)
+    }
   }
 
   const buf = template.generate({

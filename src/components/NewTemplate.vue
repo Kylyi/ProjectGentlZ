@@ -17,14 +17,14 @@
           <v-flex row wrap>
             <v-layout row wrap>
               <v-flex column xs4>
-                <v-btn @click="position='new'" outline
+                <v-btn @click="switchPosition('new')" outline
                   :style="`width: 100%; margin: 0; background-color: ${position === 'new' ? 'black!important' : ''}; color: ${position === 'new' ? 'white!important' : ''};`"
                 >
                   New template
                 </v-btn>
               </v-flex>
               <v-flex column xs4>
-                <v-btn @click="position='edit'" outline
+                <v-btn @click="switchPosition('edit')" outline
                   :style="`width: 100%; margin: 0; background-color: ${position === 'edit' ? 'black!important' : ''}; color: ${position === 'edit' ? 'white!important' : ''};`"
                 >
                   Edit template
@@ -50,11 +50,19 @@
                     :disabled="position==='edit'"
                   ></v-text-field>
 
+                  <v-combobox
+                    v-model="templateCategory"
+                    :items="templateCategories"
+                    label="Template category"
+                    :rules="tmplNameRules"
+                    required
+                  ></v-combobox>
+
                   <v-text-field
                     v-model="files.doc.fileName"
                     :rules="fileNameRules"
                     required
-                    style="display:none"
+                    style="display: none;"
                   ></v-text-field>
 
                   <v-text-field
@@ -247,6 +255,7 @@ export default {
     chosenTemplate: null,
     valid: false,
     templateName: '',
+    templateCategory: '',
     files: {
       doc: {
         thumbnail: null,
@@ -262,8 +271,8 @@ export default {
       },
     },
     tmplNameRules: [
-      v => !!v || 'Template name is required',
-      v => /^[^.]*$/.test(v) || 'Template name mustn\'t contain dots'
+      v => !!v || 'This field is required',
+      v => /^[^.]*$/.test(v) || 'This field mustn\'t contain dots'
     ],
     fileNameRules: [
       v => !!v || 'File name is required'
@@ -271,7 +280,7 @@ export default {
     templateExample: require('../renderer/assets/templateExample.png')
   }),
   computed: {
-    ...mapGetters(['allTemplatesBasic', 'userInfo'])
+    ...mapGetters(['allTemplatesBasic', 'userInfo', 'templateCategories'])
   },
   methods: {
     ...mapActions(['addTemplate', 'notify', 'removeTemplate']),
@@ -283,6 +292,7 @@ export default {
         this.addTemplate({
           templateName: this.templateName,
           templateDescription: this.templateDescription,
+          templateCategory: this.templateCategory,
           doc: {
             filePath: this.files.doc.filePath,
             fileName: this.files.doc.fileName,
@@ -349,6 +359,7 @@ export default {
       this.templateName = e ? e._id : ''
       this.files.doc.fileName = e ? e.template_name : null
       this.files.preview.fileName = e ? e.template_preview_name : null
+      this.templateCategory = e ? e.templateCategory : ''
     },
     async deleteTemplate(e) {
       await this.removeTemplate(this.chosenTemplate._id)
@@ -358,6 +369,16 @@ export default {
       this.templateName = ''
       this.files.doc.fileName = null
       this.files.preview.fileName = null
+    },
+    switchPosition(position) {
+      this.chosenTemplate = null
+      this.templateDescription = ''
+      this.templateName = ''
+      this.files.doc.fileName = null
+      this.files.preview.fileName = null
+      this.templateCategory = ''
+
+      this.position = position
     }
   },
   components: {

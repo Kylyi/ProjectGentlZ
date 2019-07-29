@@ -7,7 +7,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteUsers = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/users')
+const remoteUsers = new PouchDB('http://127.0.0.1:5984/users')
 const userDb = new PouchDB('src/db/user')
 
 async function getUserInfo() {
@@ -42,7 +42,9 @@ const state = {
   validPassword: false,
   resettedPassword: '',
   allUsers: [],
-  selectedUserInfo: null
+  selectedUserInfo: null,
+  sapLogin: localStorage.getItem('sapLogin') || '',
+  sapLoginTest: 'cmZjX2dlbnRsOkg1TWVuR3NQ'
 }
 
 const getters = {
@@ -257,6 +259,35 @@ const actions = {
         color: 'error'
       })
     }
+  },
+  async setSapLogin({ commit, dispatch }, login) {
+    const btoaLogin = btoa(login)
+    localStorage.setItem('sapLogin', btoaLogin)
+    commit('setSapLogin', btoaLogin)
+    dispatch('notify', {
+      text: 'Saved.',
+      state: true,
+      color: 'success'
+    })
+  },
+  async partialOverwriteUserLocal({ dispatch, rootState }, data) {
+    try {
+      await userDb.upsert(rootState.user.userInfo._id, doc => {
+        Object.assign(doc, data)
+        return doc
+      })
+      dispatch('notify', {
+        text: 'Saved.',
+        state: true,
+        color: 'success'
+      })
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
   }
 }
 
@@ -269,7 +300,8 @@ const mutations = {
   setUserPassword: (state, password) => state.password = password,
   validPassword: (state, valid) => state.validPassword = valid,
   setAllUsers: (state, users) => state.allUsers = users,
-  setSelectedUserInfo: (state, userInfo) => state.selectedUserInfo = userInfo
+  setSelectedUserInfo: (state, userInfo) => state.selectedUserInfo = userInfo,
+  setSapLogin: (state, btoaString) => state.sapLogin = btoaString
 }
 
 export default {

@@ -3,38 +3,44 @@ import fs from 'fs'
 import store from '../index'
 import DataFrame from 'dataframe-js';
 const XLSX = require('xlsx')
-import { rewriteDefaultSettingFile, readDefaultSettingFile } from '../helpers/localFilesManipulation'
+import { ipcRenderer } from 'electron'
+import { rewriteDefaultSettingFile, readDefaultSettingFile, readFile } from '../helpers/localFilesManipulation'
+const axios = require('axios')
+const setCookie = require('set-cookie-parser')
 
 import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
-PouchDB.plugin(require('pouch-resolve-conflicts'))
 
 
 // LOCAL DB
-const projects = new PouchDB('src/db/projectsdb', { revs_limit: 3 })
+let projects
 // MY DB
-const remoteProjects = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/projectsdb', { revs_limit: 2 })
-
-let projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-  .on('change', (c) => {
-    console.log(c)
-    if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-  })
+let remoteProjects
+let projectsReplicator
 
 const conn = new sql.ConnectionPool(JSON.parse(readDefaultSettingFile('databaseSettings')))
 
 const state = {
+  remoteProjectsDb: 'http://127.0.0.1:5984/projectsdb',
+  pccRemote: {
+    link: 'http://hera3.cz.abb.com:8004/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
+    production: false
+  },
   allProjectsBasic: [],
   nonActiveProjects: [],
   pmProjectsBasic: [],
-  projectsDetail: [],
+  projectsDetail: JSON.parse(readDefaultSettingFile('projectDetails')) || JSON.parse(readDefaultSettingFile('invoicingColumns')),
   chosenProjects: [],
-  pmProjectsProjectMode: [],
   loading: false,
   foreignProjectsBasic: JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [],
   taskInfo: null,
-  selectedPM: null
+  multipleNetsTasksInfo: {},
+  selectedPM: null,
+  sapNetInfo: null,
+  sapSimilarNetsInfo: [],
+  taskColumns: null,
+  pccLoading: false
 }
 
 const getters = {
@@ -57,78 +63,22 @@ const getters = {
   projectsDetail: state => state.projectsDetail,
   visibleProjectsDetail: state => state.projectsDetail.filter(e => e.visible),
   chosenProjects: state => state.chosenProjects,
-  pmProjectsProjectMode: (state, getters) => {
-    if (!getters.userInfo.sapUsername) return []
-
-    let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
-    
-    if (getters.userInfo.sapUsername !== 'SpecialUser') {
-      projsBasic = projsBasic.filter(e => 
-        e['Project Manager'] === getters.userInfo.sapUsername || 
-        state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0 ||
-        (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
-      )
-    }
-
-    if (projsBasic.length === 0) return []
-    return projsBasic.reduce((agg, e) => {
-      const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
-
-      if (f === -1) {
-        // Project ID not in aggregator
-        return [...agg, {
-          project_id: e['Project Definition'],
-          project_name: e['Project Name'],
-          project_panels: e['Number of Panels'],
-          project_modules: e['Number of Modules'],
-          project_revenue: e['Project Revenues'],
-          riskRegisterBilance: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.bilance : null,
-          riskRegisterDateChanged: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.dateChanged : null,
-          nets_keys: [e['_id']],
-          nets: [e]
-        }]
-
-      } else {
-        // Project ID in aggregator
-        const f2 = agg[f]['nets'].map(a => a.net_num === e['Network Num']).indexOf(true)
-
-        if (f2 === -1) {
-          // Network num not in aggregator
-          agg[f]['nets'].push(e)
-          agg[f]['nets_keys'].push(e['_id'])
-          agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
-          agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
-
-          return agg
-
-        } else {
-          // Network num in aggregator
-          // agg[f]['nets'][f2]['net_info'].push({
-          //   task_num: e['Task Num'],
-          //   task_info: e
-          // })
-          // return agg
-        }
-
-      }
-    }, [])
-
-  },
   allProjectsProjectsMode: (getters) => {
      const projsBasic = getters.allProjectsBasic
 
      return projsBasic.reduce((agg, e) => {
-      const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
+      const f = agg.map(a => a['Project Definition'] === e['Project Definition']).indexOf(true)
 
       if (f === -1) {
         // Project ID not in aggregator
         return [...agg, {
-          project_id: e['Project Definition'],
-          project_name: e['Project Name'],
-          project_panels: e['Number of Panels'],
-          project_modules: e['Number of Modules'],
-          project_revenue: e['Project Revenues'],
-          project_pm: e['Project Manager'],
+          '_id': e['_id'],
+          'Project Definition': e['Project Definition'],
+          'Project Name': e['Project Name'],
+          'Project Panels': e['Number of Panels'],
+          'Project Modules': e['Number of Modules'],
+          'Project Revenues': e['Project Revenues'],
+          'Project Manager': e['Project Manager'],
           temporaryAssign: e['temporaryAssign'],
           riskRegisterBilance: e['riskRegister'].hasOwnProperty('bilance') ? e.riskRegister.bilance : 0,
           nets_keys: [e['_id']],
@@ -137,14 +87,15 @@ const getters = {
 
       } else {
         // Project ID in aggregator
-        const f2 = agg[f]['nets'].map(a => a.net_num === e['Network Num']).indexOf(true)
+        // const f2 = agg[f]['nets'].map(a => a.net_num === e['Network Num']).indexOf(true)
 
-        if (f2 === -1) {
+        // if (f2 === -1) {
+        if (true) {
           // Network num not in aggregator
           agg[f]['nets'].push(e)
           agg[f]['nets_keys'].push(e['_id'])
-          agg[f]['project_panels'] = agg[f]['project_panels'] + e['Number of Panels']
-          agg[f]['project_modules'] = agg[f]['project_modules'] + e['Number of Modules']
+          agg[f]['Project Panels'] = agg[f]['Project Panels'] + e['Number of Panels']
+          agg[f]['Project Modules'] = agg[f]['Project Modules'] + e['Number of Modules']
 
           return agg
         } else {
@@ -158,29 +109,13 @@ const getters = {
       }
     }, [])
   },
-  pmProjectsUniqueProjects: (state, getters) => {
+  pmProjects: (state, getters) => {
     if (!getters.userInfo.sapUsername) return []
+    if (getters.userInfo.sapUsername === 'SpecialUser') return getters.allProjectsProjectsMode
 
-    let projsBasic = JSON.parse(JSON.stringify(getters.allProjectsBasic))
-    if (getters.userInfo.sapUsername !== 'SpecialUser') {
-      projsBasic = getters.allProjectsBasic.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
-        || state.foreignProjectsBasic.filter(netNum => netNum === e._id).length > 0
-        || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
-      )
-    }
-
-    if (projsBasic.length === 0) return []
-    
-      return projsBasic.reduce((agg, e) => {
-        const f = agg.map(a => a['Project Definition'] === e['Project Definition']).indexOf(true)
-        if (f !== -1) {
-          agg[f]['netsKeys'].push(e._id)
-          return agg
-        } else {
-          e['netsKeys'] = [e._id]
-          return [...agg, e]
-        }
-      }, [])
+    return getters.allProjectsProjectsMode.filter(e => e['Project Manager'] === getters.userInfo.sapUsername
+      || (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(getters.userInfo.sapUsername))
+    )
   },
   allProjectsUniqueProjects: (getters) => {
     const projsBasic = getters.allProjectsBasic
@@ -197,51 +132,10 @@ const getters = {
       }
     }, [])
   },
-  // riskRegisterTraces: state => {
-  //   if (state.chosenProjects.length === 0) return { data: [], layout: {}, config: { responsive: true } }
-
-  //   const allNets = state.allProjectsBasic.filter(e => e['Project Definition'] === state.chosenProjects[0]['Project Definition'])
-  //   const netWithRiskRegister = allNets[0]
-  //   if (!netWithRiskRegister.riskRegister.hasOwnProperty('risks')) return { data: [], layout: {}, config: { responsive: true } }
-
-  //   const data = ['risks', 'opportunities'].reduce((agg3, e) => {
-  //     const q = Object.keys(netWithRiskRegister.riskRegister[e]).reduce((agg, category) => {
-  //       const categoryPriceImpact = netWithRiskRegister.riskRegister[e][category].reduce((agg2, r) => {
-  //         return r.exists ? agg2 + r.priceImpact : agg2
-  //       }, 0)
-
-  //       return categoryPriceImpact > 0 ? [...agg, {
-  //         x: [e],
-  //         y: [categoryPriceImpact],
-  //         name: category,
-  //         type: "bar"
-  //       }] : agg
-
-  //     }, [])
-
-  //     return q.length > 0 ? [...agg3, ...q] : agg3
-  //   }, [])
-  //   const layout = {
-  //     margin: {
-  //       t: 25,
-  //       b: 25,
-  //       r: 25,
-  //       l: 40,
-  //     },
-  //     showlegend: false,
-  //     barmode: 'stack',
-  //     title: `Project: ${netWithRiskRegister['Project Definition']}`
-  //   }
-  //   const config = {
-  //     responsive: true,
-  //     displaylogo: false,
-  //   }
-
-  //   return { data, layout, config }
-  // },
   loading: state => state.loading,
   foreignProjectsBasic: state => state.foreignProjectsBasic,
   taskInfo: state => state.taskInfo,
+  multipleNetsTasksInfo: state => state.multipleNetsTasksInfo,
   uniquePms: state => {
     const nonUniquePMs = state.allProjectsBasic.map(e => e['Project Manager'])
     Array.prototype.unique = function() {
@@ -252,50 +146,29 @@ const getters = {
 
     return nonUniquePMs.unique()
   },
-  selectedPmProjects: (state) => {
+  selectedPmProjects: (state, getters) => {
     if (!state.selectedPM) return []
-    const projs = state.allProjectsBasic.filter(e => e['Project Manager'] === state.selectedPM ||
+    const projs = JSON.parse(JSON.stringify(getters.allProjectsProjectsMode))
+    return projs.filter(e => e['Project Manager'] === state.selectedPM ||
     (e['temporaryAssign'].hasOwnProperty('personName') && e.temporaryAssign.personName.includes(state.selectedPM)))
-
-    return projs.reduce((agg, e) => {
-      const f = agg.map(a => a.project_id === e['Project Definition']).indexOf(true)
-
-      if (f === -1) {
-        // Project ID not in aggregator
-        return [...agg, {
-          project_id: e['Project Definition'],
-          project_name: e['Project Name'],
-          project_pm: e['Project Manager'],
-          temporaryAssign: e['temporaryAssign'],
-          nets_keys: [e['_id']],
-        }]
-
-      } else {
-        // Project ID in aggregator
-        const f2 = agg[f]['nets_keys'].includes(e._id)
-
-        if (!f2) {
-          // Network num not in aggregator
-          agg[f]['nets_keys'].push(e['_id'])
-
-          return agg
-        } else {
-          // Network num in aggregator
-          // agg[f]['nets'][f2]['net_info'].push({
-          //   task_num: e['Task Num'],
-          //   task_info: e
-          // })
-          // return agg
-        }
-      }
-    }, [])
-
   },
-  selectedPM: state => state.selectedPM
+  selectedPM: state => state.selectedPM,
+  sapNetInfo: state => state.sapNetInfo,
+  sapSimilarNetsInfo: state => state.sapSimilarNetsInfo,
+  taskColumns: state => state.taskColumns,
+  pccRemote: state => state.pccRemote,
+  pccLoading: state => state.pccLoading
 }
 
 const actions = {
-  async fetchAllProjectsBasic({ commit }) {
+  async initProjectsDb({ dispatch, rootState }) {
+    projects = await new PouchDB('src/db/projectsdb', { revs_limit: 3 })
+    remoteProjects = await new PouchDB(rootState.projects.remoteProjectsDb, { revs_limit: 2 })
+
+    console.log(remoteProjects)
+    dispatch('startProjectsReplication')
+  },
+  async fetchAllProjectsBasic({ rootState, commit, dispatch }) {
     await projects.createIndex({
       index: {
         fields: ['_id', 'projectDone']
@@ -315,6 +188,10 @@ const actions = {
 
     commit('setAllProjects', activeProjects.docs)
     commit('setAllNonActiveProjects', nonActiveProjects.docs)
+
+    if (rootState.projects.chosenProjects.length > 0) {
+      dispatch('chooseProjects', rootState.projects.chosenProjects)
+    }
   },
   async fetchForeignProjectsBasic({ commit }) {
     commit('setForeignProjectsBasic', JSON.parse(localStorage.getItem('foreignProjectsBasic')) || [])
@@ -333,7 +210,7 @@ const actions = {
         return conn
           .request()
           .query(
-            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules], [Invoice Date], [Invoice Date Fixed] FROM [PPES].[dbo].[lvmv_networks]`
+            `SELECT [Plant], [Network Num], [Network Description], [Project Definition], [Project Manager], [Net Statuts - Engineering Phase], [Net Status from Tasks], [SSO], [Switchgear Type], [Number of Panels], [Packaging], [Project Support Center], [INCO Type], [Buffer Size - Overall Project], [Buffer Size - Enginnering Phase], [Project Progress - Overal Project], [Project Progress - Engineering Phase], [Protections], [Interlocking], [Communication], [Electrical Engineer], [Mechanical Engineer], [Foreman], [Testing], [IED Programmer], [LV Pannel Installation], [FAT Fixed Date], [FAT Actual Date], [Expedition Fixed], [Delivery Date], [Contractual Expedition Date], [Network Note], [Initial BPO], [Initial BPE], [Delivery Date Probability], [Packing fixed], [Contractual Delivery Date], [Invoicing Period], [Tolerated delay], [Actual Delivery Date], [PSD], [ZVR], [ZVL], [Number of Modules], [Invoice Date], [Invoice Date Fixed] FROM [PPES].[dbo].[lvmv_networks_gentl]`
           );
       })
       .then(data => {
@@ -365,7 +242,7 @@ const actions = {
         return joinedData.toCollection()
       })
       .then(data => {
-        const fixedFields = ['riskRegister', 'sign', 'temporaryAssign']
+        const fixedFields = ['riskRegister', 'sign', 'temporaryAssign', 'extraFields']
         const projUpserts = data.map(async (p) => {
           await projects.upsert(String(p['Network Num']), doc => {
             p['Net Revenues'] = Number(p['Project Panels']) > 0 ? (Number(p['Project Revenues']) * Number(p['Number of Panels']) / Number(p['Project Panels'])) : 1
@@ -390,8 +267,10 @@ const actions = {
 
             const today = new Date().toISOString().substr(0,10)
             if (doc.hasOwnProperty('Invoice Date')) {
+              p['Current Invoice Date'] = p['Invoice Date']
               p['Invoice Date'] = Object.assign({}, doc['Invoice Date'], {[today]: p['Invoice Date']})
             } else {
+              p['Current Invoice Date'] = p['Invoice Date']
               p['Invoice Date'] = {[today]: p['Invoice Date']}
             }
  
@@ -401,10 +280,7 @@ const actions = {
         console.timeEnd("Projects");
         Promise.all(projUpserts)
           .then(() => {
-            projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-              .on('change', (c) => {
-                if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-              })
+            dispatch('startProjectsReplication')
           })
           .catch((err) => console.log(err))
       })
@@ -422,10 +298,7 @@ const actions = {
       }))
       .catch(err => {
         console.timeEnd("Projects");
-        projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-          .on('change', (c) => {
-            if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-          })
+        dispatch('startProjectsReplication')
         conn.close();
         dispatch('notify', {
           text: err,
@@ -451,12 +324,6 @@ const actions = {
     commit('setProjectsDetail', JSON.parse(projsDetail))
   },
   async chooseProjects({ commit, rootState }, projData) {
-    // const personalNum = rootState.user.userInfo.sapUsernumber
-    // if ((projData.length > 0 || typeof(projData) === 'object') && personalNum ) {
-    //   const netNum = (Array.isArray(projData) && projData.length > 0) ? projData[0]['_id'] : projData['_id']
-
-    //   commit('setTaskInfo', {netNum, personalNum})
-    // }
     commit('setChosenProjects', Array.isArray(projData) ? projData : [projData])
   },
   async changeProjectData({ dispatch }, projData) {
@@ -467,6 +334,7 @@ const actions = {
         color: 'success',
         state: 'true'
       })
+      dispatch('fetchAllProjectsBasic')
     } catch (err) {
       dispatch('notify', {
         text: err,
@@ -512,16 +380,88 @@ const actions = {
       })
     }
   },
-  async fetchNetTasksInfo({}, net_num) {
-    if (!net_num) return
-    conn.connect()
-      .then(() => conn.request().query(`select * from [lvmv_tasks] where [Network Num] = '${net_num}'`))
-      .then(data => console.log(data))
-      .then(() => conn.close())
-      .catch(err => {
-        conn.close()
-        console.log(err)
+  async fetchNetTasksInfo({ commit, dispatch, rootState }, netNum) {
+    if (!netNum) return
+
+    dispatch('setTasksLoading', true)
+    fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')/NetCardToTasks?$format=json&$orderby=ActivityNumber`, {
+      headers: {
+        'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`, // 'Basic cmZjX2dlbnRsOkl2YW5hIzk0'
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Allow-Control-Allow-Origin': '*'
+      }
+    }).then( res => {
+      return res.json()
+    }).then(resJson => {
+      const tasksInfo = resJson.d.results.map(e => {
+        for (let [key, value] of Object.entries(e)) {
+          if (typeof(value) === 'string' && value.startsWith('/Date(')) {
+            const date = new Date(parseInt(value.match(/\d+/)[0]))
+            e[key] = date.toISOString().substr(0,10)
+              }
+        }
+        return e
       })
+
+      commit('setTaskInfo', tasksInfo)
+    }).then(() => {
+      dispatch('setTasksLoading', false)
+    }).catch(err => {
+      dispatch('setTasksLoading', false)
+      dispatch('notify', {
+        text: 'Request to SAP cannot be completed.',
+        color: 'error',
+        state: true,
+        timeout: 3000
+      })
+    })
+
+  },
+  async fetchMultipleNetsTasksInfo({ commit, dispatch, rootState }, netNums) {
+    try {
+      dispatch('setTasksLoading', true)
+      let netResponsePromises = []
+      for (const netNum of netNums) {
+        netResponsePromises.push(fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')/NetCardToTasks?$format=json&$orderby=ActivityNumber`, {
+          headers: {
+            'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Allow-Control-Allow-Origin': '*'
+          }
+        }).then( res => {
+          return res.json()
+        }).then(resJson => {
+          const tasksInfo = resJson.d.results.map(e => {
+            for (let [key, value] of Object.entries(e)) {
+              if (typeof(value) === 'string' && value.startsWith('/Date(')) {
+                const date = new Date(parseInt(value.match(/\d+/)[0]))
+                e[key] = date.toISOString().substr(0,10)
+                  }
+            }
+            return e
+          })
+          return {[netNum]: tasksInfo}
+        }))
+      }
+      Promise.all(netResponsePromises)
+        .then((e) => {
+          const tasksObj = e.reduce((agg, x) => Object.assign(agg, x), {})
+          dispatch('setTasksLoading', false)
+          commit('setMultipleNetsTasksInfo', tasksObj)
+        })
+        .catch(err => {
+          dispatch('setTasksLoading', false)
+          dispatch('notify', { text: err, color: 'error', state: true, timeout: 3000 })
+        })
+    } catch (error) {
+      dispatch('setTasksLoading', false)
+      dispatch('notify', {
+        text: error,
+        color: 'error',
+        state: true,
+        timeout: 3000
+      })
+    }
   },
   async removeForeignNets({ commit }) {
     localStorage.setItem('foreignProjectsBasic', JSON.stringify([]))
@@ -532,9 +472,23 @@ const actions = {
   },
   async startProjectsReplication() {
     projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-    .on('change', (c) => {
-      if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-    })
+      .on('change', (c) => {
+        ipcRenderer.send('projectsChange', c)
+        console.log(c)
+        if (c.direction === 'pull') {
+          store.dispatch('fetchAllProjectsBasic')
+          if (store.getters.chosenProjects.length > 0) {
+            const selected = c.change.docs.filter(e => {
+              if (store.getters.chosenProjects[0].hasOwnProperty('nets_keys')) {
+                return store.getters.chosenProjects[0]['nets_keys'].includes(e['_id'])
+              } else {
+                return e['_id'] === store.getters.chosenProjects[0]['_id']
+              }
+            })
+            if (selected.length > 0) ipcRenderer.send('selectedProjectChanged', selected[0])
+          }
+        }
+      })
   },
   async fetchProjectRevisions({}, netNum) {
     let doc = await projects.get(netNum, {revs_info: true})
@@ -573,10 +527,7 @@ const actions = {
 
       Promise.all(updateData)
         .then(() => {
-          projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-            .on('change', (c) => {
-              if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-            })
+          dispatch('startProjectsReplication')
           dispatch('fetchAllProjectsBasic')
           dispatch('notify', {
             text: 'Saved.',
@@ -602,7 +553,7 @@ const actions = {
       })
     }
   },
-  async selectPM({ dispatch }, pmName) {
+  async selectPM({ commit }, pmName) {
     commit('setSelectedPM', pmName)
   },
   async deactivateNets({ dispatch }, netsKeys) {
@@ -618,11 +569,7 @@ const actions = {
 
       Promise.all(netsDeactivate)
         .then(() => {
-          projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
-            .on('change', (c) => {
-              console.log(c)
-              if (c.direction === 'pull') store.dispatch('fetchAllProjectsBasic')
-            })
+          dispatch('startProjectsReplication')
         })
         .then(() => {
           dispatch('fetchAllProjectsBasic')
@@ -642,6 +589,299 @@ const actions = {
         timeout: 5000
       })
     }
+  },
+  async fetchSapNetData({ commit, dispatch, rootState }, netNum) {
+    if (!netNum) return
+
+    fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')?$format=json`, {
+      headers: {
+        'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Allow-Control-Allow-Origin': '*'
+      }
+    })
+    .then(res => res.json())
+    .then(resJson => {
+      console.dir(resJson)
+
+      for (let [key, value] of Object.entries(resJson.d)) {
+        if (typeof(value) === 'string' && value.startsWith('/Date(')) {
+          const date = new Date(parseInt(value.match(/\d+/)[0]))
+          resJson.d[key] = date.toISOString().substr(0,10)
+        }
+      }
+      return resJson.d
+    })
+    .then(sapNetInfo => commit('setSapNetInfo', sapNetInfo))
+    .catch(err => console.error(err))
+  },
+  async fetchSapNetsData({ rootState, dispatch }, {netNums = [], query, notify = true}) {
+    if (netNums.length === 0) return
+
+    let netResponsePromises = []
+    netNums.forEach(netNum => {
+      netResponsePromises.push(
+        fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')?$format=json&${query}`, {
+        headers: {
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Allow-Control-Allow-Origin': '*'
+        }
+      })
+      .then(res => res.json())
+      .then(resJson => {
+        for (let [key, value] of Object.entries(resJson.d)) {
+          if (typeof(value) === 'string' && value.startsWith('/Date(')) {
+            const date = new Date(parseInt(value.match(/\d+/)[0]))
+            resJson.d[key] = date.toISOString().substr(0,10)
+          }
+        }
+        return {[netNum]: resJson.d}
+      }))
+    })
+    Promise.all(netResponsePromises)
+      .then(e => {
+        const netsObj = e.reduce((agg, x) => Object.assign(agg, x), {})
+        let netsObjToCouch = []
+        Object.keys(netsObj).forEach(netNum => {
+          netsObjToCouch.push({
+            'Current Invoice Date': netsObj[netNum].InvoiceDate,
+            'Contractual Delivery Date': netsObj[netNum].ContractDeliveryDate,
+            'Expedition Fixed': netsObj[netNum].FixationExpedition,
+            'Invoice Date Fixed': netsObj[netNum].FixationInvoice,
+            'Delivery Date': netsObj[netNum].RPDispatchDate
+          })
+        })
+        dispatch('changeProjectsData', {
+          netNums: Object.keys(netsObj),
+          data: netsObjToCouch,
+          notify
+        })
+      })
+
+  },
+  async fetchSapSimilarNets({ commit, dispatch, rootState }, netNum) {
+    if (!netNum) return
+
+    fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')/NetCardToSimilarNetCards?$format=json`, {
+      headers: {
+        'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Allow-Control-Allow-Origin': '*'
+      }
+    })
+    .then(res => res.json())
+    .then(resJson => {
+      for (const net of resJson.d.results) {
+        for (let [key, value] of Object.entries(net)) {
+          if (typeof(value) === 'string' && value.startsWith('/Date(')) {
+            const date = new Date(parseInt(value.match(/\d+/)[0]))
+            net[key] = date.toISOString().substr(0,10)
+          }
+        }
+      }
+      return resJson.d.results
+    })
+    .then(sapNetsInfo => commit('setSapSimilarNetsInfo', sapNetsInfo))
+    .catch(err => console.error(err))
+
+  },
+  async setTaskColumns({ commit }) {
+    const columns = readDefaultSettingFile('taskColumns')
+    commit('setTaskColumns', JSON.parse(columns))
+  },
+  async changeProjectsData({ dispatch }, {netNums, data, notify = true}) {
+    projectsReplicator.cancel()
+
+    const projUpserts = netNums.map(async (p, idx) => {
+      await projects.upsert(p, doc => {
+        Object.assign(doc, data[idx])
+        return doc
+      })
+    })
+
+    Promise.all(projUpserts)
+      .then(() => {
+        dispatch('fetchAllProjectsBasic')
+        dispatch('startProjectsReplication')
+      })
+      .then(() => {
+        if (notify) {
+          dispatch('notify', {
+            text: 'Saved.',
+            color: 'success',
+            state: 'true'
+          })
+        }
+      })
+      .catch((err) => console.log(err))
+  },
+  async insertData({ dispatch }) {
+    try {
+      dispatch('stopProjectsReplication')
+      let data = JSON.parse(readFile('C:/Users/kyli/Desktop/_all_docs (1).json', 'utf-8'))
+      data = data.rows.map(e => e.doc)
+      data = data.map(e => {
+        const {_rev, ...doc} = e
+        return doc
+      })
+      const x = await projects.bulkDocs(data)
+      console.log(x)
+      dispatch('startProjectsReplication')
+    } catch (error) {
+      console.error(error)
+    }
+  },
+  async switchPccremote({ commit, dispatch, rootState }) {
+    if (rootState.projects.pccRemote.production) {
+      commit('setPccRemote', {
+        link: 'http://hera3.cz.abb.com:8004/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
+        production: false
+      })
+      dispatch('notify', {
+        text: 'You switched to test database!',
+        color: 'info',
+        timeout: 4000,
+        state: true
+      })
+    } else {
+      commit('setPccRemote', {
+        link: 'http://uran.cz.abb.com:8000/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
+        production: true
+      })
+      dispatch('notify', {
+        text: 'You switched to production database!',
+        color: 'info',
+        timeout: 4000,
+        state: true
+      })
+    }
+  },
+  async modifyPccNetData({ dispatch, rootState }, {netNum, data}) {
+    try {
+      const getCsrf = await axios.get(`${rootState.projects.pccRemote.link}`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'x-csrf-token': 'Fetch',
+          'cache-control': 'no-cache',
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`
+        }
+      })
+
+      const csrfToken = getCsrf.headers['x-csrf-token']
+      const c = setCookie.parse(getCsrf)
+
+      let cooks = ''
+      for (const cook of c) {
+        cooks = cooks + `${cook.name}=${cook.value}; `
+      }
+      
+      await axios.patch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')?sap-client=001`, data,
+      {
+        headers: {
+          'x-csrf-token': csrfToken,
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'cookie': cooks,
+          'accept-encoding': 'gzip, deflate',
+          'content-length': '30',
+          'cache-control': 'no-cache'
+        }
+      })
+
+      dispatch('notify', {
+        text: 'Success.',
+        color: 'success',
+        state: true,
+        timeout: 2000
+      })
+      dispatch('addNotifications', {
+        name: 'Net ' + netNum + ' was updated.',
+        info: 'Net ' + netNum + ' was updated.',
+        type: 'info'
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  async modifyPccNetsData({ dispatch, rootState, commit }, { netNums, data } ) {
+    try {
+      commit('setPccLoading', true)
+      const getCsrf = await axios.get(`${rootState.projects.pccRemote.link}`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'x-csrf-token': 'Fetch',
+          'cache-control': 'no-cache',
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`
+        }
+      })
+  
+      const csrfToken = getCsrf.headers['x-csrf-token']
+      const c = setCookie.parse(getCsrf)
+  
+      let cooks = ''
+      for (const cook of c) {
+        cooks = cooks + `${cook.name}=${cook.value}; `
+      }
+  
+      const updateRecursive = function(idx) {
+        if (idx === netNums.length) {
+          dispatch('notify', {
+            text: 'Success.',
+            color: 'success',
+            state: true,
+            timeout: 2000
+          })
+          commit('setPccLoading', false)
+          return
+        }
+        if (Object.keys(data[idx]).length === 0) {
+          updateRecursive(idx + 1)
+          return
+        }
+        axios.patch(`${rootState.projects.pccRemote.link}NetCardSet('${netNums[idx]}')?sap-client=001`, data[idx],
+        {
+          headers: {
+            'x-csrf-token': csrfToken,
+            'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache',
+            'cookie': cooks,
+            'accept-encoding': 'gzip, deflate',
+            'content-length': '30',
+            'cache-control': 'no-cache'
+          }
+        }).then(() => {
+          dispatch('addNotifications', {
+            name: 'Net ' + netNums[idx] + ' was updated.',
+            info: 'Net ' + netNums[idx] + ' was updated.',
+            type: 'info'
+          })
+          if ((idx + 1) !== netNums.length) {
+            setTimeout(() => {
+              updateRecursive(idx + 1)
+            }, 1000)
+          } else {
+            dispatch('notify', {
+              text: 'Success.',
+              color: 'success',
+              state: true,
+              timeout: 2000
+            })
+            commit('setPccLoading', false)
+          }
+        }).catch((error) => {
+          commit('setPccLoading', false)
+          console.log(error)
+        })
+      }
+      updateRecursive(0)
+    } catch (error) {
+      console.dir(error)
+    }
   }
 }
 
@@ -652,35 +892,16 @@ const mutations = {
   setProjectsDetail: (state, projsDetail) => state.projectsDetail = projsDetail,
   setChosenProjects: async (state, projData) => state.chosenProjects = projData,
   setPmProjectsNetMode: (state, projects) => state.pmProjectsNetMode = projects,
-  setPmProjectsProjectMode: (state, projects) => state.pmProjectsProjectMode = projects,
   setLoading: (state, val) => state.loading = val,
   setForeignProjectsBasic: (state, projs) => state.foreignProjectsBasic = projs,
-  setTaskInfo: (state, {netNum, personalNum}) => {
-    if (typeof(netNum) === 'undefined' || !personalNum) {
-      console.log('canceled')
-      state.taskInfo = null
-      return
-    }
-    conn.connect()
-      .then(() => state.loading = true)
-      .then(() => {
-        return conn
-          .request()
-          .query(`SELECT [Task Num], [Task Description], [Task Status], [May Start], [Days To Start], [Total Float], [Normal Work], [Normal Work - unit], [Actual Work], [Priority], [Capacity], [Work percentage] FROM [ppes].[dbo].[lvmv_tasks] WHERE [Network Num] = ${Number(netNum)} AND [Personal Num] = ${personalNum}`);
-      })
-      .then((taskInfo) => {
-        console.log(taskInfo)
-        state.taskInfo = taskInfo.recordset
-      })
-      .then(() => conn.close())
-      .then(() => state.loading = false)
-      .catch(err => {
-        console.log(err)
-        conn.close()
-        state.loading = false
-      })
-  },
-  setSelectedPM: (state, pmName) => state.selectedPM = pmName
+  setTaskInfo: (state, tasksInfo) => state.taskInfo = tasksInfo,
+  setMultipleNetsTasksInfo: (state, netsTasks) => state.multipleNetsTasksInfo = netsTasks,
+  setSelectedPM: (state, pmName) => state.selectedPM = pmName,
+  setSapNetInfo: (state, netInfo) => state.sapNetInfo = netInfo,
+  setSapSimilarNetsInfo: (state, netInfos) => state.sapSimilarNetsInfo = netInfos,
+  setTaskColumns: (state, columns) => state.taskColumns = columns,
+  setPccRemote: (state, pccRemote) => state.pccRemote = pccRemote,
+  setPccLoading: (state, val) => state.pccLoading = val
 }
 
 export default {

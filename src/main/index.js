@@ -8,12 +8,14 @@ import {
   configDatabaseSettings,
   configInvoicingColumns,
   configInvoicingDetails,
-  configProjectsDetail
+  configProjectsDetail,
+  configTaskColumns
 } from './scripts/misc'
 configDatabaseSettings()
 configInvoicingColumns()
-configInvoicingDetails()
-configProjectsDetail()
+// configInvoicingDetails()
+// configProjectsDetail()
+configTaskColumns()
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 // autoUpdater.setFeedURL({
@@ -36,8 +38,10 @@ function createMainWindow() {
     width: 1280,
     height: 700,
     show: false,
+    // fullscreen: true,
     webPreferences: {
-      plugins: true
+      plugins: true,
+      webSecurity: false
     }
   })
 
@@ -92,7 +96,17 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow()
-  // loginWindow = createMainWindow()
+  
+  mainWindow.webContents.on('new-window', (event, url) => {
+    event.preventDefault()
+    const win = new BrowserWindow({
+      show: false,
+      frame: true
+    })
+    win.once('ready-to-show', () => win.show())
+    win.loadURL(url)
+    event.newGuest = win
+  })
 })
 
 // ipcMain.on('tmpl-gen', (e, data) => {
@@ -127,6 +141,15 @@ ipcMain.on('userInfo', (e, userInfo) => {
 
 ipcMain.on('invoicingArrReady', (e) => {
   e.sender.send('invoicingArrReadyFromMain')
+})
+
+ipcMain.on('projectsChange', (e, docs) => {
+  e.sender.send('changeInProjects', docs)
+})
+
+ipcMain.on('selectedProjectChanged', (e, newData) => {
+  console.log(newData)
+  e.sender.send('selProjectChanged', newData)
 })
 
 ipcMain.on('showDevTools', e => {

@@ -3,7 +3,7 @@ const fs = require('fs')
 const iconvlite = require('iconv-lite')
 const path = require('path')
 
-const readFile = function readFileSync_encoding(filename, encoding) {
+export let readFile = function readFileSync_encoding(filename, encoding) {
   const content = fs.readFileSync(filename);
   return iconvlite.decode(content, encoding);
 }
@@ -15,6 +15,10 @@ export let rewriteDefaultSettingFile = async function ( fileName, data ) {
 
 export let readDefaultSettingFile = function ( fileName ) {
   const p = isDev ? path.join(path.dirname(__dirname), '..', 'defaultSettings', `${fileName}.json`) : path.join(path.dirname(__dirname), 'defaultSettings', `${fileName}.json`)
-  return readFile( p, 'utf-8' )
+  const exists = fs.existsSync(p)
+  if (exists) {
+    return readFile( p, 'utf-8' )
+  } else {
+    return null
+  }
 }
-

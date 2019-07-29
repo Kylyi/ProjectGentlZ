@@ -37,13 +37,15 @@ export let configInvoicingColumns = function () {
       {"name":"Project PM","value":"Project Manager","editable":false,"visible":true,"dataType":"string", "width": 106},
       {"name":"Project #","value":"Project Definition","editable":false,"visible":true,"dataType":"string", "width": 86, "cellTemplate": "escalatedCell"},
       {"name":"Network #","value":"Network Num","editable":false,"visible":true,"dataType":"string", "width": 150, "cellTemplate": "cellTemplate"},
-      {"name":"Net description","value":"Network Description","editable":false,"visible":true,"alignment":"left","dataType":"string", "width": 370},
+      {"name":"Net description","value":"Network Description","editable":false,"visible":true,"alignment":"left","dataType":"string", "width": "30%"},
       {"name":"SWG type","value":"Switchgear Type","editable":false,"visible":true,"dataType":"string", "width": 60},
       {"name":"No. of Panels","value":"Number of Panels","editable":false,"visible":true,"dataType":"number", "width": 65},
       {"name":"SSO","value":"SSO","editable":false,"visible":true,"dataType":"string", "alignment": "center", "width": 70, "cellTemplate": "ssoTemplate"},
-      {"name":"BPO","value":"Initial BPO","editable":false,"visible":true,"dataType":"number", "width": 65},
+      {"name":"Initial BPO","value":"Initial BPO","editable":false,"visible":false,"dataType":"number", "width": 65},
+      {"name":"BPO","value":"Buffer Size - Overall Project","editable":false,"visible":true,"dataType":"number", "width": 65},
       {"name":"INCO","value":"INCO Type","editable":false,"visible":true,"dataType":"string", "alignment": "center", "width": 75},
       {"name":"Revenues","value":"Net Revenues","editable":true,"visible":true,"dataType":"number", "width": 100},
+      {"name":"Priority","value":"priority","editable":false,"visible":false,"dataType":"string", "width": 100},
       {"name":"Plant","value":"Plant","editable":false,"visible":false,"dataType":"string"},
       {"name":"Project name","value":"Project Name","editable":false,"visible":false,"dataType":"string"},
       {"name":"Customer","value":"Customer Name","editable":false,"visible":false,"dataType":"string"},
@@ -53,7 +55,6 @@ export let configInvoicingColumns = function () {
       {"name":"Net status - ENG","value":"Net Statuts - Engineering Phase","editable":false,"visible":false,"dataType":"string"},
       {"name":"Packaging","value":"Packaging","editable":false,"visible":false,"dataType":"string"},
       {"name":"Support center","value":"Project Support Center","editable":false,"visible":false,"dataType":"string"},
-      {"name":"Buffer - overall","value":"Buffer Size - Overall Project","editable":false,"visible":false,"dataType":"number"},
       {"name":"Buffer - ENG","value":"Buffer Size - Enginnering Phase","editable":false,"visible":false,"dataType":"number"},
       {"name":"Progress - overall","value":"Project Progress - Overal Project","editable":false,"visible":false,"dataType":"number"},
       {"name":"Progress - ENG","value":"Project Progress - Engineering Phase","editable":false,"visible":false,"dataType":"number"},
@@ -85,6 +86,7 @@ export let configInvoicingColumns = function () {
       {"name":"OB","value":"Project OB","editable":false,"visible":false,"dataType":"number"},
       {"name":"Panels no. - project","value":"Project Panels","editable":false,"visible":false,"dataType":"number"},
       // {"name":"Invoice date Fixed","value":"Invoice Date Fixed","editable":false,"visible":false,"dataType":"boolean"}
+      {"name":"Invoice Date","value":"Current Invoice Date","editable":true,"visible":false,"dataType":"date", "source": "sap", "sourceField": "InvoiceDate", "sapFixingField": "FixationInvoice", "couchFieldIfFixed": "Invoice Date Fixed"}
     ]))
   }
 }
@@ -112,5 +114,61 @@ export let configProjectsDetail = function () {
     fs.writeFileSync(p, JSON.stringify([
       {"name":"Plant","value":"Plant","editable":false,"alignment":"center","visible":true,"dataType":"string"}
     ]))
+  }
+}
+
+export let configTaskColumns = function () {
+  const p = isDev ? path.join(path.dirname(__dirname), '..', 'defaultSettings', 'taskColumns.json') : path.join(path.dirname(__dirname), 'defaultSettings', 'taskColumns.json')
+  const fileFound = fs.existsSync(p)
+
+  if (!fileFound) {
+    fs.writeFileSync(p, JSON.stringify(
+      [
+        {"name":"Task #","value":"ActivityNumber","editable":true,"visible":true,"dataType":"string"},
+        {"name":"Task description","value":"ActivityName","editable":true,"visible":true,"dataType":"string"},
+        {"name":"Work","value":"Work","editable":true,"visible":true,"dataType":"string"},
+        {"name":"Duration","value":"Duration","editable":true,"visible":true,"dataType":"string"},
+        {"name":"May start","value":"MayStart","editable":true,"visible":true,"dataType":"boolean"},
+        {"name":"Task ID","value":"TaskID","editable":false,"visible":false,"dataType":"string"},
+        {"name":"Total float","value":"TotalFloat","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Thread has to be finished by","value":"ThreadHasToBeFinishedBy","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Thread establishment ID","value":"ThreadEstablishmentID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Task note","value":"d:TaskNote","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Status","value":"Status","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Selection type","value":"SelectionType","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Reposible role","value":"ResponsibleRole","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Project #","value":"ProjectNumber","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Project name","value":"ProjectName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Project ID","value":"ProjectID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Planned start date","value":"PlannedStartDate","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Person surname","value":"PersonSurname","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Person name","value":"PersonName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Person ID","value":"PersonID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Obsolete prognosis","value":"Obsolete prognosis","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Network #","value":"NetworkNumber","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Network description","value":"NetworkName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Network ID","value":"NetworkID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Incompleteness","value":"Incompleteness","editable":true,"visible":false,"dataType":"boolean"},
+        {"name":"Fullfilment check required","value":"FullfilmentCheckRequired","editable":true,"visible":false,"dataType":"boolean"},
+        {"name":"Description","value":"Description","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Created date","value":"CreatedDate","editable":true,"visible":false,"dataType":"date"},
+        {"name":"Created by surname","value":"CreatedBySurname","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Created by name","value":"CreatedByName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Created by ID","value":"CreatedByID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Completed date","value":"CompletedDate","editable":true,"visible":false,"dataType":"date"},
+        {"name":"Completed by surname","value":"CompletedBySurname","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Completed by name","value":"CompletedByName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Completed by ID","value":"CompletedByID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Actual start date","value":"ActualStartDate","editable":true,"visible":false,"dataType":"date"},
+        {"name":"Actual prognosis H","value":"ActualPrognosisH","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Actual prognosis","value":"ActualPrognosis","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Act. start by surname","value":"ActStartBySurname","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Act. start by name","value":"ActStartByName","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Act. start by ID","value":"ActStartByID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Activity ID","value":"ActivityID","editable":true,"visible":false,"dataType":"string"},
+        {"name":"Release possible","value":"ReleasePossible","editable":true,"visible":false,"dataType":"boolean"},
+        {"name":"Must end date","value":"MustEndDate","editable":true,"visible":false,"dataType":"date"}
+      ]
+    ))
   }
 }

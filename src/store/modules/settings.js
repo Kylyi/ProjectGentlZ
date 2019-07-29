@@ -4,7 +4,7 @@ import username from 'username'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteSettings = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/settings')
+const remoteSettings = new PouchDB('http://127.0.0.1:5984/settings')
 const settings = new PouchDB('src/db/settings')
 settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
@@ -17,12 +17,12 @@ settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
 
 const state = {
   invoicingSettings: null,
-  heirarchySettings: null
+  hierarchySettings: null
 }
 
 const getters = {
   invoicingSettings: state => state.invoicingSettings,
-  heirarchySettings: state => state.heirarchySettings
+  hierarchySettings: state => state.hierarchySettings
 }
 
 const actions = {
@@ -37,7 +37,7 @@ const actions = {
   async fetchHierarchySettings({ commit }) {
     try {
       const hierSettings = await settings.get('hierarchy')
-      commit('setHierarchySettings', hierSettings.hier)
+      commit('setHierarchySettings', hierSettings)
     } catch (error) {
       commit('setHierarchySettings', [])
     }
@@ -65,6 +65,7 @@ const actions = {
         state: true,
         color: 'success'
       })
+      dispatch('fetchHierarchySettings')
     } catch (error) {
       dispatch('notify', {
         text: error,
@@ -91,7 +92,7 @@ const actions = {
 
 const mutations = {
   setInvoicingSettings: (state, invSettings) => state.invoicingSettings = invSettings,
-  setHierarchySettings: (state, hierSettings) => state.heirarchySettings = hierSettings
+  setHierarchySettings: (state, hierSettings) => state.hierarchySettings = hierSettings
 }
 
 export default {

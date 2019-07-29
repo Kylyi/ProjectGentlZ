@@ -1,5 +1,5 @@
 <template>
-  <v-layout column xs12 wrap>
+  <v-layout column xs12 wrap id="templateGenerator">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
       <v-flex column shrink style="height: 50px; padding: 10px 24px;">
@@ -76,11 +76,11 @@
 
         <!-- LEFT SIDE -->
         <v-flex column xs6>
-          <v-flex row wrap mt-4>
+          <v-flex row wrap>
             <h5 class="headline"><b>Generate template</b></h5>
           </v-flex>
 
-          <v-flex row wrap mt-4>
+          <v-flex row wrap mt-2>
             <project-selector ref="projS" />
           </v-flex>
 
@@ -88,9 +88,18 @@
             <template-selector ref="tmplS" />
           </v-flex>
 
-          <v-flex row wrap text-xs-right mt-2>
-            <v-btn outline color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0 && chosenProjects.length > 0)">Generate</v-btn>
+          <v-flex row wrap mt-2 mb-1>
+            <v-layout row wrap>
+              <v-flex column grow style="display: flex; align-items: center;">
+                <span style="font-size: smaller;"><i>You can generate empty template by <b>not</b> selecting project/network.</i></span>
+              </v-flex>
+              <v-flex column shrink>
+                <v-btn color="primary" style="margin: 0;" @click="generateTemplate" :disabled="!(chosenTemplates.length > 0)">Generate</v-btn>
+              </v-flex>
+            </v-layout>
           </v-flex>
+
+          <v-divider></v-divider>
 
           <v-flex row wrap mt-3>
             <el-collapse v-model="selectedTab">
@@ -102,7 +111,7 @@
                     :key="i"
                   >
                     <v-layout column wrap>
-                      <v-flex row wrap class="primary--text">{{generatorSelectionMode === 'net' ? item._id : item['Project Definition']}}</v-flex>
+                      <v-flex row wrap class="primary--text"><span style="font-weight: bolder;">{{generatorSelectionMode === 'net' ? item._id : item['Project Definition']}}</span></v-flex>
                       <v-flex row wrap style="font-size: 10px;">{{generatorSelectionMode === 'net' ? item['Network Description'] : (item['Project Name'] || '')}}</v-flex>
                     </v-layout>
                   </v-tab>
@@ -120,7 +129,7 @@
                             </v-flex>
 
                             <v-flex row wrap text-xs-center>
-                              {{item[field.value] }}
+                              {{ generatorSelectionMode === 'net' ? getValue(item[field.value]) : getValue(item.nets[0][field.value]) }}
                             </v-flex>
                           </v-flex>
                         </v-layout>
@@ -138,7 +147,7 @@
                     v-for="(item,i) in chosenTemplates"
                     :key="i"
                   >
-                    <span class="primary--text">{{item._id}}</span>
+                    <span class="primary--text" style="font-weight: bolder;">{{item._id}}</span>
                   </v-tab>
 
                   <v-tabs-items>
@@ -209,6 +218,7 @@
   import TemplateSelector from './TemplateGenerator/TemplateSelector'
   import ProjectSelector from './TemplateGenerator/ProjectSelector'
   import { mapGetters, mapActions } from "vuex";
+  import moment from 'moment'
 
   export default {
     name: 'TemplateGenerator',
@@ -242,6 +252,12 @@
         if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)
         }
+      },
+      getValue(val) {
+        if (typeof(val) !== 'number' && moment(val).isValid()) {
+          return val.substr(0,10)
+        }
+        return val
       }
     },
     watch: {

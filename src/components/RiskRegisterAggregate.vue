@@ -5,185 +5,125 @@
       <v-flex column shrink style="height: 50px; padding: 10px 24px;">
         <h3 class="display-2 white--text">Risk register - Aggregated view</h3>
       </v-flex>
-      <v-flex column grow>
-        
+      <v-flex column grow text-xs-right style="display: flex; align-items: center; justify-content: flex-end; padding-right: 24px;">
+        <span class="white--text">Mode:</span>
+        <v-btn-toggle mandatory
+          v-model="riskMode"
+          style="box-shadow: none; background-color: transparent; padding-left: 4px;"
+        >
+          <v-btn outline :value="true" color="white">Risk</v-btn>
+          <v-btn outline :value="false" color="white">Project</v-btn>
+        </v-btn-toggle>
       </v-flex>
     </v-layout>
+    <v-container fluid ref="pivotContainer">
+      <resize-observer @notify="handleResize" />
+      <v-layout column>
 
-    <v-container fluid>
-      <v-layout row wrap mt-2 style="max-height: 80vh;">
         <v-flex row wrap mb-1><h5 class="headline"><b>Projects with risk register</b></h5></v-flex>
-        <dx-pivot-grid
-          ref="riskRegisterPivot"
-          :data-source="dataSource"
-          :allow-sorting-by-summary="true"
-          :allow-sorting="true"
-          :allow-filtering="true"
-          :allow-expand-all="true"
-          :show-borders="true"
-          :scrolling="{ mode: 'virtual' }"
-          :show-column-grand-totals="false"
-          :show-row-totals="false"
-          style="height: 100%"
-        >
-          <dx-field-chooser :enabled="false"/>
-          <dx-field-panel :visible="true"/>
-          <dx-export :enabled="true" />
-          <!-- <dx-state-storing :enabled="true" storage-key="riskRegisterPivot"></dx-state-storing> -->
-        </dx-pivot-grid>
 
-        <!-- <dx-popup
-          :width="600"
-          :height="400"
-          title="Detailed view"
-          :visible.sync="popupVisible"
-        >
-          <dx-chart
-            :data-source="chartData"
-          >
-            <dx-series-template
-              name-field="category"
-            />
-            <dx-common-series-settings
-              argument-field="mainCategory"
-              value-field="priceImpact"
-              type="stackedbar"
-              hover-mode="nearestPoint"
-            />
-            <dx-legend
-              vertical-alignment="bottom"
-              horizontal-alignment="center"
-            />
-          </dx-chart>
-        </dx-popup> -->
+        <v-flex row v-if="riskMode">
+          <pivot-risks :definition-width="definitionWidth" />
+        </v-flex>
 
-      </v-layout>
+        <v-flex row v-else>
+          <pivot :definition-width="definitionWidth" />
+        </v-flex>
 
-      <v-layout row wrap pt-3 align-center justify-center>
-        <v-btn outline color="primary" @click="showMissing = !showMissing">Show / hide projects without risk register</v-btn>
-      </v-layout>
+        <v-flex row wrap pt-3 text-xs-center>
+          <v-btn outline color="primary" @click="showMissing = !showMissing">Show / hide projects without risk register</v-btn>
+        </v-flex>
 
-      <v-layout v-if="showMissing" row wrap mt-3 style="height: 80vh;">
-        <v-flex row wrap><h5 class="headline"><b>Projects without risk register</b></h5></v-flex>
-        <dx-data-grid
-          :data-source="projectsNoRR"
-          show-borders
-          key-expr='Project Definition'
-          column-auto-width
-          :row-alternation-enabled="true"
-          :show-row-lines="true"
-          :show-column-lines="true"
-          :word-wrap-enabled="true"
-          :repaintChangesOnly="true"
-          style="height: 100%;"
-        >
-          <dx-scrolling mode="virtual"></dx-scrolling>
-          <dx-header-filter
-            :visible="true"
-            :allow-search="true"
-          />
-          <dx-column
-            data-field="Project Manager"
-            caption="PM"
-            alignment="center"
-            :allow-sorting="true"
-          />
-          <dx-column
-            data-field="Project Definition"
-            caption="Project #"
-            alignment="center"
-            :allow-sorting="true"
-          />
-          <dx-column
-            data-field="Project Name"
-            caption="Project name"
-            alignment="center"
-            :allow-sorting="true"
-          />
-        </dx-data-grid>
-      </v-layout>
-      
+        <v-flex row>
+          <v-layout v-if="showMissing" column wrap mt-3 style="max-height: 80vh;">
+            <v-flex row wrap><h5 class="headline"><b>Projects without risk register</b></h5></v-flex>
+            <v-flex row wrap>
+              <dx-data-grid
+                :data-source="projectsNoRR"
+                show-borders
+                key-expr='Project Definition'
+                column-auto-width
+                :row-alternation-enabled="true"
+                :show-row-lines="true"
+                :show-column-lines="true"
+                :word-wrap-enabled="true"
+                :repaintChangesOnly="true"
+                style="height: 100%;"
+                >
+                <dx-scrolling mode="virtual"></dx-scrolling>
+                <dx-header-filter
+                  :visible="true"
+                  :allow-search="true"
+                />
+                <dx-column
+                  data-field="Project Manager"
+                  caption="PM"
+                  alignment="center"
+                  :allow-sorting="true"
+                />
+                <dx-column
+                  data-field="Project Definition"
+                  caption="Project #"
+                  alignment="center"
+                  :allow-sorting="true"
+                />
+                <dx-column
+                  data-field="Project Name"
+                  caption="Project name"
+                  alignment="center"
+                  :allow-sorting="true"
+                />
+              </dx-data-grid>
+            </v-flex>
+          </v-layout>
+        </v-flex>
+      </v-layout>      
     </v-container>
+
+    <template v-if="drilldownDialog">
+      <v-dialog
+        v-model="drilldownDialog"
+        scrollable
+        max-width="1230px"
+        transition="dialog-transition"
+      >
+        <drill-down ref="drilldown" />
+      </v-dialog>
+    </template>
   </v-layout>
 </template>
 
 <script>
-import { DxPivotGrid, DxFieldChooser, DxFieldPanel, DxExport } from 'devextreme-vue/pivot-grid';
-import { DxPopup } from 'devextreme-vue/popup';
-import { DxChart, DxCommonSeriesSettings, DxLegend, DxSeriesTemplate } from 'devextreme-vue/chart'
-import { DxDataGrid, DxColumn, DxScrolling } from 'devextreme-vue/data-grid';
 import { mapGetters, mapActions } from 'vuex';
-import _ from 'underscore'
+import DrillDown from './RiskRegisterAggregate/DrillDown'
+import Pivot from './RiskRegisterAggregate/Pivot'
+import PivotRisks from './RiskRegisterAggregate/PivotRisks'
 export default {
   name: 'RiskRegisterAggregate',
   components: {
-    DxDataGrid,
-    DxColumn,
-    DxPivotGrid,
-    DxFieldChooser,
-    DxPopup,
-    DxFieldPanel,
-    DxChart,
-    DxCommonSeriesSettings,
-    DxLegend,
-    DxSeriesTemplate
+    DrillDown,
+    Pivot,
+    PivotRisks
   },
   data: () => {
     return {
-      projectsNoRR: [],
-      popupVisible: false,
-      chartData: [],
-      showMissing: false
-    }
-  },
-  methods: {
-    ...mapActions(['fetchDefaultRiskRegister']),
-    getDetail(e) {
-      if (e.area === 'data' && e.cell.columnPath.length > 1) {
-        this.popupVisible = true
-        const selectedProject = this.allProjectsUniqueProjects.filter(x => x['Project Definition'] === e.cell.rowPath[0])[0]
-        this.chartData = selectedProject.riskRegister.bilance.chartData
-      }
+      showMissing: false,
+      drilldownDialog: false,
+      riskMode: true,
+      definitionWidth: 0
     }
   },
   computed: {
-    ...mapGetters(['allProjectsUniqueProjects', 'defaultRiskRegister']),
-    dataSource: function () {
-      let projectsNoRR = []
-      let src = this.allProjectsUniqueProjects.map(e => {
-        if (e.riskRegister.hasOwnProperty('bilance')) {
-          return e.riskRegister.bilance.chartData.map(x => {
-            x['project_id'] = e['Project Definition']
-            x['project_pm'] = e['Project Manager']
-            x['project_name'] = e['Project Name']
-            return x
-          })
-        } else {
-          projectsNoRR.push(e)
-        }
-      })
-
-      src = src.filter(e => e)
-      this.projectsNoRR = projectsNoRR
-
-      return {
-        fields: [
-          // ROWS
-          { caption: 'Project #', dataField: 'project_id', area: 'row', name: 'project_id', allowFiltering: true, headerFilter: { allowSearch: true }, expanded: true },
-          { caption: 'Project name', dataField: 'project_name', area: 'row', name: 'project_name', allowFiltering: true, headerFilter: { allowSearch: true } },
-          // COLUMNS
-          { caption: 'Main category', name: 'Main Category', dataField: 'mainCategory', area: 'column', sortOrder: 'desc', customizeText(e) {
-            return e.valueText.charAt(0).toUpperCase() + e.valueText.slice(1)
-          }},
-          { caption: 'Category', dataField: 'category', area: 'column' },
-          // VALUES
-          { caption: 'Sum of Price Impact', dataField: 'priceImpact', area: 'data', dataType: 'number', summaryType: 'sum', format: 'thousands', width: 165 },
-          { caption: 'Sum of Weighted price impact', dataField: 'weightedPriceImpact', area: 'data', dataType: 'number', summaryType: 'sum', format: 'thousands', width: 165 },
-          // FILTERS
-          { caption: 'PM', dataField: 'project_pm', area: 'filter' }
-        ],
-        store: _.flatten(src)
-      }
+    ...mapGetters(['projectsRiskRegister']),
+    projectsNoRR() {
+      return this.projectsRiskRegister['noRR']
+    }
+  },
+  methods: {
+    handleResize() {
+      setTimeout(() => {
+        this.definitionWidth = this.$refs['pivotContainer'].clientWidth
+      }, 200)
     }
   }
 }
@@ -193,12 +133,13 @@ export default {
   #riskRegisterAggregate .dx-pivotgrid .dx-pivotgrid-area td {
     color: black;
   }
-
   #riskRegisterAggregate .dx-pivotgrid-horizontal-headers {
     font-weight: bold;
   }
-
   #riskRegisterAggregate .dx-pivotgrid-vertical-headers {
     font-weight: bold;
+  }
+  #riskRegisterAggregate > div.container.fluid > div.layout.column > div:nth-child(2) > div > div > div > div.dx-pivotgrid-container > table > tr:nth-child(2) {
+    display: none;
   }
 </style>

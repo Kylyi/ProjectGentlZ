@@ -2,13 +2,13 @@
   <v-layout column wrap fluid id="delegateProjects">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
       <!-- Title -->
-      <v-flex column xs7 style="height: 50px; padding: 10px 24px;">
+      <v-flex column shrink style="padding: 10px 24px;">
         <h3 class="display-2 white--text">Delegate projects</h3>
       </v-flex>
 
       <!-- MENU -->
-      <v-flex column grow offset-xs1 xs4 style="height: 50px; padding: 10px 24px;">
-        <multiselect :value="selectedPM" :options="uniquePms" placeholder="Select person" :searchable="true" @input="selectPM">
+      <v-flex column grow style="padding: 10px 24px; display: flex; justify-content: flex-end; align-items: center;">
+        <multiselect :value="selectedPM" :options="uniquePms" placeholder="Select person" :searchable="true" @input="selectPM" style="width: 400px;">
           <span slot="noResult">No networks found.</span>
         </multiselect>
       </v-flex>
@@ -17,12 +17,12 @@
     <v-container fluid>
       <v-layout row wrap>
         <!-- LEFT SIDE -->
-        <v-flex column xs7 style="max-height: 80vh">
+        <v-flex column xs7 style="max-height: calc(100vh - 149px)">
             <dx-data-grid
               ref="allProjectsTable"
               :data-source="allProjectsProjectsMode"
               show-borders
-              key-expr='project_id'
+              key-expr='Project Definition'
               column-auto-width
               :allow-column-reordering="true"
               :allow-column-resizing="true"
@@ -44,25 +44,26 @@
               />
 
               <dx-column
-                data-field="project_id"
+                data-field="Project Definition"
                 caption="Project #"
               />
 
               <dx-column
-                data-field="project_name"
+                data-field="Project Name"
                 caption="Project name"
               />
 
               <dx-column
-                data-field="project_pm"
-                caption="Project PM"
-                :header-filter="peopleFilter"
+                data-field="Project Manager"
+                caption="Project Manager"
+                :header-filter="peoplePmFilter"
                 :calculate-filter-expression="getFiltering"
               />
 
               <dx-column
-                data-field="project_revenue"
+                data-field="Project Revenues"
                 caption="Revenues"
+                format="#,##0"
               />
 
               <dx-column
@@ -91,12 +92,12 @@
         </v-flex>
 
         <!-- RIGHT SIDE -->
-        <v-flex column grow style="max-height: 70vh; width: min-content;">
+        <v-flex column grow style="max-height: calc(100vh - 149px); width: min-content;">
           <dx-data-grid
             ref="pmProjectsTable"
             :data-source="selectedPmProjects"
             show-borders
-            key-expr='project_id'
+            key-expr='Project Definition'
             column-auto-width
             :allow-column-reordering="true"
             :allow-column-resizing="true"
@@ -104,7 +105,7 @@
             :show-row-lines="true"
             :show-column-lines="true"
             :word-wrap-enabled="true"
-            style="height: 100%;"
+            height="fit-content"
           >
             <dx-scrolling mode="virtual"/>
             <dx-header-filter
@@ -118,12 +119,12 @@
             />
 
             <dx-column
-              data-field="project_id"
+              data-field="Project Definition"
               caption="Project #"
             />
 
             <dx-column
-              data-field="project_name"
+              data-field="Project Name"
               caption="Project name"
             />
 
@@ -155,7 +156,9 @@ import { mapActions, mapGetters } from 'vuex';
 export default {
   name: 'DelegateProjects',
   created() {
-    this.setPeopleFilter()
+    if (!this.peoplePmFilter.hasOwnProperty('dataSource')) {
+      this.setPeopleFilter()
+    }
   },
   data: () => {
     return {
@@ -163,7 +166,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['allProjectsProjectsMode', 'uniquePms', 'selectedPM', 'selectedPmProjects', 'heirarchySettings', 'peopleFilter', 'peopleSameLevel'])
+    ...mapGetters(['allProjectsProjectsMode', 'uniquePms', 'selectedPM', 'selectedPmProjects', 'peoplePmFilter', 'peopleSameLevel'])
   },
   methods: {
     ...mapActions(['selectPM', 'delegateProjects', 'notify', 'setPeopleFilter']),
@@ -248,17 +251,13 @@ export default {
     },
     getFiltering(value, operation, target) {
       if (target === 'headerFilter') {
-        let filterExpr = [['project_pm', '=', value.val]]
-
+        let filterExpr = [['Project Manager', '=', value.val]]
         this.peopleSameLevel.forEach(p => {
           if (p.supervisors.includes(value.lookup)) {
             filterExpr.push('or')
-            filterExpr.push(['project_pm', '=', p.sapUsername])
+            filterExpr.push(['Project Manager', '=', p.sapUsername])
           }
         })
-
-
-        console.log(filterExpr)
         return filterExpr
       }
     }

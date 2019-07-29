@@ -38,9 +38,10 @@ import { mapGetters } from 'vuex';
     methods: {
       getColor() {
         if (this.templateData.rowType === 'data') {
-          if (this.templateData.data['Invoice Date'][this.invoicingLastUpdate] > this.templateData.data['Invoice Date'][this.invoicingCompareDate]) {
+          const lastDate = Object.values(this.templateData.data['Invoice Date']).pop()
+          if (lastDate > this.templateData.data['Invoice Date'][this.invoicingCompareDate]) {
             return 'color: red;'
-          } else if (this.templateData.data['Invoice Date'][this.invoicingLastUpdate] < this.templateData.data['Invoice Date'][this.invoicingCompareDate]) {
+          } else if (lastDate < this.templateData.data['Invoice Date'][this.invoicingCompareDate]) {
             return 'color: green;'
           }
         }

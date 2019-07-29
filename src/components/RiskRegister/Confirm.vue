@@ -14,15 +14,10 @@
           :show-row-lines="true"
           :show-column-lines="true"
           :word-wrap-enabled="true"
-          style="max-height: 300px;"
+          style="max-height: 282px;"
           :repaintChangesOnly="true"
         >
           <dx-summary>
-            <dx-total-item
-              column="weightedPriceImpact"
-              summary-type="sum"
-              value-format="thousands"
-            />
             <dx-total-item
               column="priceImpact"
               summary-type="sum"
@@ -52,13 +47,6 @@
           >
           </dx-column>
           <dx-column
-            data-field="weightedPriceImpact"
-            caption="Weighted price impact [kCZK]"
-            alignment="center"
-            data-type="number"
-            format="thousands"
-          />
-          <dx-column
             data-field="priceImpact"
             caption="Price impact [kCZK]"
             alignment="center"
@@ -81,15 +69,10 @@
         :show-row-lines="true"
         :show-column-lines="true"
         :word-wrap-enabled="true"
-        style="max-height: 900px;"
+        style="max-height: 282px;"
         :repaintChangesOnly="true"
       >
         <dx-summary>
-          <dx-total-item
-            column="weightedPriceImpact"
-            summary-type="sum"
-            value-format="thousands"
-          />
           <dx-total-item
             column="priceImpact"
             summary-type="sum"
@@ -118,13 +101,6 @@
           :allow-sorting="true"
         >
         </dx-column>
-        <dx-column
-          data-field="weightedPriceImpact"
-          caption="Weighted price impact [kCZK]"
-          alignment="center"
-          data-type="number"
-          format="thousands"
-        />
         <dx-column
           data-field="priceImpact"
           caption="Price impact [kCZK]"
@@ -163,7 +139,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import {
   DxChart,
   DxSeries,
@@ -198,7 +174,7 @@ export default {
       bilance: null
     }
   },
-  props: ['riskRegister'],
+  props: ['riskRegister', 'net'],
   methods: {
     ...mapActions([''])
   },
@@ -209,7 +185,7 @@ export default {
       let allRisks = []
       const filteredRisks = Object.keys(this.riskRegister.risks).reduce((agg, riskCategory) => {
         const y = this.riskRegister.risks[riskCategory].reduce((agg2, risk) => {
-          risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          // risk.weightedPriceImpact = risk.priceImpact * risk.probability
           risk.priceImpact = Number(risk.priceImpact)
           risk.mainCategory = 'risk'
           allRisks.concat(risk)
@@ -230,7 +206,7 @@ export default {
       let allOpps = []
       const filteredOpps = Object.keys(this.riskRegister.opportunities).reduce((agg, riskCategory) => {
         const y = this.riskRegister.opportunities[riskCategory].reduce((agg2, risk) => {
-          risk.weightedPriceImpact = risk.priceImpact * risk.probability
+          // risk.weightedPriceImpact = risk.priceImpact * risk.probability
           risk.priceImpact = Number(risk.priceImpact)
           risk.mainCategory = 'opportunity'
           allOpps.concat(risk)
@@ -253,25 +229,24 @@ export default {
       let bilance = risksAndOpp.reduce((agg, e) => {
         if (e.mainCategory === 'risk') {
           agg.bilanceRisks = agg.bilanceRisks + Number(e.priceImpact)
-          agg.bilanceWeightedRisks = agg.bilanceWeightedRisks + e.weightedPriceImpact
+          // agg.bilanceWeightedRisks = agg.bilanceWeightedRisks + e.weightedPriceImpact
         } else {
           agg.bilanceOpps = agg.bilanceOpps + Number(e.priceImpact)
-          agg.bilanceWeightedOpps = agg.bilanceWeightedOpps + e.weightedPriceImpact
+          // agg.bilanceWeightedOpps = agg.bilanceWeightedOpps + e.weightedPriceImpact
         }
         
         return agg
       }, {
         bilanceOpps: 0,
         bilanceRisks: 0,
-        bilanceWeightedOpps: 0,
-        bilanceWeightedRisks: 0
+        // bilanceWeightedOpps: 0,
+        // bilanceWeightedRisks: 0
       })
       bilance.chartData = risksAndOpp
       bilance.bilanceRisks = Number(bilance.bilanceRisks)
       bilance.bilanceOpps = Number(bilance.bilanceOpps)
 
       this.bilance = bilance
-
 
       return bilance.chartData
     }

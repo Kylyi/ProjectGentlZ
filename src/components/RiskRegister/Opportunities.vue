@@ -3,7 +3,7 @@
     <template>
       <el-collapse v-model="selectedTab" style="width: 100%;">
         <el-collapse-item
-          v-for="(riskCategory, i) in opportunities"
+          v-for="(riskCategory, i) in riskRegister.opportunities"
           :name="i"
           :key="i"
         >
@@ -12,6 +12,17 @@
            <!-- <span style="padding-left: 24px; position: absolute; right: 80px;">
              <v-btn @click.stop="validateCategories([[i, riskCategory]])" outline small color="#1E88E5" style="margin: 0;">Validate</v-btn>
             </span> -->
+            <span style="padding-left: 24px; position: absolute; right: 80px; display: table-row; vertical-align: middle;">
+             Sum: 
+             <vue-numeric
+                :value="priceImpactSums.hasOwnProperty(i) ? priceImpactSums[i] : 0"
+                thousand-separator=" "
+                decimal-separator=","
+                :precision="0"
+                :read-only="true"
+              >
+              </vue-numeric>
+            </span>
            <span style="padding-left: 24px; position: absolute; right: 48px; display: table-row; vertical-align: middle;">
              <v-icon
               style="display:table-cell;" :color="forms[i].length > 0 ? 'error' : 'success'"
@@ -23,7 +34,7 @@
           </template>
 
           <v-layout row wrap class="categoryWrapper" style="overflow: -webkit-paged-x;">
-            <template v-if="selectedTab.includes(i)">
+            <template v-show="selectedTab.includes(i)">
                 <v-layout row style="position: sticky; top: 0; background-color: white; z-index: 3;">
                   <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px; background-color: white;">Definition</v-flex>
                   <v-flex column style="min-width: 320px; max-width: 100%; padding: 0 4px; background-color: white;">Description</v-flex>
@@ -31,7 +42,6 @@
                   <v-flex column style="min-width: 200px; max-width: 200px; padding: 0 4px; background-color: white;">Additional info</v-flex>
                   <v-flex column style="min-width: 250px; max-width: 250px; padding: 0 4px; background-color: white;">Planned action for mitigation</v-flex>
                   <v-flex column style="min-width: 128px; max-width: 180px; min-width:180px; padding: 0 4px; background-color: white;">Owner</v-flex>
-                  <v-flex column text-xs-center style="min-width: 100px; max-width: 100px; padding: 0 4px; background-color: white;">Probability</v-flex>
                   <v-flex column text-xs-center style="min-width: 130px; max-width: 130px; padding: 0 4px; background-color: white;">Price impact [CZK]</v-flex>
                 </v-layout>
                 
@@ -57,19 +67,6 @@
                       <v-layout row wrap align-center justify-center fill-height>
                         <textarea v-model="opportunities[i][idx].owner" @blur="validateCategories([[i, riskCategory]])" style="font-size: 13px; height: 100%; width: 100%;  padding: 4px;"></textarea>
                       </v-layout>
-                    </v-flex>
-                    <v-flex column style="min-width: 100px; max-width: 100px; padding: 0 4px;">
-                      <vue-numeric
-                        v-model="opportunities[i][idx].probability"
-                        @blur="validateCategories([[i, riskCategory]])"
-                        thousand-separator=" "
-                        decimal-separator=","
-                        :precision="2"
-                        :min="0"
-                        :max="1"
-                        style="width: 100%; height: 100%;  padding: 4px; text-align: center;"
-                      >
-                      </vue-numeric>
                     </v-flex>
                     <v-flex column style="min-width: 130px; max-width: 130px; padding: 0 4px;">
                       <vue-numeric
@@ -134,7 +131,7 @@
 import { mapGetters, mapActions } from "vuex";
 export default {
   name: 'Risks',
-  props: ['riskRegister'],
+  props: ['riskRegister', 'net'],
   created() {
     this.opportunities = this.riskRegister.opportunities
     this.people = this.uniquePms
@@ -152,25 +149,39 @@ export default {
       selectedFieldCaption: null,
       forms: {},
       opportunities: {},
-      people: []
+      people: [],
+      priceImpactSums: {}
     }
   },
   computed: {
     ...mapGetters(['uniquePms'])
   },
   methods: {
-    validateCategories(cats = []) {
+    validateCategories(cats = [], row) {
       let catsNotValid = {}
+      if (row && row.hasOwnProperty('existsTriggerExtraField')) this.net.extraFields[row.existsTriggerExtraField] = row.exists
+      if (row && row.hasOwnProperty('priceImpactCalculated')) {
+        if (row.exists) {
+          const extraFields = this.net.extraFields
+          const projectData = this.net
+          const worstBPO = 1
+
+          row.priceImpact = eval(row.priceImpactCalculated)
+        } else row.priceImpact = 0
+      }
 
       cats.forEach(cat => {
         const category = cat[0]
+        this.priceImpactSums[category] = 0
+
         Object.assign(catsNotValid, { [category]: [] })
         for (let idx = 0; idx < cat[1].length; idx++) {
           const risk = cat[1][idx]
           if (risk.exists) {
-            if (risk.description === "" || risk.owner === "" || risk.plannedAction === "" || !risk.probability || !risk.priceImpact) {
+            if (risk.description === "" || risk.owner === "" || risk.plannedAction === "") {
               catsNotValid[category].push(idx+1)
-            }   
+            }
+            this.priceImpactSums[category] = ( this.priceImpactSums[category] || 0 ) + risk.priceImpact  
           } else {
             // catsNotValid[category].push(false)
           }

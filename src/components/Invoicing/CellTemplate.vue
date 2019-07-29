@@ -5,30 +5,6 @@
       <v-icon v-for="(sign, key) in templateData.data.sign[templateData.column.dataField]" :key="key"
       :color="getColor(key)" small v-html="key" @click="setSignInfo($event, sign)"></v-icon>
     </div>
-
-    <!-- <v-menu
-      v-model="showSignInfo"
-      :position-x="currentPosition.left"
-      :position-y="currentPosition.top"
-      absolute
-      offset-y
-      transition="slide-y-transition"
-    >
-      <v-list style="padding: 0;" id="checkSignsList">
-        <v-list-tile v-for="(comment, i) in reversedSignComments" :key="comment.comment">
-          <v-list-tile-action>
-            <tr style="vertical-align: middle;">
-              <td style="width: 400px; word-break: break-word; border-bottom: 1px dashed gray;"><span style="color: black;">{{comment.owner}} - {{comment.time}}</span></td>
-            </tr>
-            <tr>
-              <td style="width: 400px; word-break: break-word;">
-                {{comment.comment}}
-              </td>
-            </tr>
-          </v-list-tile-action>
-        </v-list-tile>
-      </v-list>
-    </v-menu> -->
   </v-layout>
 </template>
 
@@ -36,16 +12,7 @@
 import { mapActions } from 'vuex';
 
   export default {
-    props: {
-      templateData: {
-        type: Object,
-        default: () => {}
-      },
-      signs: {
-        type: Object,
-        default: () => {}
-      }
-    },
+    props: ['templateData', 'signs'],
     data: () => {
       return {
         currentPosition: {left: 0, top: 0},

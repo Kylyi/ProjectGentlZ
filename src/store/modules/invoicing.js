@@ -16,16 +16,17 @@ const state = {
   lastUpdate: null,
   datesModified: [],
   // dateRange: JSON.parse(localStorage.getItem('invoicingDateRange')) || [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(1, 'months').toISOString().substr(0, 10)],
-  dateRange: [moment(new Date()).subtract(1, 'months').toISOString().substr(0, 10), moment(new Date()).add(5, 'months').toISOString().substr(0, 10)],
+  dateRange: [0,1,2,3,4,5].map(e => moment().add(e, 'months').format('YYYY-MM')),
   weekGrouping: JSON.parse(localStorage.getItem('invoicingWeekGrouping')) || false,
   groupingDate: null,
   compareDate: null,
   filteredInvoicing: [],
-  invoicingDetail: [],
+  invoicingDetail: JSON.parse(readDefaultSettingFile('invoicingDetails')) || JSON.parse(readDefaultSettingFile('invoicingColumns')),
   signComments: [],
   invoicingAdminMode: false,
   invoicingReadOnly: false,
-  invoicingViews: {}
+  invoicingViews: {},
+  invoicingBatchUpdateMode: JSON.parse(localStorage.getItem('invoicingBatchUpdateMode')) || false
 }
 
 const getters = {
@@ -42,10 +43,19 @@ const getters = {
   invoicingCompareDate: state => state.compareDate,
   invoicingFilteredByDateRange: state => state.filteredInvoicing,
   invoicingDetail: state => state.invoicingDetail,
-  signComments: state => state.signComments.reverse(),
+  invoicingDetailVisible: state => state.invoicingDetail.filter(e => e.visible),
+  signComments: state => state.signComments.sort((a,b) => {
+    const t1 = moment(a.time)
+    const t2 = moment(b.time)
+
+    if (t1 < t2) return 1
+    if (t1 > t2) return -1
+    return 0
+  }),
   invoicingAdminMode: state => state.invoicingAdminMode,
   invoicingReadOnly: state => state.invoicingReadOnly,
-  invoicingViews: state => state.invoicingViews
+  invoicingViews: state => state.invoicingViews,
+  invoicingBatchUpdateMode: state => state.invoicingBatchUpdateMode
 }
 
 const actions = {
@@ -54,12 +64,11 @@ const actions = {
     commit('setObDailyPath'+plant, path)
   },
   async changeInvoicingDateRange({ commit, rootState }, val) {
-    if (!val) return 
-    const fromDate = moment(val[0]).toISOString().substr(0, 10)
-    const toDate = moment(val[1]).toISOString().substr(0, 10)
+    if (!val) return
+    val = val.sort()
 
-    localStorage.setItem('invoicingDateRange', JSON.stringify([fromDate, toDate]))
-    commit('setDateRange', [fromDate, toDate])
+    localStorage.setItem('invoicingDateRange', JSON.stringify(val))
+    commit('setDateRange', val)
     commit('setFilteredInvoicing', {
       lastUpdate: rootState.invoicing.lastUpdate,
       pms: (rootState.user.userInfo.subordinates || []).concat(rootState.user.userInfo.manuallyAddedSubordinates || []).concat([rootState.user.userInfo.sapUsername]).unique()
@@ -115,10 +124,15 @@ const actions = {
   },
   async setInvoicingAdminMode({ commit, dispatch, rootState }, val) {
     commit('setInvoicingAdminMode', val)
-    dispatch('getInvoicingSettings')
+    if (val) dispatch('getInvoicingSettings')
   },
   async changeInvoicingReadOnly({ commit }, val) {
     commit('setInvoicingReadOnly', val)
+    if (val) dispatch('getInvoicingSettings')
+  },
+  async setInvoicingBatchUpdateMode({ commit }, val) {
+    localStorage.setItem('invoicingBatchUpdateMode', JSON.stringify(val))
+    commit('setInvoicingBatchUpdateMode', val)
   }
 }
 
@@ -149,15 +163,15 @@ const mutations = {
 
     if (store.state.invoicing.invoicingAdminMode) {
       const filteredProjects =  allProjects.filter(e => {
-        return e['Invoice Date'][lastUpdate] >= state.dateRange[0]
-          && e['Invoice Date'][lastUpdate] <= state.dateRange[1]
+        const lastDate = moment(Object.values(e['Invoice Date']).pop()).format('YYYY-MM')
+        return state.dateRange.includes(lastDate)
         })
       state.filteredInvoicing = filteredProjects
     } else {
       const filteredProjects =  allProjects.filter(e => {
-        const lastDate = Object.values(e['Invoice Date']).pop()
-        return lastDate >= state.dateRange[0]
-        && lastDate <= state.dateRange[1]
+        const lastDate = moment(Object.values(e['Invoice Date']).pop()).format('YYYY-MM')
+
+        return state.dateRange.includes(lastDate)
         && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))
       })
       state.filteredInvoicing = filteredProjects
@@ -172,7 +186,8 @@ const mutations = {
   },
   setInvoicingAdminMode: (state, val) => state.invoicingAdminMode = val,
   setInvoicingReadOnly: (state, val) => state.invoicingReadOnly = val,
-  setViews: (state, val) => state.invoicingViews = val
+  setViews: (state, val) => state.invoicingViews = val,
+  setInvoicingBatchUpdateMode: (state, val) => state.invoicingBatchUpdateMode = val
 }
 
 export default {

@@ -1,5 +1,5 @@
 <template>
-  <v-layout id="netMode" mt-3 style="max-height: 500px;">
+  <v-layout id="netMode" mt-3>
     <dx-data-grid
       ref="networksTable"
       :data-source="pmProjectsBasic"
@@ -13,7 +13,9 @@
       :show-column-lines="true"
       :word-wrap-enabled="true"
       :selection="{ mode: 'single' }"
-      @row-click="onSelectionChanged"
+      @focused-row-changing="onSelectionChanged"
+      :focused-row-enabled="true"
+      :repaint-changes-only="true"
     >
       <dx-paging :enabled="true" :page-size="50"></dx-paging>
       <dx-master-detail
@@ -67,7 +69,7 @@
       </div>
 
       <div slot="actionsTemplate" slot-scope="templateData">
-          <v-icon @click.stop="generateTemplate(templateData.data)" title="Generate template" color="grey darken-4">trip_origin</v-icon>
+          <v-icon @click.stop="generateTemplate(templateData.data)" title="Generate template" color="red darken-4">trip_origin</v-icon>
           <v-icon @click.stop="manageRiskRegister(templateData.data)" title="Manage risk register" color="teal lighten-1">business</v-icon>
       </div>
 
@@ -101,10 +103,16 @@ import { mapGetters, mapActions } from "vuex";
 import InvoicingSigns from './NetMode/InvoicingSigns'
 export default {
   name: 'NetMode',
+  created() {
+    this.$root.$off('contentWindowResized')
+    this.$root.$on('contentWindowResized', () => {
+      if (this.$refs['networksTable'].instance) this.$refs['networksTable'].instance.updateDimensions()
+    })
+  },
   components: { InvoicingSigns },
-  computed: mapGetters(['pmProjectsBasic', 'visibleProjectsDetail', 'generateTemplateDialog']),
+  computed: mapGetters(['pmProjectsBasic', 'visibleProjectsDetail', 'generateTemplateDialog', 'chosenProjects']),
   methods: {
-    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchProjectsDetail', 'fetchNetTasksInfo']),
+    ...mapActions(['openGenerateTemplateDialog', 'chooseProjects', 'fetchNetTasksInfo']),
     async generateTemplate(data) {
       await this.chooseProjects(data)
       this.openGenerateTemplateDialog(true)
@@ -114,8 +122,12 @@ export default {
       this.$router.push('/riskRegister')
     },
     async onSelectionChanged (data) {
-      // this.fetchNetTasksInfo(data.selectedRowsData[0]._id)
-      await this.chooseProjects(data.data)
+      if (data.newRowIndex !== data.prevRowIndex) {
+        this.fetchNetTasksInfo(data.rows[data.newRowIndex].key)
+        await this.chooseProjects(data.rows[data.newRowIndex].data)
+      }
+      // this.fetchNetTasksInfo(data.data._id)
+      // await this.chooseProjects(data.data)
     }
   }
 }

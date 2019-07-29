@@ -1,7 +1,7 @@
 <template>
   <v-flex class="row wrap">
       <multiselect v-if="forceMode === 'project' || generatorSelectionMode==='project'" @input="projChange($event)"  :value="chosenProjects" 
-      :options="pmProjectsUniqueProjects" placeholder="Select project"
+      :options="pmProjects" placeholder="Select project"
       :custom-label="projNetNo" track-by="Project Definition"><span slot="noResult">No projects found.</span></multiselect>
 
       <multiselect v-else @input="projChange($event)"  :value="chosenProjects" :options="pmProjectsBasic" :multiple="true" placeholder="Select network" :searchable="true"
@@ -26,12 +26,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['pmProjectsBasic', 'generatorSelectionMode', 'chosenProjects', 'pmProjectsUniqueProjects'])
+    ...mapGetters(['pmProjectsBasic', 'generatorSelectionMode', 'chosenProjects', 'pmProjects'])
   } ,
   methods: {
     ...mapActions(['chooseProjects']),
     projNetNo (proj) {
-      return proj ?  `${proj['Project Definition']}: ${proj['Project Name'] || ''} (${proj.netsKeys.length} networks)` : ''
+      return `${proj['Project Definition']}: ${proj['Project Name'] || ''}`
     },
     async projChange (proj) {
       proj ? this.chooseProjects(proj) : this.chooseProjects([])

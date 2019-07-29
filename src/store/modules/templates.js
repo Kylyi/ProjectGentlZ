@@ -9,8 +9,14 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteTemplates = new PouchDB('http://Kyli:ivana941118@40.113.87.17:5984/templates')
+const remoteTemplates = new PouchDB('http://127.0.0.1:5984/templates')
 const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
+
+Array.prototype.unique = function() {
+  return this.filter(function (value, index, self) { 
+    return self.indexOf(value) === index;
+  });
+}
 
 templates.sync(remoteTemplates, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
@@ -33,10 +39,10 @@ const getters = {
     if (getters.allTemplatesBasic.length === 0) return []
 
     return getters.allTemplatesBasic.reduce((agg, e) => {
-      const x = agg.map(a => a.label === e.template_type)
+      const x = agg.map(a => a.label === e.templateCategory)
       const y = x.indexOf(true)
       if (y === -1) agg = [...agg, {
-        label: e.template_type,
+        label: e.templateCategory,
         options: [e]
       }]
       else agg[y]['options'].push(e)
@@ -46,7 +52,12 @@ const getters = {
   chosenTemplates: state => state.chosenTemplates,
   generateTemplateDialog: state => state.generateTemplateDialog,
   openAfterGenerate: state => state.openAfterGenerate,
-  generatorSelectionMode: state => state.generatorSelectionMode
+  generatorSelectionMode: state => state.generatorSelectionMode,
+  templateCategories: state => {
+    let templateCategories = []
+    state.allTemplatesBasic.forEach(tmpl => templateCategories.push(tmpl.templateCategory))
+    return templateCategories.filter(tmpl => tmpl).unique()
+  }
 }
 
 const actions = {
@@ -61,46 +72,63 @@ const actions = {
     commit('setChosenTemplates', tmplNames)
   },
   async generateTemplate({ commit, rootState, dispatch }) {
+    const generatorSelectionMode = rootState.templates.generatorSelectionMode
     const tmplDataObj = rootState.templates.chosenTemplates
     const projData = rootState.projects.chosenProjects
+    async function generate(projData, t, fillData = true) {
+      try {
+        // GET PROJECT DATA
+        // let projData = p
 
-    if (tmplDataObj.length > 0 && projData.length > 0) {
+        // GET TEMPLATE DATA
+        const tmplData = await templates.getAttachment(t._id, t.template_name)
+
+        const savePath = await dialog.showSaveDialog(null, {
+          title: 'Save document',
+          defaultPath: t['template_name'],
+          buttonLabel: 'Save',
+          filters: t['template_type'].startsWith('xls') ? [{name: 'Excel', extensions: ['xlsx', 'xlsm', 'xlsb']}] : [{name: 'Microsoft word', extensions: ['docx']}]
+        })
+        
+        if (savePath) {
+          const openFile = rootState.templates.openAfterGenerate === 'yes'
+          if (t.template_type === 'docx') {
+            await generateDocx({savePath, projData, tmplData}, fillData)
+            if (openFile) dispatch('openFile', savePath)
+          } else if (t.template_type.startsWith('xls')) {
+            await generateXlsx({savePath, projData, tmplData}, fillData)
+            if (openFile) dispatch('openFile', savePath)
+          }
+        }
+      } catch (error) {
+        dispatch('notify', {
+          text: error,
+          color: 'error',
+          state: 'true'
+        })
+      }
+    }
+
+    if (tmplDataObj.length > 0 && projData.length === 0) {
+      try {
+        tmplDataObj.forEach(t => {
+          generate({}, t, false)
+        })
+      } catch (error) {
+        dispatch('notify', {
+          text: error,
+          color: 'error',
+          state: 'true'
+        })
+      }
+    } else if (tmplDataObj.length > 0 && projData.length > 0) {
       projData.forEach(p => {
         tmplDataObj.forEach(t => {
-          async function generate() {
-            try {
-              // GET PROJECT DATA
-              let projData = p
-
-              // GET TEMPLATE DATA
-              const tmplData = await templates.getAttachment(t._id, t.template_name)
-
-              const savePath = await dialog.showSaveDialog(null, {
-                title: 'Save document',
-                defaultPath: t['template_name'],
-                buttonLabel: 'Save',
-                filters: t['template_type'].startsWith('xls') ? [{name: 'Excel', extensions: ['xlsx', 'xlsm', 'xlsb']}] : [{name: 'Microsoft word', extensions: ['docx']}]
-              })
-              
-              if (savePath) {
-                const openFile = rootState.templates.openAfterGenerate === 'yes'
-                if (t.template_type === 'docx') {
-                  await generateDocx({savePath, projData, tmplData})
-                  if (openFile) dispatch('openFile', savePath)
-                } else if (t.template_type.startsWith('xls')) {
-                  await generateXlsx({savePath, projData, tmplData})
-                  if (openFile) dispatch('openFile', savePath)
-                }
-              }
-            } catch (error) {
-              dispatch('notify', {
-                text: error,
-                color: 'error',
-                state: 'true'
-              })
-            }
+          if (generatorSelectionMode === 'net') {
+            generate(p, t, true)
+          } else {
+            generate(p.nets[0], t, true)
           }
-          generate()
         })
       })
     }
@@ -142,6 +170,7 @@ const actions = {
         newDoc.template_name = tmpl.doc.fileName
         newDoc.template_preview_name = tmpl.preview.fileName
         newDoc.templateDescription = tmpl.templateDescription
+        newDoc.templateCategory = tmpl.templateCategory || ''
         return newDoc
       })
       

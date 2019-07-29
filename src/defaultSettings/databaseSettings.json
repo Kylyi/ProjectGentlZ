@@ -1,1 +1,1 @@
-{"database":"ppes","server":"localhost\\SQLEXPRESS","driver":"msnodesqlv8","options":{"trustedConnection":true},"requestTimeout":600000}
+{"database":"ppes","server":"localhost\\SQLEXPRESS","driver":"msnodesqlv8","user":"gentl_user", "password":"94xfTj765K","requestTimeout":600000}

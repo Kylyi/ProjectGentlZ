@@ -9,7 +9,7 @@
           Generate template
         </v-card-title>
 
-        <v-card-text style="height: 250px;">
+        <v-card-text style="height: 350px;">
           <template-selector />
         </v-card-text>
 
