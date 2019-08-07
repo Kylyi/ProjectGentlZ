@@ -109,6 +109,16 @@
 
           </v-list-group>
 
+          <!-- INVOICING -->
+          <v-list-tile router to="/costs">
+            <v-list-tile-action>
+              <v-icon>spa</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>Costs</v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+
           <!-- Bottom -->
           <v-list-tile router to="/userSystem" class="bottom" style="bottom:96px;">
             <v-list-tile-action>

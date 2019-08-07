@@ -4,7 +4,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteLog = new PouchDB('http://127.0.0.1:5984/log')
+const remoteLog = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/log')
 const log = new PouchDB('src/db/log')
 
 log.sync(remoteLog, {

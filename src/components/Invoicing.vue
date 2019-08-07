@@ -1,8 +1,6 @@
 <template>
   <v-layout column xs wrap id="invoicingTable">
     <v-layout row wrap style="background-color: #424242; height: 70px;">
-      <!-- <v-btn v-shortkey="['ctrl', 'alt', 'a']" @shortkey="triggerAdminMode" style="display: none;">
-      </v-btn> -->
 
       <!-- Title -->
       <v-flex column shrink style="height: 50px; padding: 10px 24px;">
@@ -153,20 +151,23 @@
         <v-flex column grow>
           <v-layout row wrap>
             <v-flex column shrink style="padding-left: 8px;">
-              <v-combobox
-                :value="invoicingCompareDate"
-                :items="invoicingDatesModified"
-                placeholder="Select date to compare with"
-                no-data-text="There are no other revisions than the current one."
-                label="Compare date"
-                @change="changeCompareDate"
-                hide-details
-              ></v-combobox>
+              <v-menu offset-y>
+                <template v-slot:activator="{ on }">
+                  <v-text-field
+                    :value="invoicingCompareDate"
+                    prepend-icon="event"
+                    readonly
+                    label="Compare date"
+                    v-on="on"
+                    hide-details
+                    style="margin: 0;"
+                  ></v-text-field>
+                </template>
+                <v-date-picker :value="invoicingCompareDate" @change="changeCompareDate" min="2019-04-01" no-title scrollable> </v-date-picker>
+              </v-menu>
+
             </v-flex>
             <v-flex column shrink style="padding-left: 8px;">
-              <!-- <v-flex row wrap>
-                <label class="v-label theme--light" style="font-size: 13px;">Date range</label>
-              </v-flex> -->
               <v-flex row wrap>
                 <v-menu
                   v-model="dateRangeDialog"
@@ -618,7 +619,8 @@
       selectedNets: [],
       dateRange: [],
       dateRangeDialog: false,
-      filterOnWarningSign: ''
+      filterOnWarningSign: '',
+      compareDatePicker: false
     }),
     computed: {
       ...mapGetters(['invoicingDateRange', 'invoicingWeekGrouping', 'allProjectsBasic', 'peopleFilter', 'invoicingAdminMode', 'peopleSameLevel', 'invoicingViews', 'peoplePmFilter',
@@ -829,6 +831,7 @@
         this.$refs['invoicingGrid'].instance.state(currentState)
       },
       refreshData() {
+        this.waitingChanges = false
         this.getInvoicingSettings()
       },
       handleResize() {

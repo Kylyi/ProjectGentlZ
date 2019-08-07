@@ -22,7 +22,7 @@ let projectsReplicator
 const conn = new sql.ConnectionPool(JSON.parse(readDefaultSettingFile('databaseSettings')))
 
 const state = {
-  remoteProjectsDb: 'http://127.0.0.1:5984/projectsdb',
+  remoteProjectsDb: 'http://Kyli:ivana#94@127.0.0.1:5984/projectsdb',
   pccRemote: {
     link: 'http://hera3.cz.abb.com:8004/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
     production: false
@@ -716,10 +716,10 @@ const actions = {
       })
       .catch((err) => console.log(err))
   },
-  async insertData({ dispatch }) {
+  async insertData({ dispatch }, path) {
     try {
       dispatch('stopProjectsReplication')
-      let data = JSON.parse(readFile('C:/Users/kyli/Desktop/_all_docs (1).json', 'utf-8'))
+      let data = JSON.parse(readFile(path, 'utf-8'))
       data = data.rows.map(e => e.doc)
       data = data.map(e => {
         const {_rev, ...doc} = e

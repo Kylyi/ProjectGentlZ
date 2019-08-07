@@ -122,6 +122,7 @@ export default {
       this.$router.push('/riskRegister')
     },
     async onSelectionChanged (data) {
+      if (data.event.target.localName === 'i') return
       if (data.newRowIndex !== data.prevRowIndex) {
         this.fetchNetTasksInfo(data.rows[data.newRowIndex].key)
         await this.chooseProjects(data.rows[data.newRowIndex].data)

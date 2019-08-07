@@ -4,7 +4,7 @@ import username from 'username'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteSettings = new PouchDB('http://127.0.0.1:5984/settings')
+const remoteSettings = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/settings')
 const settings = new PouchDB('src/db/settings')
 settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {

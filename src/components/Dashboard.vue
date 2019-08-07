@@ -21,7 +21,7 @@
         <!-- <v-btn @click="checkForUpdates">Check for updates</v-btn> -->
         <v-btn @click="switchPccremote">Switch to test mode</v-btn>
         <v-btn @click="addActiveProjects">Add active projects</v-btn>
-        <v-btn @click="insertData">Insert data</v-btn>
+        <v-btn @click="insertDataPath">Insert data</v-btn>
       </v-flex>
 
     </v-layout>
@@ -70,7 +70,7 @@
         >
             <span v-if="editMode" style="margin: auto; font-size: x-large; font-style: italic;">Risk register quickview</span>
             <template v-else>
-              <v-layout row wrap v-if="chosenProjects.length > 0 && chosenProjects[0].riskRegisterBilance && !chosenProjects[0].riskRegisterBilance.draft">
+              <v-layout row wrap v-if="chosenProjects.length > 0 && chosenProjects[0].riskRegisterBilance">
                 <risk-register :chart-data="chosenProjects[0].riskRegisterBilance.chartData" />
               </v-layout>
               <v-layout v-else-if="chosenProjects.length > 0 && !chosenProjects[0].hasOwnProperty('riskRegisterBilance')">This feature is available only in Projects mode.</v-layout>
@@ -155,6 +155,10 @@ export default {
         width: this.$refs['dashboardContainer'].clientWidth - 48,
         height: this.$refs['dashboardContainer'].clientHeight - 48
       })
+    },
+    insertDataPath() {
+      const path = prompt('Path')
+      this.insertData(path)
     }
   },
   computed: {

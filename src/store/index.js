@@ -9,6 +9,7 @@ import riskRegister from './modules/riskRegister';
 import invoicing from './modules/invoicing';
 import settings from './modules/settings';
 import log from './modules/log';
+import costs from './modules/costs';
 
 Vue.use(Vuex);
 
@@ -21,6 +22,7 @@ export default new Vuex.Store({
     riskRegister,
     invoicing,
     settings,
-    log
+    log,
+    costs
   }
 })

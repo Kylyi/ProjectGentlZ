@@ -132,7 +132,7 @@
                 <v-divider vertical style="padding-left: 8px;"></v-divider>
                 <!-- @click="validateCategories(Object.entries(riskRegister[step === 1 ? 'risks' : 'opportunities']), step + 1, true)" -->
                 <v-btn v-if="step === 3" color="accent" @click="saveRiskRegister(true)" style="margin-left: 8px;">Save draft</v-btn>
-                <v-btn v-if="step === 3" color="primary" @click="saveRiskRegister(false)">Save</v-btn>
+                <v-btn v-if="step === 3" color="primary" @click="saveRiskRegister(false)">Save & report</v-btn>
               </v-card-actions>
             </v-card>
           </v-flex>

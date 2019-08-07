@@ -9,7 +9,7 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteTemplates = new PouchDB('http://127.0.0.1:5984/templates')
+const remoteTemplates = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/templates')
 const templates = new PouchDB('src/db/templates', { revs_limit: 3 })
 
 Array.prototype.unique = function() {
