@@ -172,7 +172,7 @@ export default {
   computed: {
     ...mapGetters(['allProjectsBasic', 'costsData']),
     costsDataSource() {
-      const data = JSON.parse(JSON.stringify(this.costsData))
+      let data = JSON.parse(JSON.stringify(this.costsData))
       const date = this.selectedDate ? moment(this.selectedDate) : moment()
 
       return data.map(e => {
@@ -180,9 +180,14 @@ export default {
         const lvmat_leadtime = hasParameters ? e['costs']['parameters']['lvmat_leadtime'] : 15
         const mvmat_leadtime = hasParameters ? e['costs']['parameters']['mvmat_leadtime'] : 15
         const uvmat_leadtime = hasParameters ? e['costs']['parameters']['uvmat_leadtime'] : 15
-        const lvmat = hasParameters ? e['costs']['parameters']['lvmat'] : 30
-        const mvmat = hasParameters ? e['costs']['parameters']['mvmat'] : 40
-        const uvmat = hasParameters ? e['costs']['parameters']['uvmat'] : 30
+        
+        const rmLvMat = hasParameters ? e['costs']['parameters']['rmLvMat'] : 10
+        const rmMvMat = hasParameters ? e['costs']['parameters']['rmMvMat'] : 10
+        const rmUvMat = hasParameters ? e['costs']['parameters']['rmUvMat'] : 10
+
+        const wipLvMat = hasParameters ? e['costs']['parameters']['wipLvMat'] : 13
+        const wipMvMat = hasParameters ? e['costs']['parameters']['wipMvMat'] : 14
+        const wipUvMat = hasParameters ? e['costs']['parameters']['wipUvMat'] : 13
 
 
         const isRmLv = date >= moment(e.costsOperations['op0130_esd']).subtract(lvmat_leadtime, 'days') && date < moment(e.costsOperations['op0130_esd'])
@@ -194,15 +199,15 @@ export default {
         const isWipMv = ( date >= moment(e.costsOperations['op0800_esd']) || date >= moment(e.costsOperations['op0805_esd']) ) && date < moment(e.costsOperations['op0420_efd'])
         const isWipUv = date >= moment(e.costsOperations['op0105_esd']) && date < moment(e.costsOperations['op0420_efd'])
 
-        const isFg = date >= moment(e.costsOperations['op0420_efd']) && ( !e.costsOperations['op0431_cfd'] || !e.costsOperations['op0431_esd'] )
+        const isFg = date >= moment(e.costsOperations['op0420_efd']) && date < (e.costsOperations['op0431_cfd'] ? moment(e.costsOperations['op0431_cfd']) : moment(e.costsOperations['op0431_esd']))
 
         if (!e.hasOwnProperty('costs')) e['costs'] = {result: {}}
-        e['costs']['result']['rmLv'] = isRmLv ? e['Planned Costs'] * lvmat / 100 : 0
-        e['costs']['result']['rmMv'] = isRmMv ? e['Planned Costs'] * mvmat / 100 : 0
-        e['costs']['result']['rmUv'] = isRmUv ? e['Planned Costs'] * uvmat / 100 : 0
-        e['costs']['result']['wipLv'] = isWipLv ? e['Planned Costs'] * lvmat / 100 : 0
-        e['costs']['result']['wipMv'] = isWipMv ? e['Planned Costs'] * mvmat / 100 : 0
-        e['costs']['result']['wipUv'] = isWipUv ? e['Planned Costs'] * uvmat / 100 : 0
+        e['costs']['result']['rmLv'] = isRmLv ? e['Planned Costs'] * rmLvMat / 100 : 0
+        e['costs']['result']['rmMv'] = isRmMv ? e['Planned Costs'] * rmMvMat / 100 : 0
+        e['costs']['result']['rmUv'] = isRmUv ? e['Planned Costs'] * rmUvMat / 100 : 0
+        e['costs']['result']['wipLv'] = isWipLv ? e['Planned Costs'] * wipLvMat / 100 : 0
+        e['costs']['result']['wipMv'] = isWipMv ? e['Planned Costs'] * wipMvMat / 100 : 0
+        e['costs']['result']['wipUv'] = isWipUv ? e['Planned Costs'] * wipUvMat / 100 : 0
         e['costs']['result']['fg'] = isFg ? e['Planned Costs'] : 0
 
         return e

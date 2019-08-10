@@ -10,6 +10,7 @@
       <v-flex row style="background-color: white; position: relative;"> 
         <v-btn @click="detailDialog = false" icon style="position: absolute; margin: 0; top: 5px; right: 8px;"><v-icon>close</v-icon></v-btn>
         <v-layout row style="height: 44px;"><h5 class="headline" style="position: absolute; top: 8px; left: 16px;"><b>{{selectedMonth}}</b></h5></v-layout>
+        <!-- CHART -->
         <v-layout row>
           <v-layout column>
             <v-flex row style="display: flex; justify-content: center;">
@@ -19,7 +20,9 @@
                 <v-btn value="FG">FG</v-btn>
               </v-btn-toggle>
             </v-flex>
-
+            <v-flex row>
+              <pre>{{selectedMonthChartData}}</pre>
+            </v-flex>
             <v-flex v-if="selectedMonthChartData.length > 0" row style="display: flex; justify-content: center;">
               <dx-pie-chart
                 :data-source="selectedMonthChartData"
@@ -48,7 +51,7 @@
 
         </v-layout>
 
-        <v-layout row pt-3  >
+        <!-- <v-layout row pt-3  >
           <v-flex column style="max-height: 600px;">
             <dx-data-grid
               ref="costsTableDetail"
@@ -243,7 +246,7 @@
               </div>
             </dx-data-grid>
           </v-flex>
-        </v-layout>
+        </v-layout> -->
       </v-flex>
     </v-layout>
   </v-dialog>
@@ -255,7 +258,7 @@ import { mapGetters } from 'vuex';
 export default {
   name: 'OverviewChartDrilldown',
   components: { DxPieChart, DxLegend, DxSeries, DxTooltip, DxFormat, DxLabel, DxConnector, DxExport },
-  props: ['selectedMonth'],
+  props: ['selectedMonth', 'chartData'],
   data() {
     return {
       detailDialog: false,
@@ -272,24 +275,26 @@ export default {
         this.selectedMonthChartData = []
         return
       }
+      const monthsData = this.chartData.filter(x => x.field === this.selectedMonth)
       const fields = ['RM LV', 'RM MV', 'RM UV', 'WIP LV', 'WIP MV', 'WIP UV', 'FG']
       let selectedMonthChartData = []
+
       fields.forEach(f => {
-        selectedMonthChartData.push({
-          field: f,
-          value: this.$refs['costsTableDetail'].instance.getTotalSummaryValue(f)
-        })
-      })
+        let isSelected = false
 
-      this.selectedMonthChartData = selectedMonthChartData.filter(x => {
-       let isSelected = false
-       e.forEach(s => {
-         if (x.field.startsWith(s)) isSelected = true
+        e.forEach(s => {
+         if (f.startsWith(s)) isSelected = true
         })
-        return isSelected
-      })
 
-      console.log(this.$refs['costsTableDetail'])
+        if (isSelected) {
+          selectedMonthChartData.push({
+            field: f,
+            value: monthsData[0][f]
+          })
+        }
+
+      })
+      this.selectedMonthChartData = selectedMonthChartData
     },
     recalculateChart(e) {
       if (e.fullName === 'filterValue') {

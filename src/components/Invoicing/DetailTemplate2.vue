@@ -195,7 +195,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['notify', 'changeProjectData', 'modifyPccNetData']),
+    ...mapActions(['notify', 'changeProjectData', 'modifyPccNetData', 'fetchSapNetsData']),
     fixField(e) {
       if (typeof(e) === 'object') {
         this.netData[e.couchFieldIfFixed] = !this.netData[e.couchFieldIfFixed]
@@ -290,7 +290,7 @@ export default {
           data: dataToSap
         })
         this.fetchSapNetsData({
-          netNums: this.netData._id,
+          netNums: [this.netData._id],
           query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate',
           notify: false
         })

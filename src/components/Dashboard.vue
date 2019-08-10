@@ -21,7 +21,7 @@
         <!-- <v-btn @click="checkForUpdates">Check for updates</v-btn> -->
         <v-btn @click="switchPccremote">Switch to test mode</v-btn>
         <v-btn @click="addActiveProjects">Add active projects</v-btn>
-        <v-btn @click="insertDataPath">Insert data</v-btn>
+        <v-btn @click="insertData">Insert data</v-btn>
       </v-flex>
 
     </v-layout>

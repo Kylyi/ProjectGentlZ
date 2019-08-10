@@ -7,13 +7,9 @@
       </v-flex>
 
       <v-flex column grow text-xs-right style="padding: 0px 24px; display: flex; align-items: center; justify-content: flex-end;">
-        <!-- <v-btn-toggle v-model="mode" mandatory>
-          <v-btn value="overviewGrid">Overview grid</v-btn>
-          <v-btn value="overviewChart">Overview chart</v-btn>
-          <v-btn value="specificDateGrid">Specific date grid</v-btn>
-        </v-btn-toggle> -->
+        <v-btn outline color="white" @click="specificDateGridState = !specificDateGridState" :style="`background-color: ${specificDateGridState ? '#ff5252!important' : ''}; margin: 0 12px 0 0;`" >Specific date</v-btn>
 
-        <v-btn-toggle v-model="selectedPanes" multiple>
+        <v-btn-toggle v-model="selectedPanes" @change="resizeChart(true)" multiple>
           <v-btn value="chart" text>
             <v-icon>bar_chart</v-icon>
           </v-btn>
@@ -25,17 +21,17 @@
     </v-layout>
 
     <v-container fluid>      
-      <!-- <overview-grid v-if="mode === 'overviewGrid'" />
-      <specific-date-grid v-if="mode === 'specificDateGrid'" />
-      <overview-chart v-if="mode === 'overviewChart'" /> -->
+      <!-- <overview-grid v-if="mode === 'overviewGrid'" /> -->
+      <specific-date-grid v-if="specificDateGridState" />
+      <!-- <overview-chart v-if="mode === 'overviewChart'" /> -->
 
-      <Split ref="splitPane" style="height: calc(100vh - 206px); display: inline-flex;">
-        <SplitArea v-show="selectedPanes.includes('chart')" :size="selectedPanes.length === 1 ? 100 : 50" :minSize="275" >
-          CHART
+      <Split v-else ref="costsSplitPane" style="height: calc(100vh - 160px); display: inline-flex;" @onDragEnd="resizeChart">
+        <SplitArea v-show="selectedPanes.includes('chart')" :size="selectedPanes.length === 1 ? 100 : 30" :minSize="400" style="display: flex; align-items: center;">
+          <overview-chart ref="overviewChart" />
         </SplitArea>
 
-        <SplitArea v-show="selectedPanes.includes('grid')" :size="selectedPanes.length === 1 ? 100 : 50" :minSize="275" >
-          <overview-grid />
+        <SplitArea v-show="selectedPanes.includes('grid')" :size="selectedPanes.length === 1 ? 100 : 70" :minSize="400" >
+          <overview-grid ref="overviewGrid" />
         </SplitArea>
       </Split>
 
@@ -59,8 +55,21 @@ export default {
   data() {
     return {
       selectedDate: '',
-      mode: 'specificDateGrid',
+      specificDateGridState: false,
       selectedPanes: ['chart', 'grid']
+    }
+  },
+  methods: {
+    resizeChart(timeout = false) {
+      if (timeout) {
+        setTimeout(() => {
+          this.$refs['overviewChart'].$refs['barChart'].getSize()
+          this.$refs['overviewChart'].$refs['drilldownChart'].getSize()
+        }, 150)
+      } else {
+        this.$refs['overviewChart'].$refs['barChart'].getSize()
+        this.$refs['overviewChart'].$refs['drilldownChart'].getSize()
+      }
     }
   }
 }

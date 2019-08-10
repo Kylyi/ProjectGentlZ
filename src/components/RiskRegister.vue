@@ -26,14 +26,30 @@
                   <v-btn color="primary" v-on="on" depressed style="margin: 2px 0 0 0;"><v-icon>list</v-icon></v-btn>
                 </template>
 
-                <v-container style="background-color: white; padding: 4px;">
+                <v-container style="background-color: white; padding: 4px; position: relative;">
                   <v-layout row wrap>
+                    <a @click="chargePerMode === 'week' ? chargePerMode = 'day' : chargePerMode = 'week'" small
+                      style="position: absolute; z-index: 3; left: 156px; border: 1px solid lightgray; padding: 0px 4px; line-height: 16px; top: 5px;">{{ chargePerMode === 'week' ? 'day' : 'week' }}
+                    </a>
                     <v-flex column shrink pr-2>
                       <v-text-field
+                        v-show="chargePerMode === 'day'"
                         :value="netWithRiskRegister.extraFields.hasOwnProperty('chargePerDayPercent') ? netWithRiskRegister.extraFields['chargePerDayPercent'] : 0.1"
                         type="number"
                         ref="chargePerDayPercent"
-                        label="Charge per day [0 - 100%]"
+                        :label="`Charge per ${chargePerMode} [0 - 100%]`"
+                        @change="setChargePer($event, 'chargePerWeekPercent')"
+                        :max="100"
+                        :min="0"
+                      ></v-text-field>
+
+                      <v-text-field
+                        v-show="chargePerMode === 'week'"
+                        :value="netWithRiskRegister.extraFields.hasOwnProperty('chargePerDayPercent') ? (netWithRiskRegister.extraFields['chargePerDayPercent'] * 7).toFixed(1) : 0.7"
+                        type="number"
+                        ref="chargePerWeekPercent"
+                        :label="`Charge per ${chargePerMode} [0 - 100%]`"
+                        @change="setChargePer($event, 'chargePerDayPercent')"
                         :max="100"
                         :min="0"
                       ></v-text-field>
@@ -82,7 +98,7 @@
             </v-flex>
           </v-layout>
 
-          <v-flex row wrap mt-3 v-if="netWithRiskRegister && Object.keys(netWithRiskRegister.extraFields).length === 6 ">
+          <v-flex row wrap mt-3 v-if="netWithRiskRegister && Object.keys(netWithRiskRegister.extraFields).length === 6" style="max-height: calc(100vh - 210px); overflow: auto;">
             <v-card>
               <v-card-title style="padding: 0;">
                 <v-layout align-center row wrap>
@@ -179,7 +195,9 @@ export default {
       step3Allowed: false,
       worstBPO: 0,
       allNets: [],
-      newItemDialog: false
+      newItemDialog: false,
+      chargePerWeek: 0.5,
+      chargePerMode: 'week'
     }
   },
   methods: {
@@ -330,10 +348,10 @@ export default {
         }
       }
 
-      this.netWithRiskRegister.extraFields['guaranteePercent'] = Number(this.$refs['guaranteePercent'].internalValue)
-      this.netWithRiskRegister.extraFields['chargePerDayPercent'] = Number(this.$refs['chargePerDayPercent'].internalValue)
-      this.netWithRiskRegister.extraFields['maxChargePercent'] = Number(this.$refs['maxChargePercent'].internalValue)
-      this.netWithRiskRegister.extraFields['warehouseTime'] = Number(this.$refs['warehouseTime'].internalValue)
+      this.netWithRiskRegister.extraFields['guaranteePercent'] = Number(this.$refs['guaranteePercent'].internalValue).toFixed(1)
+      this.netWithRiskRegister.extraFields['chargePerDayPercent'] = Number(this.$refs['chargePerDayPercent'].internalValue).toFixed(1)
+      this.netWithRiskRegister.extraFields['maxChargePercent'] = Number(this.$refs['maxChargePercent'].internalValue).toFixed(1)
+      this.netWithRiskRegister.extraFields['warehouseTime'] = Number(this.$refs['warehouseTime'].internalValue).toFixed(1)
 
       this.calculateFields()
       this.$forceUpdate()
@@ -345,6 +363,14 @@ export default {
           this.$refs['opportunities'].validateCategories(Object.entries(this.riskRegister.opportunities))
         }
       })
+    },
+    setChargePer(newVal, ref) {
+      if (ref === 'chargePerDayPercent') {
+        this.$refs[ref].internalValue = (newVal / 7).toFixed(1)
+      } else {
+        this.$refs[ref].internalValue = (newVal * 7).toFixed(1)
+      }
+      
     }
   }
 }

@@ -229,7 +229,7 @@
               </v-list>
             </v-menu>
             <v-btn icon @click="filterSignOnAll('info')">
-              <v-icon :color="signFilterActive.info ? '#4DB6AC' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
                 info
               </v-icon>
             </v-btn>
@@ -256,7 +256,7 @@
             :data-source="billingsFiltered ? billingsFiltered : billings"
             show-borders
             key-expr='_id'
-            column-auto-width
+            :column-auto-width="true"
             :allow-column-reordering="true"
             :allow-column-resizing="true"
             :row-alternation-enabled="true"
@@ -264,7 +264,7 @@
             :show-column-lines="true"
             :word-wrap-enabled="true"
             style="height: 100%; width: 100%;"
-            :column-min-width="50"
+            :column-min-width="75"
             @cell-prepared="getConditionalFormatting"
             @row-prepared="rowFormatting"
             :repaint-changes-only="true"
@@ -332,13 +332,13 @@
             />
 
             <dx-column
-              :calculate-cell-value="getLastInvoiceDate"
+              data-field="Current Invoice Date"
               caption="Current invoice date"
               data-type="date"
               format="dd.MM.yy"
               alignment="center"
               :showWhenGrouped="true"
-              width="100px"
+              :width="100"
               cell-template="formattedCellInvoiceDate"
               :allow-filtering="true"
               :allow-sorting="true"
@@ -352,7 +352,7 @@
               format="dd.MM.yy"
               alignment="center"
               :showWhenGrouped="true"
-              width="100px"
+              :width="100"
               :allow-search="true"
             />
 
@@ -630,9 +630,8 @@
       ...mapActions(['changeInvoicingDateRange', 'changeWeekGrouping', 'getInvoicingSettings', 'changeCompareDate', 'fetchFilteredInvoicingByDateRange', 'changeGroupingDate', 'setInvoicingAdminMode', 'setPeopleFilter', 'changeInvoicingReadOnly', 'notify', 'setUserView', 'setInvoicingBatchUpdateMode']),
       groupByYear (a) {
         let date
-
         if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
-          date = Object.values(a['Invoice Date']).pop()
+          date = a['Current Invoice Date']
         } else {
           date = a['Invoice Date'][this.invoicingGroupingDate]
         }
@@ -640,9 +639,8 @@
       },
       groupByQuarter(a) {
         let date
-
         if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
-          date = Object.values(a['Invoice Date']).pop()
+          date = a['Current Invoice Date']
         } else {
           date = a['Invoice Date'][this.invoicingGroupingDate]
         }
@@ -650,9 +648,8 @@
       },
       groupByMonth (a) {
         let date
-
         if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
-          date = Object.values(a['Invoice Date']).pop()
+          date = a['Current Invoice Date']
         } else {
           date = a['Invoice Date'][this.invoicingGroupingDate]
         }
@@ -660,9 +657,8 @@
       },
       groupByWeek (a) {
         let date
-
         if (this.invoicingLastUpdate === this.invoicingGroupingDate) {
-          date = Object.values(a['Invoice Date']).pop()
+          date = a['Current Invoice Date']
         } else {
           date = a['Invoice Date'][this.invoicingGroupingDate]
         }

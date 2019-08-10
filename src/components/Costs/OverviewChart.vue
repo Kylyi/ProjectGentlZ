@@ -1,60 +1,78 @@
 <template>
-  <div>
-    <dx-chart
-      id="costsChart"
-      class="pointer-on-bars"
-      :data-source="costsDataMonthly.chartData"
-      title="Costs"
-      :size="{height: 800}"
-      @point-click="getDetail"
-    >
-      <dx-common-series-settings argument-field="costsMonth" type="bar"/>
-      <dx-series value-field="rmTotal" name="RM">
-        <dx-label :customize-text="getLabel" :visible="true" />
-      </dx-series>
-      <dx-series value-field="wipTotal" name="WIP">
-        <dx-label :customize-text="getLabel" :visible="true"></dx-label>
-      </dx-series>
-      <dx-series value-field="fgTotal" name="FG">
-        <dx-label :customize-text="getLabel" :visible="true"></dx-label>
-      </dx-series>
+  <v-layout column ref="overviewChart">
+    <v-flex row v-show="chartLevel === 0">
+      <bar-chart ref="barChart" :selected-month="selectedMonth" :chart-data="chartData" :is-parameters-changed="isParametersChanged"  />
+    </v-flex>
 
-      <dx-tooltip :enabled="true" >
-        <dx-format type="millions" />
-      </dx-tooltip>
-    </dx-chart>
-
-    <drilldown ref="drilldown" :selected-month="selectedMonth" />
-  </div>
+    <v-flex row v-show="chartLevel === 1">
+      <drilldown-chart ref="drilldownChart" :selected-month="selectedMonth" :chart-data="chartData"  />
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
-import { DxChart, DxSeries, DxCommonSeriesSettings, DxValueAxis, DxTitle, DxLegend, DxBorder, DxExport, DxTooltip, DxCommonAxisSettings, DxFormat, DxLabel } from 'devextreme-vue/chart';
-import { DxPieChart, DxConnector} from 'devextreme-vue/pie-chart';
 import { mapActions, mapGetters } from 'vuex';
-import Drilldown from './OverviewChart/Drilldown'
+import BarChart from './OverviewChart/BarChart'
+import DrilldownChart from './OverviewChart/DrilldownChart'
+import moment from 'moment'
 export default {
   name: 'OverviewChart',
-  components: { DxChart, DxSeries, DxCommonSeriesSettings, DxValueAxis, DxTitle, DxLegend, DxBorder, DxExport, DxTooltip, DxCommonAxisSettings, DxFormat, DxLabel, DxPieChart, DxConnector, Drilldown },
+  components: { DrilldownChart, BarChart },
   created() {
-    if (!this.costsDataMonthly) this.getCostsDataMonthly()
+    this.$root.$on('overviewGridLoaded', () => { this.getChartData() })
+    this.$root.$on('overviewGridFilterChanged', () => {
+      setTimeout(() => this.getChartData(), 1000)
+    })
+    this.$root.$on('overviewGridParametersChanged', (state) => this.isParametersChanged = state)
+  },
+  beforeDestroy() {
+    this.$root.$off('overviewGridLoaded')
+    this.$root.$off('overviewGridFilterChanged')
+    this.$root.$off('overviewGridParametersChanged')
   },
   data() {
     return {
-      selectedMonth: ''
+      selectedMonth: '',
+      chartLevel: 0,
+      chartData: [],
+      isParametersChanged: false
     }
   },
-  computed: {
-    ...mapGetters(['costsDataMonthly'])
-  },
   methods: {
-    ...mapActions(['getCostsDataMonthly']),
+    getChartData() {
+      const dateRange = [0,1,2,3,4,5,6,7,8,9,10,11].map(e => moment().add(e, 'months').format('YYYY-MM'))
+      let selectedMonthChartData = []
+      dateRange.forEach(date => {
+        selectedMonthChartData.push({
+          field: date,
+          'RM LV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM LV ' + date),
+          'RM MV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM MV ' + date),
+          'RM UV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM UV ' + date),
+          'RM Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM ' + date),
+
+          'WIP LV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP LV ' + date),
+          'WIP MV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP MV ' + date),
+          'WIP UV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP UV ' + date),
+          'WIP Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP ' + date),
+
+          'FG Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('FG ' + date),
+
+        })
+      })
+      this.chartData = selectedMonthChartData
+    },
     getDetail(e) {
-      this.$refs['drilldown'].detailDialog = true
+      this.chartLevel = 1
       this.selectedMonth = e.target.argument
+      this.$root.$emit('selectMonth', e.target.argument)
     },
     getLabel(e) {
       return `${e.seriesName}`
+    },
+    getSeries(e) {
+      this.$refs['drilldownChart'].seriesSelected = [e.target.name]
+      setTimeout(() => this.$refs['drilldownChart'].getDatagridData([e.target.name]), 200)
+      this.$root.$emit('selectSeries', e.target.name)
     }
   }
 }

@@ -700,7 +700,7 @@ const actions = {
       })
     })
 
-    Promise.all(projUpserts)
+    const result = Promise.all(projUpserts)
       .then(() => {
         dispatch('fetchAllProjectsBasic')
         dispatch('startProjectsReplication')
@@ -713,13 +713,16 @@ const actions = {
             state: 'true'
           })
         }
+        console.log('cool in Promise')
+        return 'cool'
       })
       .catch((err) => console.log(err))
+    return result
   },
-  async insertData({ dispatch }, path) {
+  async insertData({ dispatch }) {
     try {
       dispatch('stopProjectsReplication')
-      let data = JSON.parse(readFile(path, 'utf-8'))
+      let data = JSON.parse(readFile("C:/Users/kyli/Desktop/_all_docs.json", 'utf-8'))
       data = data.rows.map(e => e.doc)
       data = data.map(e => {
         const {_rev, ...doc} = e

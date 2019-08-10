@@ -430,7 +430,6 @@ export default {
           }
         })
       })
-      console.log('To be sent to PCC: ', sapToUpdate)
 
       // UPDATE COUCH
       const projCouchEditableFields = this.projectEditableFields.filter(e => e.source === 'couch')
@@ -452,16 +451,28 @@ export default {
       
       sapToUpdate.forEach((e, idx) => {
         netSapEditableFields.concat(projSapEditableFields).forEach(x => {
-          if (x.hasOwnProperty('fixingFieldForBatch') && !x.fixingFieldForBatch) {
-            delete e[x.fixingField]
-            if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
-            else if (!e[x.field]) delete e[x.field]
-          } else {
-            if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
-            else if (!e[x.field]) delete e[x.field]
+          if (!e[x.fixingField]) {
+             delete e[x.field]
+             delete e[x.fixingField]
           }
+          if (this.pccData[idx][x.fixingField] === e[x.fixingField]) {
+            delete e[x.fixingField]
+            if (this.pccData[idx][x.field] === e[x.field]) {
+              delete e[x.field]
+            }
+          }
+
+          // if (e.hasOwnProperty('fixingField') && !e.fixingField) {
+          //   delete e[x.fixingField]
+          //   if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
+          //   else if (!e[x.field]) delete e[x.field]
+          // } else {
+          //   if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
+          //   else if (!e[x.field]) delete e[x.field]
+          // }
         })
       })
+      console.log('To be sent to PCC: ', sapToUpdate)
       this.changeProjectsData({
         netNums: this.netsKeys,
         data: couchToUpdate

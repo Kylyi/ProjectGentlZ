@@ -163,13 +163,13 @@ const mutations = {
 
     if (store.state.invoicing.invoicingAdminMode) {
       const filteredProjects =  allProjects.filter(e => {
-        const lastDate = moment(Object.values(e['Invoice Date']).pop()).format('YYYY-MM')
+        const lastDate = moment(e['Current Invoice Date']).format('YYYY-MM')
         return state.dateRange.includes(lastDate)
         })
       state.filteredInvoicing = filteredProjects
     } else {
       const filteredProjects =  allProjects.filter(e => {
-        const lastDate = moment(Object.values(e['Invoice Date']).pop()).format('YYYY-MM')
+        const lastDate = moment(e['Current Invoice Date']).format('YYYY-MM')
 
         return state.dateRange.includes(lastDate)
         && ((pms.includes(e['Project Manager']) || (e['temporaryAssign'].hasOwnProperty('personName') && _.intersection(pms, e['temporaryAssign'].personName).length > 0 )))

@@ -71,8 +71,8 @@ const actions = {
   async chooseTemplate({ commit }, tmplNames) {
     commit('setChosenTemplates', tmplNames)
   },
-  async generateTemplate({ commit, rootState, dispatch }) {
-    const generatorSelectionMode = rootState.templates.generatorSelectionMode
+  async generateTemplate({ commit, rootState, dispatch }, mode = null) {
+    const generatorSelectionMode = mode || rootState.templates.generatorSelectionMode
     const tmplDataObj = rootState.templates.chosenTemplates
     const projData = rootState.projects.chosenProjects
     async function generate(projData, t, fillData = true) {

@@ -398,6 +398,7 @@
       this.checkConnectivity(navigator.onLine)
       window.addEventListener('online',  this.changeConnectivity);
       window.addEventListener('offline', this.changeConnectivity);
+      window.addEventListener('resize', () => this.$root.$emit('windowHeightChanged'))
 
       const localRevision = localStorage.getItem('revision')
       if (localRevision !== this.revision) {
