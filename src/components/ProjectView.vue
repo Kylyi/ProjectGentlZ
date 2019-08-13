@@ -49,7 +49,6 @@
                   <v-flex v-else-if="row.type === 'text'" column wrap style="min-width: 200px;">
                     <v-text-field v-model="panes['first'][row.field]" hide-details></v-text-field>
                   </v-flex>
-
                 </v-layout>
 
                 <!-- STATIC FIELDS -->
@@ -191,7 +190,7 @@
                       <v-text-field v-model="panes[net][row.field]" hide-details></v-text-field>
                     </v-flex>
                     <v-flex v-else-if="row.type === 'number'" column wrap style="min-width: 200px;">
-                      <v-text-field v-model.number="panes[net][row.field]" hide-details></v-text-field>
+                      <v-text-field v-model.number="panes[net][row.field]" type="number" hide-details></v-text-field>
                     </v-flex>
                   </v-layout>
 
@@ -285,7 +284,8 @@ export default {
       ],
       netEditableFields: [
         // { field: 'Current Invoice Date', displayValue: 'Invoice date', type: 'date', fixingField: 'Invoice Date Fixed' },
-        { field: 'FATPlanDate', displayValue: 'FAT', type: 'date', fixingField: 'FixationFAT', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
+        { field: 'FAT', displayValue: 'FAT', type: 'date', fixingField: 'FixationFAT', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
+        { field: 'Duration', displayValue: 'FAT duration', type: 'number', source: 'sap', valueForBatch: '' },
         { field: 'PackagingDate', displayValue: 'Packaging date', type: 'date', fixingField: 'FixationPackaging', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
         { field: 'RPDispatchDate', displayValue: 'Expedition Date', type: 'date', fixingField: 'FixationExpedition', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
         { field: 'InvoiceDate', displayValue: 'Invoice date', type: 'date', fixingField: 'FixationInvoice', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
@@ -322,7 +322,6 @@ export default {
     nets() {
       if (this.chosenProjects.length === 0) return []
       let couchData = JSON.parse(JSON.stringify(this.chosenProjects[0].nets))
-      
       if (couchData.length === this.pccData.length) {
         for (let idx = 0; idx < couchData.length; idx++) {
           Object.assign(couchData[idx], this.pccData[idx])
@@ -353,7 +352,8 @@ export default {
     },
     async projChange (proj) {
       this.netEditableFields = [
-        { field: 'FATPlanDate', displayValue: 'FAT', type: 'date', fixingField: 'FixationFAT', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
+        { field: 'FAT', displayValue: 'FAT', type: 'date', fixingField: 'FixationFAT', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
+        { field: 'Duration', displayValue: 'FAT duration', type: 'number', source: 'sap', valueForBatch: '' },
         { field: 'PackagingDate', displayValue: 'Packaging date', type: 'date', fixingField: 'FixationPackaging', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
         { field: 'RPDispatchDate', displayValue: 'Expedition Date', type: 'date', fixingField: 'FixationExpedition', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
         { field: 'InvoiceDate', displayValue: 'Invoice date', type: 'date', fixingField: 'FixationInvoice', source: 'sap', valueForBatch: '', fixingFieldForBatch: false },
@@ -414,6 +414,7 @@ export default {
       for (let i = 0; i < this.nets.length; i++) {
         sapToUpdate.push({})
       }
+
       this.nets.forEach((e, idx) => {
         projSapEditableFields.forEach(x => {
           if (this.panes['first'][x.field] && x.type === 'date') {
@@ -430,7 +431,7 @@ export default {
           }
         })
       })
-
+      
       // UPDATE COUCH
       const projCouchEditableFields = this.projectEditableFields.filter(e => e.source === 'couch')
       const netCouchEditableFields = this.netEditableFields.filter(e => e.source === 'couch')
@@ -451,15 +452,17 @@ export default {
       
       sapToUpdate.forEach((e, idx) => {
         netSapEditableFields.concat(projSapEditableFields).forEach(x => {
-          if (!e[x.fixingField]) {
+
+          if (x.hasOwnProperty('fixingField') && !e[x.fixingField]) {
              delete e[x.field]
              delete e[x.fixingField]
-          }
-          if (this.pccData[idx][x.fixingField] === e[x.fixingField]) {
+          } else if (x.hasOwnProperty('fixingField') && this.pccData[idx][x.fixingField] === e[x.fixingField]) {
             delete e[x.fixingField]
             if (this.pccData[idx][x.field] === e[x.field]) {
               delete e[x.field]
             }
+          } else if (!x.hasOwnProperty('fixingField')) {
+            if (!e[x.field] || this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
           }
 
           // if (e.hasOwnProperty('fixingField') && !e.fixingField) {

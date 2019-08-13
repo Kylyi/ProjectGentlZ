@@ -1,7 +1,7 @@
 {
-  "name": "gentl",
+  "name": "gentltest",
   "description": "Administrative tool.",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "author": "Jakub Kylian",
   "homepage": "https://none.cz",
@@ -13,7 +13,7 @@
     "dist2": "yarn compile && electron-builder"
   },
   "build": {
-    "productName": "Gentl",
+    "productName": "GentlTest",
     "win": {
       "target": "nsis",
       "icon": "logo.ico",

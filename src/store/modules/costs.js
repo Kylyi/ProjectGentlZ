@@ -100,10 +100,11 @@ function getCostsForDates(data, dates) {
     })
     return e
   })
-
-  return {
-    data: result
-  }
+  return result
+  // return result.reduce((agg ,e ) => {
+  //   agg.push({ [e._id]: e })
+  //   return agg
+  // }, [])
 }
 
 const getters = {

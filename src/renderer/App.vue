@@ -171,6 +171,7 @@
         <v-icon v-if="!pccRemote.production" color="info" style="-webkit-app-region: no-drag;" title="Using test database (AB2).">
           bug_report
         </v-icon>
+        <img :src="sapLogo.icon" alt="" style="-webkit-app-region: no-drag; height: 20px;" :title="`SAP user ${sapLogo.sapFilled ? 'is' : 'is NOT'} filled.`">
         <v-icon
           :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
           style="-webkit-app-region: no-drag;"
@@ -464,7 +465,7 @@
     }),
     computed: {
       ...mapGetters(['offline', 'loggedIn', 'snackbar', 'openAfterGenerate', 'userInfo', 'notifications', 'dbConnectivity', 'password', 'invoicingSettings', 'revision',
-      'signComments', 'currentPosition', 'customDialogBody', 'pccRemote'])
+      'signComments', 'currentPosition', 'customDialogBody', 'pccRemote', 'sapLogo'])
     },
     methods: {
       ...mapActions(['loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification', 'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings', 'fetchInvoicingDetail', 'fetchHierarchySettings', 'initProjectsDb']),

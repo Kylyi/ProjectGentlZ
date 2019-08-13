@@ -35,7 +35,7 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: 'CostsBarChart',
   components: {  DxChart, DxSeries, DxCommonSeriesSettings, DxValueAxis, DxTitle, DxLegend, DxBorder, DxExport, DxTooltip, DxCommonAxisSettings, DxFormat, DxLabel},
-  props: ['selectedMonth', 'chartData', 'isParametersChanged'],
+  props: ['selectedMonth', 'chartData'],
   mounted() {
     this.$root.$on('windowHeightChanged', () => this.getSize())
     this.barChartWidth = this.$refs.costsBarChart.clientWidth / 50 * 30
@@ -52,7 +52,6 @@ export default {
   methods: {
     ...mapActions(['notify']),
     getDetail(e) {
-      if (this.isParametersChanged) return
       this.$parent.chartLevel = 1
       this.$parent.selectedMonth = e.target.argument
       this.$root.$emit('selectMonth', e.target.argument)
@@ -61,21 +60,8 @@ export default {
       return `${e.seriesName}`
     },
     getSeries(e) {
-      if (this.isParametersChanged) {
-        this.notify({
-          text: 'You have unsaved changes. Either save or cancel them first.',
-          color: 'info',
-          state: true,
-          timeout: 4000
-        })
-        return
-      }
       this.$parent.$refs['drilldownChart'].seriesSelected = [e.target.name]
       setTimeout(() => this.$parent.$refs['drilldownChart'].getDatagridData([e.target.name]), 200)
-      this.$root.$emit('selectSeries', e.target.name)
-    },
-    getWidth() {
-      this.barChartWidth = this.$refs.costsBarChart.clientWidth
     },
     getSize() {
       this.barChartWidth = this.$parent.$refs.overviewChart.clientWidth

@@ -23,7 +23,8 @@ const state = {
   contentWindowSize: {
     width: window.innerWidth - 250 - 24,
     height: window.innerHeight - 32 - 70
-  }
+  },
+  sapLoginFilled: localStorage.getItem('sapLogin') || false
 }
 
 const getters = {
@@ -51,7 +52,17 @@ const getters = {
   peopleSameLevel: state => state.peopleSameLevel,
   peoplePmFilter: state => state.peoplePmFilter,
   tasksLoading: state => state.tasksLoading,
-  contentWindowSize: state => state.contentWindowSize
+  contentWindowSize: state => state.contentWindowSize,
+  sapLogo: state => {
+    if (state.sapLoginFilled) return {
+      icon: require('../../renderer/assets/sap-icon.png'),
+      sapFilled: true
+    }
+    else return {
+      icon: require('../../renderer/assets/sap-icon-error.png'),
+      sapFilled: false
+    }
+  }
 }
 
 const actions = {

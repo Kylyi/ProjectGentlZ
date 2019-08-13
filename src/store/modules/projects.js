@@ -644,12 +644,16 @@ const actions = {
         const netsObj = e.reduce((agg, x) => Object.assign(agg, x), {})
         let netsObjToCouch = []
         Object.keys(netsObj).forEach(netNum => {
+          let netNote = netsObj[netNum].NetworkNote.split(/\n/gi)
+          console.log(netNote)
+
           netsObjToCouch.push({
             'Current Invoice Date': netsObj[netNum].InvoiceDate,
             'Contractual Delivery Date': netsObj[netNum].ContractDeliveryDate,
             'Expedition Fixed': netsObj[netNum].FixationExpedition,
             'Invoice Date Fixed': netsObj[netNum].FixationInvoice,
-            'Delivery Date': netsObj[netNum].RPDispatchDate
+            'Delivery Date': netsObj[netNum].RPDispatchDate,
+            'Network Note': netNote.join('|')
           })
         })
         dispatch('changeProjectsData', {
@@ -868,6 +872,11 @@ const actions = {
               updateRecursive(idx + 1)
             }, 1000)
           } else {
+            dispatch('fetchSapNetsData', {
+              netNums,
+              query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate',
+              notify: false
+            })
             dispatch('notify', {
               text: 'Success.',
               color: 'success',
@@ -884,6 +893,22 @@ const actions = {
       updateRecursive(0)
     } catch (error) {
       console.dir(error)
+    }
+  },
+  async addPccComment({ dispatch, commit, rootState }, { netNum, comment }) {
+    try {
+      commit('setPccLoading', true)
+      await axios.get(`${rootState.projects.pccRemote.link}NetNoteInsert?sap-client=001&NetworkNumber='${netNum}'&MainNote=''&AdditionNote='${comment}'`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'x-csrf-token': 'Fetch',
+          'cache-control': 'no-cache',
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`
+        }
+      })
+      commit('setPccLoading', false)
+    } catch (error) {
+      console.error(error)
     }
   }
 }

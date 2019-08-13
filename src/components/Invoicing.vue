@@ -592,6 +592,7 @@
       })
 
       this.$root.$on('refresh-formatting', () => {
+        console.log('REFRESH FORMATTING')
         this.refreshFormatting()
       })
 

@@ -504,7 +504,7 @@ export default {
     getSapNetsData() {
       this.fetchSapNetsData({
         netNums: this.selectedNets.map(e => e._id),
-        query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate'
+        query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate,NetworkNote'
       })
     },
     setDate(t, currentVal) {

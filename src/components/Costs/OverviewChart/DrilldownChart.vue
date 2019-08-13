@@ -58,17 +58,15 @@ export default {
   components: { DxPieChart, DxLegend, DxSeries, DxTooltip, DxFormat, DxLabel, DxConnector, DxExport },
   props: ['selectedMonth', 'chartData'],
   created() {
-    this.$root.$on('overviewGridFilterChanged', () => {
-      setTimeout(() => this.getDatagridData(this.seriesSelected), 1000)
-    })
+    this.$root.$on('chartDataLoaded', () => this.getDatagridData(this.seriesSelected))
   },
   mounted() {
     this.pieChartWidth = this.$parent.$refs.barChart.barChartWidth
     this.$root.$on('windowHeightChanged', () => this.getSize())
   },
   beforeDestroy() {
-    this.$root.$off('overviewGridFilterChanged')
     this.$root.$off('windowHeightChanged')
+    this.$root.$off('chartDataLoaded')
   },
   data() {
     return {
@@ -85,6 +83,7 @@ export default {
         return
       }
       const monthsData = this.chartData.filter(x => x.field === this.selectedMonth)
+      console.log(monthsData)
       const fields = ['RM LV', 'RM MV', 'RM UV', 'WIP LV', 'WIP MV', 'WIP UV', 'FG Total']
       let selectedMonthChartData = []
 
@@ -105,16 +104,8 @@ export default {
       })
       this.selectedMonthChartData = selectedMonthChartData
     },
-    recalculateChart(e) {
-      if (e.fullName === 'filterValue') {
-        setTimeout(() => this.getDatagridData(this.seriesSelected), 1000)
-      }
-    },
     getLabel(e) {
       return `${e.argument}: ${e.valueText}`
-    },
-    getWidth() {
-      this.pieChartWidth = this.$refs.costsPieChart.clientWidth
     },
     getSize() {
       this.pieChartWidth = this.$parent.$refs.overviewChart.clientWidth

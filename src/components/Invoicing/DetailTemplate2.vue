@@ -109,6 +109,7 @@
               <v-layout column wrap
                 style="display: block; overflow: auto; max-height: 110px; padding-top: 4px;"
               >
+                <v-flex row><v-btn small @click="$refs.sapComment.sapCommentDialog = true" block color="primary" outline>New comment</v-btn></v-flex>
                 <v-flex row wrap v-for="(comment, index) in ppesComments" :key="index">
                   {{ comment }}
                 </v-flex>
@@ -175,6 +176,8 @@
 
       </v-layout>
     </v-flex>
+    
+    <sap-comment ref="sapComment" :netNum="netData._id" />
 
   </v-layout>
 </template>
@@ -182,8 +185,12 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import moment from 'moment'
+import SapComment from './DetailTemplate/SapComment'
 export default {
   name: 'DetailTemplate2',
+  components: {
+    SapComment
+  },
   props: ['netData'],
   created() {
     this.signOptions = this.userInfo.roles.includes('invoicingAdmin') ? ['warning', 'info', 'arrow_upward', 'arrow_downward'] : ['info', 'arrow_upward', 'arrow_downward']
@@ -195,7 +202,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['notify', 'changeProjectData', 'modifyPccNetData', 'fetchSapNetsData']),
+    ...mapActions(['notify', 'changeProjectData', 'modifyPccNetsData', 'fetchSapNetsData']),
     fixField(e) {
       if (typeof(e) === 'object') {
         this.netData[e.couchFieldIfFixed] = !this.netData[e.couchFieldIfFixed]
@@ -270,30 +277,30 @@ export default {
 
       this.changeProjectData(this.netData)
       if (saveSap) {
-        let dataToSap = this.invoicingDetailVisible.filter(field => field.hasOwnProperty('sapField'))
+        let dataToSap = this.invoicingDetailVisible.filter(field => field.hasOwnProperty('sourceField'))
         dataToSap = dataToSap.reduce((agg, e) => {
           if (e.dataType === 'date') {
             if (e.hasOwnProperty('sapFixingField')) {
               agg = {...agg, [e.sapFixingField]: this.netData[e.couchFieldIfFixed]}
             }
-            return {...agg, [e.sapField]: moment(this.netData[e.value]).format().substr(0,19)}
+            return {...agg, [e.sourceField]: moment(this.netData[e.value]).format().substr(0,19)}
           } else {
             if (e.hasOwnProperty('sapFixingField')) {
               agg = {...agg, [e.sapFixingField]: this.netData[e.couchFieldIfFixed]}
             }
-            return {...agg, [e.sapField]: this.netData[e.field]}
+            return {...agg, [e.sourceField]: this.netData[e.field]}
           }
         }, {})
 
-        await this.modifyPccNetData({
-          netNum: this.netData._id,
-          data: dataToSap
-        })
-        this.fetchSapNetsData({
+        await this.modifyPccNetsData({
           netNums: [this.netData._id],
-          query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate',
-          notify: false
+          data: [dataToSap]
         })
+        // this.fetchSapNetsData({
+        //   netNums: [this.netData._id],
+        //   query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate',
+        //   notify: false
+        // })
       }
     },
     setDate(t, currentVal) {

@@ -2,11 +2,11 @@
   <div>
     <v-layout row wrap pt-1>
       <v-flex column wrap xs12 :style="`max-height:calc(100vh - 164px); position: relative;`">
-        <v-btn @click="saveChanges" small color="primary" outline style="position:absolute; z-index: 3; right: 244px; margin: 0; top: 2px;">Save changes</v-btn>
-        <v-btn @click="cancelChanges" small color="accent" outline style="position:absolute; z-index: 3; right: 370px; margin: 0; top: 2px;">Cancel changes</v-btn>
+        <v-btn @click="saveChanges" small color="primary" outline style="position:absolute; z-index: 3; right: 62px; margin: 0; top: 2px;">Save changes</v-btn>
+        <!-- <v-btn @click="cancelChanges" small color="accent" outline style="position:absolute; z-index: 3; right: 370px; margin: 0; top: 2px;">Cancel changes</v-btn> -->
         <dx-data-grid
           ref="costsTable"
-          :data-source="costsDataMonthly.data"
+          :data-source="costsDataMonthly"
           show-borders
           key-expr='_id'
           :column-auto-width="true"
@@ -29,20 +29,10 @@
 
           <dx-filter-row :visible="true"/>
           <dx-filter-panel :visible="true"/>
-          <!-- <dx-group-panel :visible="true"/> -->
-          <!-- <dx-search-panel :visible="true"/> -->
           <dx-column-chooser :enabled="true"/>
-          <!-- <dx-grouping :context-menu-enabled="false" :auto-expand-all="false" :allow-collapsing="true"/> -->
           <dx-scrolling mode="virtual" :preload-enabled="true" show-scrollbar="always" :useNative="true" row-rendering-mode="virtual" />
 
           <dx-export :enabled="true" :allow-export-selected-data="true" />
-
-          <!-- <dx-state-storing
-            :enabled="true"
-            type="localStorage"
-            storage-key="costsTable"
-            :savingTimeout="2000"
-          /> -->
 
           <dx-master-detail
             :enabled="true"
@@ -54,15 +44,15 @@
               <v-layout column>
                 <v-flex row>
                   <div style="display: inline-flex; width: 120px;"><b>Leadtimes</b></div>
-                  <v-text-field @change="dataChanged($event, data.data._id, 'lvMat_leadtime', data.data.costsParameters)" style="padding-left: 8px; display: inline-flex;" label="LV LEADTIME" :value="data.data.costsParameters.lvMat_leadtime" hide-details />
-                  <v-text-field @change="dataChanged($event, data.data._id, 'mvMat_leadtime', data.data.costsParameters)" style="padding-left: 8px; display: inline-flex;" label="MV LEADTIME" :value="data.data.costsParameters.mvMat_leadtime" hide-details />
-                  <v-text-field  @change="dataChanged($event, data.data._id, 'uvMat_leadtime', data.data.costsParameters)"style="padding-left: 8px; display: inline-flex;" label="UV LEADTIME" :value="data.data.costsParameters.uvMat_leadtime" hide-details />
+                  <v-text-field @change="dataChanged($event, data.data, 'lvMat_leadtime', data.data.costsParameters)" type="number" style="padding-left: 8px; display: inline-flex;" label="LV LEADTIME" :value="data.data.costsParameters.lvMat_leadtime" hide-details />
+                  <v-text-field @change="dataChanged($event, data.data, 'mvMat_leadtime', data.data.costsParameters)" type="number"  style="padding-left: 8px; display: inline-flex;" label="MV LEADTIME" :value="data.data.costsParameters.mvMat_leadtime" hide-details />
+                  <v-text-field  @change="dataChanged($event, data.data, 'uvMat_leadtime', data.data.costsParameters)" type="number"  style="padding-left: 8px; display: inline-flex;" label="UV LEADTIME" :value="data.data.costsParameters.uvMat_leadtime" hide-details />
                 </v-flex>
                 <v-flex row>
                   <div style="display: inline-flex; width: 120px;"><b>Material distribution</b></div>
-                  <v-text-field @change="dataChanged($event, data.data._id, 'lvMat', data.data.costsParameters)" style="padding-left: 8px; display: inline-flex;" label="LV MATERIAL" :value="data.data.costsParameters.lvMat" hide-details />
-                  <v-text-field @change="dataChanged($event, data.data._id, 'mvMat', data.data.costsParameters)" style="padding-left: 8px; display: inline-flex;" label="MV MATERIAL" :value="data.data.costsParameters.mvMat" hide-details />
-                  <v-text-field @change="dataChanged($event, data.data._id, 'uvMat', data.data.costsParameters)" style="padding-left: 8px; display: inline-flex;" label="UV MATERIAL" :value="data.data.costsParameters.uvMat" hide-details />
+                  <v-text-field @change="dataChanged($event, data.data, 'lvMat', data.data.costsParameters, 'Lv')" type="number"  style="padding-left: 8px; display: inline-flex;" label="LV MATERIAL" :value="data.data.costsParameters.lvMat" hide-details />
+                  <v-text-field @change="dataChanged($event, data.data, 'mvMat', data.data.costsParameters, 'Mv')" type="number"  style="padding-left: 8px; display: inline-flex;" label="MV MATERIAL" :value="data.data.costsParameters.mvMat" hide-details />
+                  <v-text-field @change="dataChanged($event, data.data, 'uvMat', data.data.costsParameters, 'Uv')" type="number"  style="padding-left: 8px; display: inline-flex;" label="UV MATERIAL" :value="data.data.costsParameters.uvMat" hide-details />
                 </v-flex>
               </v-layout>
             </v-container>
@@ -299,14 +289,12 @@ export default {
   components: { DxItem, DxForm },
   created() {
     if (!this.costsDataMonthly) this.getCostsDataMonthly()
-    this.$root.$on('selectSeries', (series) => console.log(series))
     this.$root.$on('selectMonth', (month) => {
       if (month) this.selectedMonth = month
       else this.selectedMonth = moment().format('YYYY-MM')
     })
   },
   beforeDestroy() {
-    this.$root.$off('selectSeries')
     this.$root.$off('selectMonth')
   },
   data() {
@@ -343,38 +331,59 @@ export default {
     },
     filterChanged(e) {
       if (e.fullName === 'filterValue') {
-        this.$root.$emit('overviewGridFilterChanged')
+        this.datagridContentReady = false
       }
     },
-    dataChanged(newVal, netNum, field, oldData) {
-      if (this.dataChanges.hasOwnProperty(netNum)) {
-        this.dataChanges[netNum]['costsParameters'][field] = Number(newVal) || 0
+    dataChanged(newVal, netData, field, oldData, category) {
+      Object.keys(netData.costs.result).forEach(e => {
+        if (e.indexOf(category) !== -1 && e.indexOf('Total') === -1 && e.indexOf('leadtime') === -1) {
+           netData.costs.result[e] = netData.costs.result[e] / oldData[field] * newVal
+        }
+      })
+      netData.costsParameters[field] = newVal
+
+      const categories = [
+        { field: 'rmTotal', condition: 'total', fields: ['rmLv', 'rmMv', 'rmUv'] },
+        { field: 'wipTotal', condition: 'total', fields: ['wipLv', 'wipMv', 'wipUv'] },
+        { field: 'fg', weight: 1 }
+      ]
+
+      this.dateRange.forEach(date => {
+        categories.forEach(c => {
+          if (c.condition === 'total') {
+            netData.costs.result[c.field + '_' + date] = c.fields.reduce((agg, f) => {
+              agg = agg + netData.costs.result[f+'_'+date]
+              return agg
+            } , 0)
+          } else {
+            netData.costs.result[c.field + '_' + date] = (netData['Planned Costs'] || 0) * c.weight / 100
+          }
+        })
+      })
+      
+      this.datagridContentReady = false
+      this.$refs['costsTable'].instance.refresh()
+
+      if (this.dataChanges.hasOwnProperty(netData._id)) {
+        this.dataChanges[netData._id]['costsParameters'][field] = Number(newVal) || 0
       } else {
         const newObj = {...oldData, [field]: Number(newVal) || 0}
-        this.dataChanges[netNum] = {
+        this.dataChanges[netData._id] = {
           costsParameters: newObj
         }
       }
-      this.$root.$emit('overviewGridParametersChanged', true)
     },
     cancelChanges() {
       this.$refs['costsTable'].instance.refresh()
       this.dataChanges = {}
-      this.$root.$emit('overviewGridParametersChanged', false)
     },
     async saveChanges() {
+      console.log(this.dataChanges)
+      
       await this.changeProjectsData({
         netNums: Object.keys(this.dataChanges),
         data: Object.values(this.dataChanges)
       })
-      this.datagridContentReady = false
-      setTimeout(() => {
-        this.getCostsDataMonthly()
-        this.dataChanges = {}
-        this.$root.$emit('overviewGridParametersChanged', false)
-        this.$refs['costsTable'].instance.refresh()
-      }, 3000)
-      
     }
   }
 }

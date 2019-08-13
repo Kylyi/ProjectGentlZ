@@ -260,9 +260,10 @@ const actions = {
       })
     }
   },
-  async setSapLogin({ commit, dispatch }, login) {
+  async setSapLogin({ commit, dispatch, rootState }, login) {
     const btoaLogin = btoa(login)
     localStorage.setItem('sapLogin', btoaLogin)
+    rootState.general.sapLoginFilled = localStorage.getItem('sapLogin')
     commit('setSapLogin', btoaLogin)
     dispatch('notify', {
       text: 'Saved.',

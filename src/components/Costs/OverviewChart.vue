@@ -15,20 +15,15 @@ import { mapActions, mapGetters } from 'vuex';
 import BarChart from './OverviewChart/BarChart'
 import DrilldownChart from './OverviewChart/DrilldownChart'
 import moment from 'moment'
+import { setTimeout } from 'timers';
 export default {
   name: 'OverviewChart',
   components: { DrilldownChart, BarChart },
   created() {
     this.$root.$on('overviewGridLoaded', () => { this.getChartData() })
-    this.$root.$on('overviewGridFilterChanged', () => {
-      setTimeout(() => this.getChartData(), 1000)
-    })
-    this.$root.$on('overviewGridParametersChanged', (state) => this.isParametersChanged = state)
   },
   beforeDestroy() {
     this.$root.$off('overviewGridLoaded')
-    this.$root.$off('overviewGridFilterChanged')
-    this.$root.$off('overviewGridParametersChanged')
   },
   data() {
     return {
@@ -60,6 +55,7 @@ export default {
         })
       })
       this.chartData = selectedMonthChartData
+      setTimeout(() => this.$root.$emit('chartDataLoaded'), 200)
     },
     getDetail(e) {
       this.chartLevel = 1
@@ -72,7 +68,6 @@ export default {
     getSeries(e) {
       this.$refs['drilldownChart'].seriesSelected = [e.target.name]
       setTimeout(() => this.$refs['drilldownChart'].getDatagridData([e.target.name]), 200)
-      this.$root.$emit('selectSeries', e.target.name)
     }
   }
 }
