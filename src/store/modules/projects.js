@@ -22,10 +22,10 @@ let projectsReplicator
 const conn = new sql.ConnectionPool(JSON.parse(readDefaultSettingFile('databaseSettings')))
 
 const state = {
-  remoteProjectsDb: 'http://Kyli:ivana#94@127.0.0.1:5984/projectsdb',
+  remoteProjectsDb: 'http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/projectsdb',
   pccRemote: {
-    link: 'http://hera3.cz.abb.com:8004/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
-    production: false
+    link: 'http://uran.cz.abb.com:8000/sap/opu/odata/SAP/ZFXCZ_PP_PCC1_SRV/',
+    production: true
   },
   allProjectsBasic: [],
   nonActiveProjects: [],
@@ -40,7 +40,8 @@ const state = {
   sapNetInfo: null,
   sapSimilarNetsInfo: [],
   taskColumns: null,
-  pccLoading: false
+  pccLoading: false,
+  projectsReplicationActive: false
 }
 
 const getters = {
@@ -157,12 +158,13 @@ const getters = {
   sapSimilarNetsInfo: state => state.sapSimilarNetsInfo,
   taskColumns: state => state.taskColumns,
   pccRemote: state => state.pccRemote,
-  pccLoading: state => state.pccLoading
+  pccLoading: state => state.pccLoading,
+  projectsReplicationActive: state => state.projectsReplicationActive
 }
 
 const actions = {
   async initProjectsDb({ dispatch, rootState }) {
-    projects = await new PouchDB('src/db/projectsdb', { revs_limit: 3 })
+    projects = await new PouchDB(`${process.env.APPDATA}/GentlDatabase/projectsdb`, { revs_limit: 3 })
     remoteProjects = await new PouchDB(rootState.projects.remoteProjectsDb, { revs_limit: 2 })
 
     console.log(remoteProjects)
@@ -470,7 +472,7 @@ const actions = {
   async stopProjectsReplication() {
     projectsReplicator.cancel()
   },
-  async startProjectsReplication() {
+  async startProjectsReplication({ commit }) {
     projectsReplicator = projects.sync(remoteProjects, { live: true, retry: true, batch_size: 2000 })
       .on('change', (c) => {
         ipcRenderer.send('projectsChange', c)
@@ -488,6 +490,14 @@ const actions = {
             if (selected.length > 0) ipcRenderer.send('selectedProjectChanged', selected[0])
           }
         }
+      })
+      .on('active', () => {
+        console.log('Replication active')
+        commit('setProjectsReplicationActive', true)
+      })
+      .on('paused', () => {
+        console.log('Replication paused')
+        commit('setProjectsReplicationActive', false)
       })
   },
   async fetchProjectRevisions({}, netNum) {
@@ -615,7 +625,7 @@ const actions = {
     .then(sapNetInfo => commit('setSapNetInfo', sapNetInfo))
     .catch(err => console.error(err))
   },
-  async fetchSapNetsData({ rootState, dispatch }, {netNums = [], query, notify = true}) {
+  async fetchSapNetsData({ rootState, dispatch, commit }, {netNums = [], query, notify = true, saveData = true}) {
     if (netNums.length === 0) return
 
     let netResponsePromises = []
@@ -642,32 +652,36 @@ const actions = {
     Promise.all(netResponsePromises)
       .then(e => {
         const netsObj = e.reduce((agg, x) => Object.assign(agg, x), {})
-        let netsObjToCouch = []
-        Object.keys(netsObj).forEach(netNum => {
-          let netNote = netsObj[netNum].NetworkNote.split(/\n/gi)
-          console.log(netNote)
+        if (saveData) {
+          let netsObjToCouch = []
+          Object.keys(netsObj).forEach(netNum => {
+            let netNote = netsObj[netNum].NetworkNote.split(/\n/gi)
 
-          netsObjToCouch.push({
-            'Current Invoice Date': netsObj[netNum].InvoiceDate,
-            'Contractual Delivery Date': netsObj[netNum].ContractDeliveryDate,
-            'Expedition Fixed': netsObj[netNum].FixationExpedition,
-            'Invoice Date Fixed': netsObj[netNum].FixationInvoice,
-            'Delivery Date': netsObj[netNum].RPDispatchDate,
-            'Network Note': netNote.join('|')
+            netsObjToCouch.push({
+              'Current Invoice Date': netsObj[netNum].InvoiceDate,
+              'Contractual Delivery Date': netsObj[netNum].ContractDeliveryDate,
+              'Expedition Fixed': netsObj[netNum].FixationExpedition,
+              'Invoice Date Fixed': netsObj[netNum].FixationInvoice,
+              'Delivery Date': netsObj[netNum].RPDispatchDate,
+              'Network Note': netNote.join('|')
+            })
           })
-        })
-        dispatch('changeProjectsData', {
-          netNums: Object.keys(netsObj),
-          data: netsObjToCouch,
-          notify
-        })
+          dispatch('changeProjectsData', {
+            netNums: Object.keys(netsObj),
+            data: netsObjToCouch,
+            notify
+          })
+        } else {
+          console.log(e)
+          commit('setSapSimilarNetsInfo', Object.values(netsObj))
+        }
       })
 
   },
   async fetchSapSimilarNets({ commit, dispatch, rootState }, netNum) {
     if (!netNum) return
 
-    fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')/NetCardToSimilarNetCards?$format=json`, {
+    fetch(`${rootState.projects.pccRemote.link}NetCardSet('${netNum}')/NetCardToSimilarNetCards?$format=json&$orderby=NetworkNumber asc`, {
       headers: {
         'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`,
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -874,7 +888,7 @@ const actions = {
           } else {
             dispatch('fetchSapNetsData', {
               netNums,
-              query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate',
+              query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate,NetworkNote',
               notify: false
             })
             dispatch('notify', {
@@ -892,7 +906,8 @@ const actions = {
       }
       updateRecursive(0)
     } catch (error) {
-      console.dir(error)
+      commit('setPccLoading', false)
+      console.error(error)
     }
   },
   async addPccComment({ dispatch, commit, rootState }, { netNum, comment }) {
@@ -906,9 +921,31 @@ const actions = {
           'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`
         }
       })
+      dispatch('fetchSapNetsData', {
+        netNums: [netNum],
+        query: '$select=InvoiceDate,FixationInvoice,FATPlanDate,ContractDeliveryDate,FixationExpedition,RPDispatchDate,NetworkNote',
+      })
+      commit('setPccLoading', false)
+    } catch (error) {
+      commit('setPccLoading', false)
+      console.error(error)
+    }
+  },
+  async completeTaskSap({ dispatch, commit, rootState }, {taskId, workDone}) {
+    try {
+      commit('setPccLoading', true)
+      await axios.get(`${rootState.projects.pccRemote.link}PrognoseTask?Duration=0M&Work=0M&WorkDone=${workDone}M&InterruptReason=''&Description=''&Tasks='${taskId}'&ChecklistTasks=''`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'x-csrf-token': 'Fetch',
+          'cache-control': 'no-cache',
+          'Authorization': `Basic ${rootState.projects.pccRemote.production ? rootState.user.sapLogin : rootState.user.sapLoginTest}`
+        }
+      })
       commit('setPccLoading', false)
     } catch (error) {
       console.error(error)
+      commit('setPccLoading', false)
     }
   }
 }
@@ -929,7 +966,8 @@ const mutations = {
   setSapSimilarNetsInfo: (state, netInfos) => state.sapSimilarNetsInfo = netInfos,
   setTaskColumns: (state, columns) => state.taskColumns = columns,
   setPccRemote: (state, pccRemote) => state.pccRemote = pccRemote,
-  setPccLoading: (state, val) => state.pccLoading = val
+  setPccLoading: (state, val) => state.pccLoading = val,
+  setProjectsReplicationActive: (state, val) => state.projectsReplicationActive = val
 }
 
 export default {

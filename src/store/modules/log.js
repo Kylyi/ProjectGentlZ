@@ -4,8 +4,9 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteLog = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/log')
-const log = new PouchDB('src/db/log')
+const remoteLog = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/log')
+// const log = new PouchDB('src/db/log')
+const log = new PouchDB(`${process.env.APPDATA}/GentlDatabase/log`)
 
 log.sync(remoteLog, {
   live: true,

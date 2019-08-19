@@ -61,9 +61,9 @@ export default new Router({
       component: require('../components/Settings.vue').default
     },
     {
-      path: '/importInvoicing',
-      name: 'importInvoicing',
-      component: require('../components/Invoicing/ImportInvoicing.vue').default
+      path: '/loadPage',
+      name: 'loadPage',
+      component: require('../components/LoadPage.vue').default
     },
     {
       path: '*',

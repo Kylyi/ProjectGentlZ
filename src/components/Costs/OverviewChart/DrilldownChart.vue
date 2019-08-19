@@ -83,10 +83,9 @@ export default {
         return
       }
       const monthsData = this.chartData.filter(x => x.field === this.selectedMonth)
-      console.log(monthsData)
-      const fields = ['RM LV', 'RM MV', 'RM UV', 'WIP LV', 'WIP MV', 'WIP UV', 'FG Total']
+      const fields = ['RM LV', 'RM MV', 'RM UV', 'RM EX', 'WIP LV', 'WIP MV', 'WIP UV', 'WIP EX']
       let selectedMonthChartData = []
-
+      
       fields.forEach(f => {
         let isSelected = false
 
@@ -102,6 +101,19 @@ export default {
         }
 
       })
+
+      if (e.includes('FG')) {
+        selectedMonthChartData.push(
+          {
+            field: 'FG',
+            value: monthsData[0]['FG Total'] - monthsData[0]['FG EX']
+          },
+          {
+            field: 'FG EX',
+            value: monthsData[0]['FG EX']
+          }
+        )
+      }
       this.selectedMonthChartData = selectedMonthChartData
     },
     getLabel(e) {

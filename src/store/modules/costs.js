@@ -1,18 +1,25 @@
 import moment from 'moment'
 import _ from 'underscore'
+
 const state = {
   costsData: [],
-  costsDataMonthly: null
+  costsDataMonthly: [],
+  costsDataRealLastUpdate: [],
+  costsLoading: true
 }
 
-function getCostsForDates(data, dates) {
-  // let chartData = dates.reduce((agg, e) => {
-  //   const costsMonth = moment(e).format('YYYY-MM')
-  //   const newDataObj = {
-  //     [costsMonth]: { rmLv: 0, rmMv: 0, rmUv: 0, rmTotal: 0, wipLv: 0, wipMv: 0, wipUv: 0, wipTotal: 0, fgTotal: 0, costsMonth }}
-  //   Object.assign(agg, newDataObj)
-  //   return agg
-  // }, {})
+function getCostsForDates(data, dates, returnSum = false) {
+  let sums = {
+    rmLv: 0,
+    rmMv: 0,
+    rmUv: 0,
+    rmTotal: 0,
+    wipLv: 0,
+    wipMv: 0,
+    wipUv: 0,
+    wipTotal: 0,
+    fg: 0
+  }
 
   const result =  data.map(e => {
     const hasParameters = e.hasOwnProperty('costsParameters')
@@ -39,16 +46,16 @@ function getCostsForDates(data, dates) {
     dates.forEach(date => {
       date = moment(date)
       const costsMonth = date.format('YYYY-MM')
-      const isRmLv = date >= moment(e.costsOperations['op0130_esd']).subtract(lvmat_leadtime, 'days') && date < moment(e.costsOperations['op0130_esd'])
-      const isRmMv = (date >= moment(e.costsOperations['op0800_esd']).subtract(mvmat_leadtime, 'days') || date >= moment(e.costsOperations['op0805_esd']).subtract(mvmat_leadtime, 'days')) && 
-        (date < moment(e.costsOperations['op0800_esd']) && date < moment(e.costsOperations['op0805_esd']))
-      const isRmUv = date >= moment(e.costsOperations['op0105_esd']).subtract(uvmat_leadtime, 'days') && date < moment(e.costsOperations['op0105_esd'])
+      const isRmLv = date.isSameOrAfter(moment(e.costsOperations['op0130_esd'] || 0).subtract(lvmat_leadtime, 'days').format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0130_esd'] || 0).format('YYYY-MM-DD'))
+      const isRmMv = (date.isSameOrAfter(moment(e.costsOperations['op0800_esd'] || 0).subtract(mvmat_leadtime, 'days').format('YYYY-MM-DD')) || date.isSameOrAfter(moment(e.costsOperations['op0805_esd'] || 0).subtract(mvmat_leadtime, 'days').format('YYYY-MM-DD'))) && 
+        (date.isBefore(moment(e.costsOperations['op0800_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0805_esd'] || 0).format('YYYY-MM-DD')))
+      const isRmUv = date.isSameOrAfter(moment(e.costsOperations['op0105_esd'] || 0).subtract(uvmat_leadtime, 'days').format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0105_esd'] || 0).format('YYYY-MM-DD'))
 
-      const isWipLv = date >= moment(e.costsOperations['op0130_esd']) && date < moment(e.costsOperations['op0420_efd'])
-      const isWipMv = ( date >= moment(e.costsOperations['op0800_esd']) || date >= moment(e.costsOperations['op0805_esd']) ) && date < moment(e.costsOperations['op0420_efd'])
-      const isWipUv = date >= moment(e.costsOperations['op0105_esd']) && date < moment(e.costsOperations['op0420_efd'])
+      const isWipLv = date.isSameOrAfter(moment(e.costsOperations['op0130_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
+      const isWipMv = ( date.isSameOrAfter(moment(e.costsOperations['op0800_esd'] || 0).format('YYYY-MM-DD')) || date.isSameOrAfter(moment(e.costsOperations['op0805_esd'] || 0).format('YYYY-MM-DD') )) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
+      const isWipUv = date.isSameOrAfter(moment(e.costsOperations['op0105_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
 
-      const isFg = date >= moment(e.costsOperations['op0420_efd']) && date < (e.costsOperations['op0431_cfd'] ? moment(e.costsOperations['op0431_cfd']) : moment(e.costsOperations['op0431_esd']))
+      const isFg = date.isSameOrAfter(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD')) && date.isBefore((e.costsOperations['op0431_cfd'] ? moment(e.costsOperations['op0431_cfd']).format('YYYY-MM-DD') : moment(e.costsOperations['op0431_esd'] || 0).format('YYYY-MM-DD')))
 
       const categories = [
         { field: 'rmLv', weight: lvMat, condition: isRmLv },
@@ -59,7 +66,7 @@ function getCostsForDates(data, dates) {
         { field: 'wipMv', weight: mvMat, condition: isWipMv },
         { field: 'wipUv', weight: uvMat, condition: isWipUv },
         { field: 'wipTotal', condition: 'total', fields: ['wipLv', 'wipMv', 'wipUv'] },
-        { field: 'fg', weight: 1, condition: isFg }
+        { field: 'fg', weight: 100, condition: isFg }
       ]
 
       categories.forEach(c => {
@@ -68,66 +75,93 @@ function getCostsForDates(data, dates) {
         } else {
           e['costs']['result'][c.field+'_'+costsMonth] = c.condition ? (e['Planned Costs'] || 0) * c.weight / 100 : 0
         }
+        if (returnSum) {
+          sums[c.field] += e.costs.result[c.field+'_'+costsMonth]
+        }
       })
-
-      // e['costs']['result']['rmLv_'+costsMonth] = isRmLv ? (e['Planned Costs'] || 0) * lvMat / 100 : 0
-      // e['costs']['result']['rmMv_'+costsMonth] = isRmMv ? (e['Planned Costs'] || 0) * mvMat / 100 : 0
-      // e['costs']['result']['rmUv_'+costsMonth] = isRmUv ? (e['Planned Costs'] || 0) * uvMat / 100 : 0
-      // e['costs']['result']['rmTotal_'+costsMonth] = e['costs']['result']['rmLv_'+costsMonth] + e['costs']['result']['rmMv_'+costsMonth] + e['costs']['result']['rmUv_'+costsMonth]
-
-      // e['costs']['result']['wipLv_'+costsMonth] = isWipLv ? (e['Planned Costs'] || 0) * lvMat / 100 : 0
-      // e['costs']['result']['wipMv_'+costsMonth] = isWipMv ? (e['Planned Costs'] || 0) * mvMat / 100 : 0
-      // e['costs']['result']['wipUv_'+costsMonth] = isWipUv ? (e['Planned Costs'] || 0) * uvMat / 100 : 0
-      // e['costs']['result']['wipTotal_'+costsMonth] = e['costs']['result']['wipLv_'+costsMonth] + e['costs']['result']['wipMv_'+costsMonth] + e['costs']['result']['wipUv_'+costsMonth]
-
-      // e['costs']['result']['fg_'+costsMonth] = isFg ? (e['Planned Costs'] || 0) : 0
-
-
-      // CHART DATA OBSOLETE
-      // chartData[costsMonth].rmLv += e['costs']['result']['rmLv_'+costsMonth]
-      // chartData[costsMonth].rmMv += e['costs']['result']['rmMv_'+costsMonth]
-      // chartData[costsMonth].rmUv += e['costs']['result']['rmUv_'+costsMonth]
-
-      // chartData[costsMonth].wipLv += e['costs']['result']['wipLv_'+costsMonth]
-      // chartData[costsMonth].wipMv += e['costs']['result']['wipMv_'+costsMonth]
-      // chartData[costsMonth].wipUv += e['costs']['result']['wipUv_'+costsMonth]
-
-
-      // chartData[costsMonth].rmTotal += e['costs']['result']['rmTotal_'+costsMonth]
-      // chartData[costsMonth].wipTotal += e['costs']['result']['wipTotal_'+costsMonth]
-      // chartData[costsMonth].fgTotal += e['costs']['result']['fg_'+costsMonth]
 
     })
     return e
   })
-  return result
-  // return result.reduce((agg ,e ) => {
-  //   agg.push({ [e._id]: e })
-  //   return agg
-  // }, [])
+
+  if (returnSum) {
+    return sums
+  } else {
+    return result
+  }
 }
 
 const getters = {
   costsData: (state, getters) => {
     let allProjects = JSON.parse(JSON.stringify(getters.allProjectsBasic))
-    return allProjects.filter(e => e.hasOwnProperty('costsOperations'))
+    return allProjects.filter(e => e.hasOwnProperty('costsOperations') && e['Net Status from Tasks'] !== 'E')
   },
-  costsDataMonthly: state => state.costsDataMonthly
+  costsDataMonthly: state => state.costsDataMonthly,
+  costsDataRealLastUpdate: state => state.costsDataRealLastUpdate,
+  costsLoading: state => state.costsLoading
 }
 
 const actions = {
-  async getCostsDataMonthly({ commit, rootState }, isChartData = false) {
+  async getCostsDataMonthly({ commit, rootState, dispatch }, date = false) {
     let allProjects = JSON.parse(JSON.stringify(rootState.projects.allProjectsBasic))
-    allProjects = allProjects.filter(e => e.hasOwnProperty('costsOperations'))
+    allProjects = allProjects.filter(e => e.hasOwnProperty('costsOperations') && e['Net Status from Tasks'] !== 'E')
     const dateRange = [0,1,2,3,4,5,6,7,8,9,10,11].map(e => moment().add(e, 'months').endOf('month').format('YYYY-MM-DD'))
-    
-    const data = getCostsForDates(allProjects, dateRange, isChartData)
+
+    const data = getCostsForDates(allProjects, dateRange)
+    const lastUpdate = date || rootState.settings.costsSettings['lastUpdate']
+
+    let additionalData = []
+    if (moment(dateRange[0]).format('YYYY-MM') === moment(lastUpdate).format('YYYY-MM')) {
+      additionalData = getCostsForDates(JSON.parse(JSON.stringify(allProjects)), [moment(lastUpdate).format('YYYY-MM-DD')], true)
+      const lastUpdateMonth = moment(lastUpdate).format('YYYY-MM')
+      const realData = rootState.settings.costsSettings.realData[lastUpdate]
+      const extraRow = {
+        _id: 'Real data',
+        'Network Description': `Data for ${lastUpdate}`,
+        costs: {
+          result: {
+            ['rmTotal_' + lastUpdateMonth]: additionalData.rmTotal - realData.rmTotal,
+            ['rmEx_' + lastUpdateMonth]: additionalData.rmTotal - realData.rmTotal,
+            ['wipTotal_' + lastUpdateMonth]: additionalData.wipTotal - realData.wipTotal,
+            ['wipEx_' + lastUpdateMonth]: additionalData.wipTotal - realData.wipTotal,
+            ['fg_' + lastUpdateMonth]: additionalData.fg - realData.fg,
+            ['fgEx_' + lastUpdateMonth]: additionalData.fg - realData.fg
+          }
+        }
+      }
+      data.push(extraRow)
+
+    } else {
+      dispatch('notify', {
+        text: 'There are no real data for current month',
+        color: 'info',
+        state: true,
+        timeout: 5000
+      })
+    }
+
     commit('setCostsDataMonthly', data)
+    commit('setCostsLoading', false)
+  },
+  async getCostsDataRealLastUpdate({ commit, rootState }, date = false) {
+    let allProjects = JSON.parse(JSON.stringify(rootState.projects.allProjectsBasic))
+    allProjects = allProjects.filter(e => e.hasOwnProperty('costsOperations') && e._id === '1000044127')
+    const lastUpdate = date || rootState.settings.costsSettings['lastUpdate']
+
+    const dateRange = [moment(lastUpdate).format('YYYY-MM-DD')]
+
+    const data = getCostsForDates(allProjects, dateRange, true)
+    console.log(data)
+
+  },
+  setCostsLoading({ commit }, val = true) {
+    commit('setCostsLoading', val)
   }
 }
 
 const mutations = {
-  setCostsDataMonthly: (state, data) => state.costsDataMonthly = data
+  setCostsDataMonthly: (state, data) => state.costsDataMonthly = data,
+  setCostsLoading: (state, val) => state.costsLoading = val
 }
 
 export default {

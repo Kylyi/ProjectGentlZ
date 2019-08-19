@@ -4,25 +4,28 @@ import username from 'username'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteSettings = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/settings')
-const settings = new PouchDB('src/db/settings')
+const remoteSettings = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/settings')
+const settings = new PouchDB(`${process.env.APPDATA}/GentlDatabase/settings`)
 settings.sync(remoteSettings, { live: true, retry: true, batch_size: 50 })
   .on('change', (c) => {
     console.dir(c)
     if (c.direction === 'pull') {
       store.dispatch('fetchInvoicingSettings', true)
       store.dispatch('fetchHierarchySettings')
+      store.dispatch('fetchCostsSettings')
     }
   })
 
 const state = {
   invoicingSettings: null,
-  hierarchySettings: null
+  hierarchySettings: null,
+  costsSettings: {}
 }
 
 const getters = {
   invoicingSettings: state => state.invoicingSettings,
-  hierarchySettings: state => state.hierarchySettings
+  hierarchySettings: state => state.hierarchySettings,
+  costsSettings: state => state.costsSettings
 }
 
 const actions = {
@@ -87,12 +90,51 @@ const actions = {
     } catch (err) {
       
     }
+  },
+  async overwriteCostsSettings({ dispatch, commit }, data) {
+    try {
+      let newDoc
+      await settings.upsert('costs', doc => {
+        Object.assign(doc.realData, data.realData)
+        doc.lastUpdate = data.lastUpdate
+        doc.lastUpdateMonth = data.lastUpdateMonth
+        newDoc = JSON.parse(JSON.stringify(doc))
+        return doc
+      })
+      dispatch('notify', {
+        text: 'Saved.',
+        state: true,
+        color: 'success'
+      })
+      delete newDoc['_id']
+      delete newDoc['_rev']
+      commit('setCostsSettings', newDoc)
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
+  },
+  async fetchCostsSettings({ commit, dispatch }) {
+    try {
+      const costsSettings = await settings.get('costs')
+      commit('setCostsSettings', costsSettings)
+    } catch (error) {
+      dispatch('notify', {
+        text: error,
+        state: true,
+        color: 'error'
+      })
+    }
   }
 }
 
 const mutations = {
   setInvoicingSettings: (state, invSettings) => state.invoicingSettings = invSettings,
-  setHierarchySettings: (state, hierSettings) => state.hierarchySettings = hierSettings
+  setHierarchySettings: (state, hierSettings) => state.hierarchySettings = hierSettings,
+  setCostsSettings: (state, data) => state.costsSettings = data
 }
 
 export default {

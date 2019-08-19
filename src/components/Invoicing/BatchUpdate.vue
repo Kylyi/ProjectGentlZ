@@ -70,6 +70,7 @@
                             mask="####-##-##"
                             placeholder="YYYY-MM-DD"
                             :return-masked-value="true"
+                            :disabled="!field[idx]['newFixingVal']"
                           ></v-text-field>
                         </template>
                         <v-date-picker v-model="field[idx].newVal" first-day-of-week="1"></v-date-picker>
@@ -84,6 +85,7 @@
                         thousand-separator=" "
                         decimal-separator=","
                         :precision="0"
+                        :read-only="!field[idx]['newFixingVal']"
                       ></vue-numeric>
                     </template>
 
@@ -93,6 +95,7 @@
                         :type="field.dataType"
                         style="width: 100%;"
                         hide-details
+                        :disabled="!field[idx]['newFixingVal']"
                       ></v-text-field>
                     </template>
 
@@ -470,7 +473,7 @@ export default {
           if (field.source === 'sap') {
             fieldsToEditSap.push({
               [field['sapFixingField']]: field.newFixingVal,
-              [field['sourceField']]: field.newVal
+              [field['sourceField']]: field.dataType === 'date' ? field.newVal + 'T10:00:00' : field.newVal
             })
           }
         })

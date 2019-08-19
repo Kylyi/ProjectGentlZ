@@ -18,11 +18,10 @@
         :word-wrap-enabled="true"
         :column-min-width="20"
         no-data-text="No network selected or possible connection problems."
+        style="width: 100; height: 100%;"
       >
-        <dx-header-filter
-          :visible="true"
-          :allow-search="true"
-        />
+        <dx-header-filter :visible="true" :allow-search="true" />
+        <dx-scrolling show-scrollbar="always" :useNative="true" />
 
         <dx-column-chooser :enabled="true"/>
         <dx-state-storing
@@ -41,6 +40,17 @@
           :format="col.dataType === 'number' ? '#,##0' : col.dataType === 'date' ? 'dd.MM.yy' : ''"
           :visible="col.visible"
         />
+
+        <dx-column
+          cell-template="taskDoneTemplate"
+          width="20"
+        />
+
+        <div
+          slot="taskDoneTemplate"
+          slot-scope="data">
+          <v-icon :disabled="!data.data.MayStart" @click="completeTask(data.data)" style="font-size: small;" color="success">check</v-icon>
+        </div>
 
       </dx-data-grid>
       
@@ -70,7 +80,16 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['notify', 'setTaskColumns'])
+    ...mapActions(['notify', 'setTaskColumns', 'completeTaskSap']),
+    completeTask(taskData) {
+      const cnf = confirm('Do you want to complete this task?')
+      if (cnf) {
+        this.completeTaskSap({
+          taskId: taskData.TaskID,
+          workDone: taskData.ActualPrognosis * 7.5
+        })
+      }
+    }
   }
 }
 </script>

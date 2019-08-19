@@ -7,8 +7,8 @@ import PouchDB from 'pouchdb'
 PouchDB.plugin(require('pouchdb-find'))
 PouchDB.plugin(require('pouchdb-upsert'))
 
-const remoteUsers = new PouchDB('http://Kyli:ivana#94@127.0.0.1:5984/users')
-const userDb = new PouchDB('src/db/user')
+const remoteUsers = new PouchDB('http://gentl_admin:jacob2603@XC-S-ZW00410.XC.ABB.COM:5984/users')
+const userDb = new PouchDB(`${process.env.APPDATA}/GentlDatabase/user`)
 
 async function getUserInfo() {
   const loggedUser = username.sync().toLowerCase()
@@ -293,10 +293,7 @@ const actions = {
 }
 
 const mutations = {
-  setLoggedIn: (state, validLogin) => {
-    state.loggedIn = validLogin
-    setTimeout(() => ipcRenderer.send('appIsReady', true))
-  },
+  setLoggedIn: (state, validLogin) => state.loggedIn = validLogin,
   setUserInfo: (state, userInfo) => state.userInfo = userInfo,
   setUserPassword: (state, password) => state.password = password,
   validPassword: (state, valid) => state.validPassword = valid,

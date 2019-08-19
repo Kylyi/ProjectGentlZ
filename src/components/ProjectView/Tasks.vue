@@ -38,6 +38,17 @@
         :visible="col.visible"
       />
 
+      <dx-column
+          cell-template="taskDoneTemplate"
+          width="20"
+        />
+
+        <div
+          slot="taskDoneTemplate"
+          slot-scope="data">
+          <v-icon :disabled="!data.data.MayStart" @click="completeTask(data.data)" style="font-size: small;" color="success">check</v-icon>
+        </div>
+
     </dx-data-grid>
   </v-layout>
 </template>

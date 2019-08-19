@@ -5,11 +5,11 @@
         id="costsChart"
         class="pointer-on-bars"
         :data-source="chartData"
-        title="Costs"
         :size="{height: barChartHeight, width: barChartWidth}"
         @point-click="getDetail"
         @series-click="getSeries"
       >
+        <dx-title text="Costs" :subtitle="{text: 'Shows planned costs at the end of month'}"></dx-title>
         <dx-common-series-settings argument-field="field" type="stackedbar"/>
         <dx-series value-field="RM Total" name="RM">
           <!-- <dx-label :customize-text="getLabel" :visible="true" /> -->

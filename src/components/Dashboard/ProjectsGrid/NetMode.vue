@@ -1,5 +1,5 @@
 <template>
-  <v-layout id="netMode" mt-3>
+  <v-layout id="netMode" mt-3 style="max-height: 100%;">
     <dx-data-grid
       ref="networksTable"
       :data-source="pmProjectsBasic"
@@ -16,6 +16,7 @@
       @focused-row-changing="onSelectionChanged"
       :focused-row-enabled="true"
       :repaint-changes-only="true"
+      style="width: 100%; height: 100%;"
     >
       <dx-paging :enabled="true" :page-size="50"></dx-paging>
       <dx-master-detail

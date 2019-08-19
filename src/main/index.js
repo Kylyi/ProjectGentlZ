@@ -29,6 +29,44 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow
+let loadWindow
+let newWindow
+
+function createLoadWindow() {
+  const window = new BrowserWindow({
+    frame: false,
+    show: true,
+    width: 380,
+    height: 385,
+    webPreferences: {
+      plugins: true,
+      webSecurity: false,
+      nodeIntegration: true
+    }
+  })
+
+  if (isDevelopment) {
+    window.loadURL(formatUrl({
+      pathname: path.join(__dirname, 'loadingPage.html'),
+      protocol: 'file',
+      slashes: true
+    }))
+  }
+  else {
+    window.loadURL(formatUrl({
+      pathname: path.join(__dirname, '..', 'defaultSettings', 'loadingPage.html'),
+      protocol: 'file',
+      slashes: true
+    }))
+  }
+
+  window.on('closed', () => {
+    loadWindow = null
+  })
+  
+  return window
+}
+
 
 function createMainWindow() {
   const window = new BrowserWindow({
@@ -41,15 +79,11 @@ function createMainWindow() {
     // fullscreen: true,
     webPreferences: {
       plugins: true,
-      webSecurity: false
+      webSecurity: false,
+      nodeIntegration: true,
+      webviewTag: true
     }
   })
-
-  // if (isDevelopment) {
-  //   window.webContents.openDevTools()
-  // }
-
-  // window.webContents.openDevTools()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -95,7 +129,12 @@ app.on('activate', () => {
 
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
+  loadWindow = createLoadWindow()
   mainWindow = createMainWindow()
+
+  mainWindow.once('show', () => {
+    loadWindow.close()
+  })
   
   mainWindow.webContents.on('new-window', (event, url) => {
     event.preventDefault()
@@ -109,29 +148,10 @@ app.on('ready', () => {
   })
 })
 
-// ipcMain.on('tmpl-gen', (e, data) => {
-//   if (data.tmplType === 'docx') {
-//     generate(data, (p) => {
-//       e.sender.send('generated', p)
-//     })
-//   } else if (data.tmplType === 'xlsx') {
-//     generateXlsx(data, (p) => {
-//       e.sender.send('generated', p)
-//     })
-//   }
-// })
-
-ipcMain.on('appIsReady', (e, isReady) => {
-  if (isReady) mainWindow.show()
-})
-
-ipcMain.on('new-template-downloaded', (e, data) => {
-  console.log(data)
-  e.sender.send('new-template-added-info', data)
-})
-
-ipcMain.on('new-project-downloaded', (e, data) => {
-  e.sender.send('new-project-added-info', data)
+ipcMain.on('appReady', (e, isReady) => {
+  if (isReady) {
+    mainWindow.show()
+  }
 })
 
 ipcMain.on('userInfo', (e, userInfo) => {
@@ -188,4 +208,5 @@ ipcMain.on('check-for-updates', (e) => {
   })
 
 })
+
 

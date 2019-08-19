@@ -25,7 +25,15 @@
           <Split ref="splitPane" style="height: calc(100vh - 206px);">
             <SplitArea :size="33" :minSize="275" >
               <v-layout column wrap style="padding: 8px;" class="paneArea">
-                <v-flex row style="height: 49px; display: flex; font-size: larger; align-items: flex-end; color: #ff5252; border-bottom: 1px solid rgba(0, 0, 0, 0.42);"><b>Basic project info</b></v-flex>
+                <v-flex row style="height: 49px; display: flex; font-size: larger; align-items: flex-end; color: #ff5252; border-bottom: 1px solid rgba(0, 0, 0, 0.42);">
+                  <v-layout row wrap>
+                    <v-flex column grow><b>Basic project info</b></v-flex>
+                    <v-flex column shrink>
+                      <i class="couchField">GENTL data &nbsp;</i>
+                      <i class="sapField">SAP data</i>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
 
                 <!-- EDITABLE FIELDS -->
                 <v-flex row style="margin-top: 19px;"><b style="color: #ff5252;">Editable</b></v-flex>
@@ -36,7 +44,7 @@
                   style="padding: 2px; border-bottom: 1px dashed darkgray;"
                   class="highlightRow"
                   >
-                  <v-flex column wrap class="fieldName"> {{ row.displayValue }} </v-flex>
+                  <v-flex column wrap :class="`fieldName ${row.source === 'sap' ? 'sapField' : 'couchField'}`"> {{ row.displayValue }} </v-flex>
 
                   <v-flex v-if="row.type === 'autocomplete'" column wrap style="min-width: 200px;">
                     <v-autocomplete v-model="panes['first'][row.field]" :items="row.items" hide-details></v-autocomplete>
@@ -60,7 +68,7 @@
                   style="padding: 2px; border-bottom: 1px dashed darkgray;"
                   class="highlightRow"
                   >
-                  <v-flex column wrap class="fieldName"> {{ row.displayValue }} </v-flex>
+                  <v-flex column wrap :class="`fieldName ${row.source === 'sap' ? 'sapField' : 'couchField'}`"> {{ row.displayValue }} </v-flex>
                   <v-flex column wrap style="min-width: 200px;">
                     <v-text-field v-model="panes['first'][row.field]" readonly hide-details></v-text-field>
                   </v-flex>
@@ -83,7 +91,7 @@
                           style="padding: 2px; border-bottom: 1px dashed darkgray;"
                           class="highlightRow"
                           >
-                          <v-flex column wrap class="fieldName"> {{ row.displayValue }} </v-flex>
+                          <v-flex column wrap :class="`fieldName ${row.source === 'sap' ? 'sapField' : 'couchField'}`"> {{ row.displayValue }} </v-flex>
                           <v-flex v-if="row.type === 'date'" column wrap style="min-width: 150px;">
                             <v-layout row wrap>
                               <v-flex column grow>
@@ -155,7 +163,7 @@
                     style="padding: 2px; border-bottom: 1px dashed darkgray;"
                     class="highlightRow"
                     >
-                    <v-flex column wrap class="fieldName"> {{ row.displayValue }} </v-flex>
+                    <v-flex column wrap :class="`fieldName ${row.source === 'sap' ? 'sapField' : 'couchField'}`"> {{ row.displayValue }} </v-flex>
                     <v-flex v-if="row.type === 'date'" column wrap style="min-width: 150px;">
                       <v-layout row wrap>
                         <v-flex column grow>
@@ -203,7 +211,7 @@
                     style="padding: 2px; border-bottom: 1px dashed darkgray;"
                     class="highlightRow"
                   >
-                    <v-flex column wrap class="fieldName"> {{ row.displayValue }}: </v-flex>
+                    <v-flex column wrap :class="`fieldName ${row.source === 'sap' ? 'sapField' : 'couchField'}`"> {{ row.displayValue }}: </v-flex>
                     <v-flex column wrap style="min-width: 200px;">
                       <v-text-field v-model="panes[net][row.field]" hide-details readonly></v-text-field>
                     </v-flex>
@@ -322,15 +330,25 @@ export default {
     nets() {
       if (this.chosenProjects.length === 0) return []
       let couchData = JSON.parse(JSON.stringify(this.chosenProjects[0].nets))
-      if (couchData.length === this.pccData.length) {
-        for (let idx = 0; idx < couchData.length; idx++) {
-          Object.assign(couchData[idx], this.pccData[idx])
+      couchData.forEach(net => {
+        if (this.pccData.length > 0) {
+          const idx = this.pccData.map(e => e['NetworkNumber'] === net._id).indexOf(true)
+          if (idx !== -1) {
+            Object.assign(net, this.pccData[idx])
+          }
         }
-      }
+      })
+      // console.log('Couch length: '+ couchData.length + ', SAP length: ' + this.pccData.length)
+      // if (couchData.length === this.pccData.length) {
+      //   for (let idx = 0; idx < couchData.length; idx++) {
+      //     Object.assign(couchData[idx], this.pccData[idx])
+      //   }
+      // }
       return couchData
     },
     pccData() {
-      return [this.sapNetInfo].concat(this.sapSimilarNetsInfo)
+      return this.sapSimilarNetsInfo
+      // return [this.sapNetInfo].concat(this.sapSimilarNetsInfo)
     },
     panes() {
       let panes = {}
@@ -346,7 +364,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['chooseProjects', 'fetchSapSimilarNets', 'fetchSapNetData', 'fetchMultipleNetsTasksInfo', 'modifyPccNetsData', 'changeProjectsData']),
+    ...mapActions(['chooseProjects', 'fetchSapSimilarNets', 'fetchSapNetsData', 'fetchMultipleNetsTasksInfo', 'modifyPccNetsData', 'changeProjectsData']),
     projNetNo (proj) {
       return `${proj['Project Definition']}: ${proj['Project Name'] || ''}`
     },
@@ -367,8 +385,13 @@ export default {
       ]
       if (proj) {
         this.chooseProjects([])
-        this.fetchSapNetData(proj._id)
-        this.fetchSapSimilarNets(proj._id)
+        // this.fetchSapSimilarNets(proj._id)
+        this.fetchSapNetsData({
+          netNums: proj.nets_keys,
+          query: '$select=PackagingType,DeliveryCondition,FAT,FixationFAT,Duration,PackagingDate,FixationPackaging,RPDispatchDate,FixationExpedition,InvoiceDate,FixationInvoice,FATRealDate,ExpeditionPlanDate,ContractDeliveryDate,AnnouncedDeliveryDate,PanelType1,PanelType1Number,NetworkNumber',
+          notify: false,
+          saveData: false
+        })
         this.fetchMultipleNetsTasksInfo(proj.nets_keys)
         this.netsKeys = proj.nets_keys
         this.$nextTick(() => this.chooseProjects(proj))
@@ -405,6 +428,8 @@ export default {
     },
     save() {
       if (this.chosenProjects.length === 0) return
+      const netNumsCouch = this.netsKeys
+      const netNumsSap = this.pccData.map(e => e['NetworkNumber'])
 
       // UPDATE SAP
       const projSapEditableFields = this.projectEditableFields.filter(e => e.source === 'sap')
@@ -451,34 +476,26 @@ export default {
       console.log('To be sent to CouchDB: ', couchToUpdate)
       
       sapToUpdate.forEach((e, idx) => {
+        const idxPcc = netNumsSap.indexOf(netNumsCouch[idx])
         netSapEditableFields.concat(projSapEditableFields).forEach(x => {
-
           if (x.hasOwnProperty('fixingField') && !e[x.fixingField]) {
              delete e[x.field]
              delete e[x.fixingField]
-          } else if (x.hasOwnProperty('fixingField') && this.pccData[idx][x.fixingField] === e[x.fixingField]) {
+          } else if (x.hasOwnProperty('fixingField') && this.pccData[idxPcc][x.fixingField] === e[x.fixingField]) {
             delete e[x.fixingField]
-            if (this.pccData[idx][x.field] === e[x.field]) {
+            if (this.pccData[idxPcc][x.field] === (x.type === 'date' ? e[x.field].substr(0,10) : e[x.field])) {
               delete e[x.field]
             }
           } else if (!x.hasOwnProperty('fixingField')) {
-            if (!e[x.field] || this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
+            if (!e[x.field] || this.pccData[idxPcc][x.field] === (x.type === 'date' ? e[x.field].substr(0,10) : e[x.field])) delete e[x.field]
           }
-
-          // if (e.hasOwnProperty('fixingField') && !e.fixingField) {
-          //   delete e[x.fixingField]
-          //   if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
-          //   else if (!e[x.field]) delete e[x.field]
-          // } else {
-          //   if (this.pccData[idx][x.field] === e[x.field]) delete e[x.field]
-          //   else if (!e[x.field]) delete e[x.field]
-          // }
         })
       })
       console.log('To be sent to PCC: ', sapToUpdate)
       this.changeProjectsData({
         netNums: this.netsKeys,
-        data: couchToUpdate
+        data: couchToUpdate,
+        notify: false
       })
       this.modifyPccNetsData({
         netNums: this.netsKeys,
@@ -568,5 +585,11 @@ export default {
     .el-collapse-item__content {
       padding-bottom: 0;
     }
+  }
+  .sapField {
+    color: cornflowerblue;
+  }
+  .couchField {
+    color: #ce6b6b;
   }
 </style>

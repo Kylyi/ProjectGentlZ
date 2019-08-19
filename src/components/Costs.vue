@@ -61,15 +61,11 @@ export default {
   },
   methods: {
     resizeChart(timeout = false) {
-      if (timeout) {
-        setTimeout(() => {
+      setTimeout(() => {
           this.$refs['overviewChart'].$refs['barChart'].getSize()
           this.$refs['overviewChart'].$refs['drilldownChart'].getSize()
-        }, 150)
-      } else {
-        this.$refs['overviewChart'].$refs['barChart'].getSize()
-        this.$refs['overviewChart'].$refs['drilldownChart'].getSize()
-      }
+          this.$refs['overviewGrid'].$refs['costsTable'].instance.updateDimensions()
+        }, timeout ? 150 : 0)
     }
   }
 }

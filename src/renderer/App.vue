@@ -174,15 +174,10 @@
         <img :src="sapLogo.icon" alt="" style="-webkit-app-region: no-drag; height: 20px;" :title="`SAP user ${sapLogo.sapFilled ? 'is' : 'is NOT'} filled.`">
         <v-icon
           :title="`Database ${!offline ? 'is':'is NOT'} synced across all users.`"
-          style="-webkit-app-region: no-drag;"
-          v-html="offline ? 'sync_disabled' : 'sync'"
-          :color="offline ? 'error' : ''" />
-        <!-- <v-icon
-          :title="`ABB database ${dbConnectivity? 'is':'is NOT'} connected`"
-          style="-webkit-app-region: no-drag;"
-          v-html="dbConnectivity ? 'power' : 'power_off'" 
-          :color="dbConnectivity ? '' : 'error'" 
-        /> -->
+          :style="`-webkit-app-region: no-drag; font-size: ${projectsReplicationActive ? '16' : '20'}px;`"
+          :color="offline ? 'error' : ''">
+          {{ offline ? 'sync_disabled' : projectsReplicationActive ? 'fa-spin fas fa-sync' : 'sync' }}
+        </v-icon>
         <v-icon
           @click="rightDrawer = !rightDrawer"
           id="notifIcon"
@@ -423,7 +418,7 @@
       //FETCH SETTINGS
       this.fetchInvoicingSettings()
       this.fetchHierarchySettings()
-
+      ipcRenderer.send('appReady', true)
     },
     data: () => ({
       registerForm: false,
@@ -465,7 +460,7 @@
     }),
     computed: {
       ...mapGetters(['offline', 'loggedIn', 'snackbar', 'openAfterGenerate', 'userInfo', 'notifications', 'dbConnectivity', 'password', 'invoicingSettings', 'revision',
-      'signComments', 'currentPosition', 'customDialogBody', 'pccRemote', 'sapLogo'])
+      'signComments', 'currentPosition', 'customDialogBody', 'pccRemote', 'sapLogo', 'projectsReplicationActive'])
     },
     methods: {
       ...mapActions(['loginWithPassword', 'registerUser', 'checkConnectivity', 'removeNotification', 'fetchAllProjectsBasic', 'fetchProjectsDetail', 'fetchAllTemplates', 'fetchInvoicingSettings', 'fetchInvoicingDetail', 'fetchHierarchySettings', 'initProjectsDb']),

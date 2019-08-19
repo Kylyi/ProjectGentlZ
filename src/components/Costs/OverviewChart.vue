@@ -43,13 +43,16 @@ export default {
           'RM LV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM LV ' + date),
           'RM MV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM MV ' + date),
           'RM UV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM UV ' + date),
+          'RM EX': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM EX ' + date),
           'RM Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('RM ' + date),
 
           'WIP LV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP LV ' + date),
           'WIP MV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP MV ' + date),
           'WIP UV': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP UV ' + date),
+          'WIP EX': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP EX ' + date),
           'WIP Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('WIP ' + date),
 
+          'FG EX': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('FG EX ' + date),
           'FG Total': this.$parent.$parent.$parent.$refs['overviewGrid'].$refs['costsTable'].instance.getTotalSummaryValue('FG ' + date),
 
         })

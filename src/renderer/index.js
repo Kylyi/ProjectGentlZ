@@ -70,7 +70,8 @@ import {
   DxPopup,
   DxPosition,
   DxTotalItem,
-  DxLoadPanel
+  DxLoadPanel,
+  DxSorting
 } from 'devextreme-vue/data-grid'
 import {
   DxTextArea,
@@ -118,6 +119,7 @@ Vue.component('dx-position', DxPosition)
 Vue.component('dx-total-item', DxTotalItem)
 Vue.component('dx-load-panel', DxLoadPanel)
 Vue.component('dx-number-box', DxNumberBox)
+Vue.component('dx-sorting', DxSorting)
 
 // Mutliselect
 import Multiselect from 'vue-multiselect'
@@ -125,8 +127,8 @@ Vue.component('multiselect', Multiselect)
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 // Notifications
-import Notifications from 'vue-notification'
-Vue.use(Notifications)
+// import Notifications from 'vue-notification'
+// Vue.use(Notifications)
 
 // Shortkey
 import shortkey from 'vue-shortkey'

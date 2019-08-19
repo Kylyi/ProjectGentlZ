@@ -82,7 +82,7 @@
 
     <v-divider vertical></v-divider>
 
-    <v-flex id="detailTemplateRightSide" column xs7 pl-2 class="rightSideDetail" style="max-height: 171px; overflow: auto;">
+    <v-flex id="detailTemplateRightSide" column xs7 pl-2 class="rightSideDetail" style="max-height: 171px;">
       <v-layout row wrap>
         <v-tabs style="width: 100%;">
           <v-tab>
@@ -120,51 +120,49 @@
               v-for="sign in ['warning', 'info', 'arrow_upward', 'arrow_downward']"
               :key="sign"
             >
-              <v-layout column wrap v-if="netData['sign'].hasOwnProperty('Network Num') && netData.sign['Network Num'].hasOwnProperty(sign)" 
-                style="display: block; overflow: auto; padding-top: 4px;">
+              <v-layout column style="display: block; overflow: auto; max-height: 110px; padding-top: 4px;" wrap 
+                v-if="netData['sign'].hasOwnProperty('Network Num') && netData.sign['Network Num'].hasOwnProperty(sign)">
+                <v-flex row><v-btn small block color="primary" outline @click="addSignComment(sign)">New comment</v-btn></v-flex>
+                <v-flex row style="padding-bottom: 3px;">
+                  <v-layout row wrap v-for="(comment, i) in netData.sign['Network Num'][sign]" :key="i" >
+                    <v-flex column style="width: 40px; max-width: 40px; min-width: 40px;">
+                      <v-menu offset-y style="margin-top: -3px;">
+                        <v-icon small slot="activator" v-if="comment.owner === userInfo._id || userInfo.roles.includes('invoicingAdmin')">{{sign}}</v-icon>
+                        <v-list>
+                          <v-list-tile class="iconMenu" v-for="sign2 in signOptions" :key="sign2">
+                            <v-list-tile-title><v-icon @click="swapSigns(sign, sign2, comment, i)">{{sign2}}</v-icon></v-list-tile-title>
+                          </v-list-tile>
+                        </v-list>
+                      </v-menu>
+                      <v-icon v-if="comment.owner === userInfo._id || userInfo.roles.includes('invoicingAdmin')" small @click="removeSignComment(comment, i, sign)">delete</v-icon>
+                    </v-flex>
+                    <v-flex column style="width: 64px; max-width: 64px; min-width: 64px;">
+                      <span>{{comment.owner}}</span>
+                    </v-flex>
+                    <v-flex column style="width: 160px; max-width: 160px; min-width: 160x;">
+                      <span>[{{comment.time}}]:</span>
+                    </v-flex>
+                    <v-flex column shrink v-if="sign === 'warning'">
+                      <v-select
+                        v-model="comment.faultOrigin"
+                        @change="saveIfChanged($event, comment, i)"
+                        hide-details
+                        :items="['Ready & Waiting', 'ABB fault', 'Customer fault']"
+                        style="max-width: 144px;"
+                      ></v-select>
+                    </v-flex>
+                    <v-flex column pl-1>                    
+                      <v-textarea
+                        rows="1" hide-details
+                        :value="comment.comment"
+                        style="font-size: 12px;"
+                        :disabled="userInfo.roles.includes('invoicingAdmin') ? false : (comment.owner === userInfo._id) ? false : true"
+                        @blur="saveIfChanged($event, comment, i)"
+                      ></v-textarea>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
                 
-                <v-layout row wrap
-                  v-for="(comment, i) in netData.sign['Network Num'][sign]" :key="i"
-                >
-                  <v-flex column style="width: 40px; max-width: 40px; min-width: 40px;">
-                    <v-menu offset-y style="margin-top: -3px;">
-                      <v-icon small slot="activator" v-if="comment.owner === userInfo._id || userInfo.roles.includes('invoicingAdmin')">{{sign}}</v-icon>
-                      <v-list>
-                        <v-list-tile class="iconMenu" v-for="sign2 in signOptions" :key="sign2">
-                          <v-list-tile-title><v-icon @click="swapSigns(sign, sign2, comment, i)">{{sign2}}</v-icon></v-list-tile-title>
-                        </v-list-tile>
-                      </v-list>
-                    </v-menu>
-                    <v-icon v-if="comment.owner === userInfo._id || userInfo.roles.includes('invoicingAdmin')" small @click="removeSignComment(comment, i, sign)">delete</v-icon>
-                  </v-flex>
-                  <v-flex column style="width: 64px; max-width: 64px; min-width: 64px;">
-                    {{comment.owner}}
-                  </v-flex>
-                  <v-flex column style="width: 160px; max-width: 160px; min-width: 160x;">
-                    [{{comment.time}}]:
-                  </v-flex>
-                  <v-flex column shrink v-if="sign === 'warning'">
-                    <v-select
-                      v-model="comment.faultOrigin"
-                      @change="saveIfChanged($event, comment, i)"
-                      hide-details
-                      :items="['Ready & Waiting', 'ABB fault', 'Customer fault']"
-                      style="max-width: 144px;"
-                    ></v-select>
-                  </v-flex>
-                  <v-flex column pl-1>                    
-                    <v-textarea
-                      rows="1" hide-details
-                      :value="comment.comment"
-                      style="font-size: 12px;"
-                      :disabled="userInfo.roles.includes('invoicingAdmin') ? false : (comment.owner === userInfo._id) ? false : true"
-                      @blur="saveIfChanged($event, comment, i)"
-                    ></v-textarea>
-                  </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-btn block color="primary" outline @click="addSignComment(sign)">New comment</v-btn>
-                  </v-layout>
               </v-layout>
               <v-layout column wrap v-else style="padding-top: 4px;">
                 <v-flex row>No comments available for selected category on this network.</v-flex>
@@ -199,7 +197,7 @@ export default {
     ...mapGetters(['invoicingDetailVisible', 'invoicingReadOnly', 'userInfo']),
     ppesComments() {
       return this.netData['Network Note'].split('|')
-    },
+    }
   },
   methods: {
     ...mapActions(['notify', 'changeProjectData', 'modifyPccNetsData', 'fetchSapNetsData']),
@@ -241,7 +239,7 @@ export default {
       }
 
       if (this.netData.sign.hasOwnProperty('Network Num') && this.netData.sign['Network Num'].hasOwnProperty(s)) {
-        this.netData.sign['Network Num'][s].push(newComment)
+        this.netData.sign['Network Num'][s].unshift(newComment)
       } else if (this.netData.sign.hasOwnProperty('Network Num')) {
         this.netData.sign['Network Num'] = Object.assign({}, this.netData.sign['Network Num'], {
           [s]: [newComment]
@@ -336,7 +334,7 @@ export default {
     font-size: 14px;
     textarea {
       font-size: 14px;
-      line-height: 24px;
+      line-height: 20px;
       padding: 0 2px;
       min-height: 0;
       resize: vertical!important;
@@ -359,10 +357,20 @@ export default {
     font-weight: bolder;
     padding-top: 7px;
   }
-  #detailTemplateRightSide .v-select__selections {
-    height: 24px!important;
-    .v-select__selection {
-      margin: 0!important;
+  #detailTemplateRightSide .v-select__slot {
+    height: 20px;
+    .v-select__selections {
+      line-height: 20px!important;
+      .v-select__selection {
+        margin: 0!important;
+      }
     }
+    .v-input__append-inner > .v-input__icon {
+      height: 20px;
+      i {
+        font-size: 14px;
+      }
+    }
+
   }
 </style>

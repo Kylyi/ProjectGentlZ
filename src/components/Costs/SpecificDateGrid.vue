@@ -89,63 +89,63 @@
             data-field="Planned Costs"
             caption="Planned costs"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="Real Costs"
             caption="Real Costs"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.rmLv"
             caption="RM LV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.rmMv"
             caption="RM MV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.rmUv"
             caption="RM UV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.wipLv"
             caption="WIP LV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.wipMv"
             caption="WIP MV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.wipUv"
             caption="WIP UV"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
           <dx-column
             data-field="costs.result.fg"
             caption="FG"
             data-type="number"
-            format="thousands"
+            format="millions"
             alignment="center"
           />
 
@@ -153,6 +153,61 @@
             {{templateData.data['Number of Panels']}} / {{templateData.data['Number of Modules']}}
           </div>
 
+          <dx-summary>
+            <dx-total-item
+              column="Network #"
+              summary-type="count"
+              display-format="Net count: {0}"
+            />
+            <dx-total-item
+              column="RM LV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="RM MV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="RM UV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="WIP LV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="WIP MV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="WIP UV"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="FG"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+            <dx-total-item
+              column="Planned Costs"
+              summary-type="sum"
+              display-format="{0}"
+              value-format="#,##0"
+            />
+          </dx-summary>
         </dx-data-grid>
       </v-flex>
     </v-layout>
@@ -172,6 +227,7 @@ export default {
   computed: {
     ...mapGetters(['allProjectsBasic', 'costsData']),
     costsDataSource() {
+      console.log('Computing...')
       let data = JSON.parse(JSON.stringify(this.costsData))
       const date = this.selectedDate ? moment(this.selectedDate) : moment()
 
@@ -181,33 +237,28 @@ export default {
         const mvmat_leadtime = hasParameters ? e['costs']['parameters']['mvmat_leadtime'] : 15
         const uvmat_leadtime = hasParameters ? e['costs']['parameters']['uvmat_leadtime'] : 15
         
-        const rmLvMat = hasParameters ? e['costs']['parameters']['rmLvMat'] : 10
-        const rmMvMat = hasParameters ? e['costs']['parameters']['rmMvMat'] : 10
-        const rmUvMat = hasParameters ? e['costs']['parameters']['rmUvMat'] : 10
+        const lvMat = hasParameters ? e['costsParameters']['lvMat'] : 30
+        const mvMat = hasParameters ? e['costsParameters']['mvMat'] : 40
+        const uvMat = hasParameters ? e['costsParameters']['uvMat'] : 30
 
-        const wipLvMat = hasParameters ? e['costs']['parameters']['wipLvMat'] : 13
-        const wipMvMat = hasParameters ? e['costs']['parameters']['wipMvMat'] : 14
-        const wipUvMat = hasParameters ? e['costs']['parameters']['wipUvMat'] : 13
+        const isRmLv = date.isSameOrAfter(moment(e.costsOperations['op0130_esd'] || 0).subtract(lvmat_leadtime, 'days').format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0130_esd'] || 0).format('YYYY-MM-DD'))
+        const isRmMv = (date.isSameOrAfter(moment(e.costsOperations['op0800_esd'] || 0).subtract(mvmat_leadtime, 'days').format('YYYY-MM-DD')) || date.isSameOrAfter(moment(e.costsOperations['op0805_esd'] || 0).subtract(mvmat_leadtime, 'days').format('YYYY-MM-DD'))) && 
+          (date.isBefore(moment(e.costsOperations['op0800_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0805_esd'] || 0).format('YYYY-MM-DD')))
+        const isRmUv = date.isSameOrAfter(moment(e.costsOperations['op0105_esd'] || 0).subtract(uvmat_leadtime, 'days').format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0105_esd'] || 0).format('YYYY-MM-DD'))
 
+        const isWipLv = date.isSameOrAfter(moment(e.costsOperations['op0130_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
+        const isWipMv = ( date.isSameOrAfter(moment(e.costsOperations['op0800_esd'] || 0).format('YYYY-MM-DD')) || date.isSameOrAfter(moment(e.costsOperations['op0805_esd'] || 0).format('YYYY-MM-DD') )) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
+        const isWipUv = date.isSameOrAfter(moment(e.costsOperations['op0105_esd'] || 0).format('YYYY-MM-DD')) && date.isBefore(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD'))
 
-        const isRmLv = date >= moment(e.costsOperations['op0130_esd']).subtract(lvmat_leadtime, 'days') && date < moment(e.costsOperations['op0130_esd'])
-        const isRmMv = (date >= moment(e.costsOperations['op0800_esd']).subtract(mvmat_leadtime, 'days') || date >= moment(e.costsOperations['op0805_esd']).subtract(mvmat_leadtime, 'days')) && 
-          (date < moment(e.costsOperations['op0800_esd']) || date < moment(e.costsOperations['op0805_esd']))
-        const isRmUv = date >= moment(e.costsOperations['op0105_esd']).subtract(uvmat_leadtime, 'days') && date < moment(e.costsOperations['op0105_esd'])
-
-        const isWipLv = date >= moment(e.costsOperations['op0130_esd']) && date < moment(e.costsOperations['op0420_efd'])
-        const isWipMv = ( date >= moment(e.costsOperations['op0800_esd']) || date >= moment(e.costsOperations['op0805_esd']) ) && date < moment(e.costsOperations['op0420_efd'])
-        const isWipUv = date >= moment(e.costsOperations['op0105_esd']) && date < moment(e.costsOperations['op0420_efd'])
-
-        const isFg = date >= moment(e.costsOperations['op0420_efd']) && date < (e.costsOperations['op0431_cfd'] ? moment(e.costsOperations['op0431_cfd']) : moment(e.costsOperations['op0431_esd']))
+        const isFg = date.isSameOrAfter(moment(e.costsOperations['op0420_efd'] || 0).format('YYYY-MM-DD')) && date.isBefore((e.costsOperations['op0431_cfd'] ? moment(e.costsOperations['op0431_cfd']).format('YYYY-MM-DD') : moment(e.costsOperations['op0431_esd'] || 0).format('YYYY-MM-DD')))
 
         if (!e.hasOwnProperty('costs')) e['costs'] = {result: {}}
-        e['costs']['result']['rmLv'] = isRmLv ? e['Planned Costs'] * rmLvMat / 100 : 0
-        e['costs']['result']['rmMv'] = isRmMv ? e['Planned Costs'] * rmMvMat / 100 : 0
-        e['costs']['result']['rmUv'] = isRmUv ? e['Planned Costs'] * rmUvMat / 100 : 0
-        e['costs']['result']['wipLv'] = isWipLv ? e['Planned Costs'] * wipLvMat / 100 : 0
-        e['costs']['result']['wipMv'] = isWipMv ? e['Planned Costs'] * wipMvMat / 100 : 0
-        e['costs']['result']['wipUv'] = isWipUv ? e['Planned Costs'] * wipUvMat / 100 : 0
+        e['costs']['result']['rmLv'] = isRmLv ? e['Planned Costs'] * lvMat / 100 : 0
+        e['costs']['result']['rmMv'] = isRmMv ? e['Planned Costs'] * mvMat / 100 : 0
+        e['costs']['result']['rmUv'] = isRmUv ? e['Planned Costs'] * uvMat / 100 : 0
+        e['costs']['result']['wipLv'] = isWipLv ? e['Planned Costs'] * lvMat / 100 : 0
+        e['costs']['result']['wipMv'] = isWipMv ? e['Planned Costs'] * mvMat / 100 : 0
+        e['costs']['result']['wipUv'] = isWipUv ? e['Planned Costs'] * uvMat / 100 : 0
         e['costs']['result']['fg'] = isFg ? e['Planned Costs'] : 0
 
         return e

@@ -172,8 +172,9 @@
         </v-flex>
 
         <!-- TEMPLATE PREVIEW -->
-        <v-flex column xs6 pl-5>
-          <v-img v-if="templatePreview" style="border: 1px solid black" :contain="true" :src="templatePreview"></v-img>
+        <v-flex column xs6 pl-5 style="max-height: calc(100vh - 150px); overflow: auto;">
+          <!-- <v-img v-if="templatePreview" style="border: 1px solid black" :contain="true" :src="templatePreview"></v-img> -->
+          <img v-if="templatePreview" style="border: 1px solid black; width: 100%;" :src="templatePreview" alt="">
         </v-flex>
       </v-layout>
       
@@ -232,8 +233,8 @@
       templatePreview: null
     }),
     created: async function () {
+      this.chooseProjects([])
       this.openAfterGenerate = this.$store.state.templates.openAfterGenerate
-      // this.generatorSelectionMode = this.$store.state.templates.generatorSelectionMode
     },
     computed: {
       ...mapGetters(['chosenTemplates', 'chosenProjects', 'visibleProjectsDetail', 'loading', 'visibleProjectsDetail', 'generatorSelectionMode']),
@@ -247,7 +248,7 @@
       }
     },
     methods: {
-      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'getTemplatePreview']),
+      ...mapActions(['changeOpenAfterGenerate', 'changeGeneratorSelectionMode', 'generateTemplate', 'addForeignNets', 'getTemplatePreview', 'chooseProjects']),
       addProject() {
         if (this.projectAddValid) {
           this.addForeignNets(this.projectToAdd)
@@ -255,6 +256,7 @@
       },
       getValue(val) {
         if (typeof(val) !== 'number' && moment(val).isValid()) {
+          // return val
           return val.substr(0,10)
         }
         return val

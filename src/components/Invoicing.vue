@@ -196,14 +196,14 @@
         <v-flex column shrink>
           <v-layout row wrap justify-center align-center fill-height>
             <v-btn icon @click="filterSignOnAll('error')">
-              <v-icon :color="signFilterActive.error ? 'error' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              <v-icon :color="signFilterActive.error ? 'error' : 'inherit'" title="Filters escalated nets.">
                 error
               </v-icon>
             </v-btn>
             <v-menu offset-y>
               <v-btn slot="activator" icon>
                 <v-icon :color="signFilterActive.warning ? 'error' : 'inherit'"
-                  :title="filterOnWarningSign ? `Filtered by ${filterOnWarningSign}` : 'Clicking will filter the table by this sign. To reset filter, click active sign.'"
+                  :title="filterOnWarningSign ? `Filtered by ${filterOnWarningSign}` : 'Filters nets by influential comments.'"
                 >
                   warning
                 </v-icon>
@@ -229,17 +229,17 @@
               </v-list>
             </v-menu>
             <v-btn icon @click="filterSignOnAll('info')">
-              <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              <v-icon :color="signFilterActive.info ? 'info' : 'inherit'" title="Filters nets by non-influential comments.">
                 info
               </v-icon>
             </v-btn>
             <v-btn icon @click="filterSignOnAll('arrow_upward')">
-              <v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              <v-icon :color="signFilterActive.arrow_upward ? 'success' : 'inherit'" title="Filters nets by possible upside in invoice date.">
                 arrow_upward
               </v-icon>
             </v-btn>
             <v-btn icon @click="filterSignOnAll('arrow_downward')">
-              <v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'" title="Clicking will filter the table by this sign. To reset filter, click active sign.">
+              <v-icon :color="signFilterActive.arrow_downward ? 'warning' : 'inherit'" title="Filters nets by possible downside in invoice date.">
                 arrow_downward
               </v-icon>
             </v-btn>
@@ -548,7 +548,6 @@
 </template>
 
 <script>
-  import localStorage from 'localStorage'
   import {readFile} from '../main/scripts/misc'
   import FormattedCellInvoiceDate from './Invoicing/FormattedCellInvoiceDate.vue'
   import EscalatedCell from './Invoicing/EscalatedCell.vue'
@@ -579,11 +578,13 @@
         }
         docs.change.docs.forEach(e => {
           const idx = this.billings.map(x => e._id === x._id).indexOf(true)
-          Object.keys(e).forEach(k => {
-            if (this.billings[idx][k] !== e[k]) {
-              this.billings[idx][k] = e[k]
-            }
-          })
+          if (idx !== -1) {
+            Object.keys(e).forEach(k => {
+              if (this.billings[idx][k] !== e[k]) {
+                this.billings[idx][k] = e[k]
+              }
+            })
+          }
         })
       })
 
@@ -776,6 +777,12 @@
             color = '#B3E5FC'
           }
 
+          row.cellElement.style.backgroundColor = color
+        } else if (row.column.caption === 'Revenues' && row.rowType === 'data') {
+          let color
+          if (!row.data['Invoice Value Correct']) {
+            color = '#FFCDD2'
+          }
           row.cellElement.style.backgroundColor = color
         }
       },

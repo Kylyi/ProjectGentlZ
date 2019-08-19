@@ -16,6 +16,7 @@
       :focused-row-enabled="true"
       @cell-prepared="getConditionalFormatting"
       :repaint-changes-only="true"
+      style="width: 100%; height: 100%;"
     >
       <!-- <dx-scrolling mode="virtual"/> -->
       <dx-paging :enabled="true" :page-size="50"/>
