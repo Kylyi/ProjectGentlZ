@@ -64,7 +64,7 @@
     "pouchdb-upsert": "^2.2.0",
     "set-cookie-parser": "^2.3.8",
     "sl-vue-tree": "^1.8.4",
-    "underscore": "^1.9.1",
+    "underscore": "^1.12.1",
     "username": "^4.1.0",
     "vue": "^2.6.3",
     "vue-draggable-resizable": "^2.0.0-rc2",
