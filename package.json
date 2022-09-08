@@ -50,7 +50,7 @@
     "electron-updater": "^4.0.6",
     "element-ui": "^2.5.4",
     "iconv-lite": "^0.4.24",
-    "jszip": "2.6.1",
+    "jszip": "2.7.0",
     "keytar": "^4.4.1",
     "material-design-icons-iconfont": "^4.0.4",
     "moment": "^2.24.0",
